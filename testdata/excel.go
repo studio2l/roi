@@ -44,7 +44,7 @@ func main() {
 	}
 
 	for _, shot := range shots {
-		if err := insertInto(db, "rd7_shot", shot); err != nil {
+		if err := insertInto(db, "test_shot", shot); err != nil {
 			log.Fatal(err)
 		}
 	}

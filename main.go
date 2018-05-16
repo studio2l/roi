@@ -32,7 +32,7 @@ func main() {
 		log.Fatal("error connecting to the database: ", err)
 	}
 
-	if err := createTableIfNotExists(db, "rd7_shot", Shot{}); err != nil {
+	if err := createTableIfNotExists(db, "test_shot", Shot{}); err != nil {
 		log.Fatal(err)
 	}
 	s := Shot{
@@ -40,7 +40,7 @@ func main() {
 		Book:    5,
 		Status:  "not good",
 	}
-	if err := insertInto(db, "rd7_shot", s); err != nil {
+	if err := insertInto(db, "test_shot", s); err != nil {
 		log.Fatal(err)
 	}
 	mux := http.NewServeMux()
