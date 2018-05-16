@@ -71,10 +71,10 @@ func ShotFromMap(m map[string]string) Shot {
 }
 
 var ShotTableFields = []string{
-	"project STRING CHECK (length(project) > 0)",
+	"project STRING NOT NULL CHECK (length(project) > 0)",
 	"book INT",
-	"scene STRING",
-	"name STRING CHECK (length(name) > 0)",
+	"scene STRING NOT NULL",
+	"name STRING NOT NULL CHECK (length(name) > 0)",
 	"status STRING",
 	"description STRING",
 	"cg_description STRING",
