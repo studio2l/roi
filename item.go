@@ -72,10 +72,10 @@ func ShotFromMap(m map[string]string) Shot {
 
 func (s Shot) dbKeyTypeValues() []KTV {
 	ktv := []KTV{
-		{"project", "STRING", q(s.Project)},
+		{"project", "STRING CHECK(length(project) > 0)", q(s.Project)},
 		{"book", "INT", strconv.Itoa(s.Book)},
-		{"scene", "STRING", q(s.Scene)},
-		{"name", "STRING", q(s.Name)},
+		{"scene", "STRING CHECK (length(scene) > 0)", q(s.Scene)},
+		{"name", "STRING CHECK (length(name) > 0)", q(s.Name)},
 		{"status", "STRING", q(s.Status)},
 		{"description", "STRING", q(s.Description)},
 		{"cg_description", "STRING", q(s.CGDescription)},

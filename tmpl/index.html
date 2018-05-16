@@ -14,5 +14,31 @@
 	</div>
 	<div style="background-color:#48F; display:flex; height:40px; color:#999">
 	</div>
+	<table style="width:100%">
+		<tr>
+			<th style="width:100px">프로젝트</th>
+			<th>권</th>
+			<th>씬</th>
+			<th>샷</th>
+			<th>상태</th>
+			<th>내용</th>
+			<th>CG</th>
+			<th>T.In</th>
+			<th>T.Out</th>
+		</tr>
+		{{range .Shots}}
+		<tr>
+			<td>{{.Project}}</td>
+			<td>{{.Book}}</td>
+			<td>{{.Scene}}</td>
+			<td>{{.Name}}</td>
+			<td>{{.Status}}</td>
+			<td>{{.Description}}</td>
+			<td>{{.CGDescription}}</td>
+			<td>{{.TimecodeIn}}</td>
+			<td>{{.TimecodeOut}}</td>
+		</tr>
+		{{end}}
+	</table>
 </body>
 </html>
