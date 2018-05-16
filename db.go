@@ -10,12 +10,11 @@ import (
 )
 
 type dbItem interface {
-	dbKeyTypeValues() []KTV
+	dbKeyValues() []KV
 }
 
-type KTV struct {
+type KV struct {
 	K string
-	T string
 	V string
 }
 
@@ -24,15 +23,12 @@ func q(s string) string {
 	return fmt.Sprint("'", s, "'")
 }
 
-func CreateTableIfNotExists(db *sql.DB, table string, item dbItem) error {
-	fields := []string{
-		// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
-		"id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
-	}
-	for _, ktv := range item.dbKeyTypeValues() {
-		f := ktv.K + " " + ktv.T
-		fields = append(fields, f)
-	}
+func CreateTableIfNotExists(db *sql.DB, table string, fields []string) error {
+	// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
+	fields = append(
+		[]string{"id UUID PRIMARY KEY DEFAULT gen_random_uuid()"},
+		fields...,
+	)
 	field := strings.Join(fields, ", ")
 	stmt := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s)", table, field)
 	fmt.Println(stmt)
@@ -43,9 +39,9 @@ func CreateTableIfNotExists(db *sql.DB, table string, item dbItem) error {
 func InsertInto(db *sql.DB, table string, item dbItem) error {
 	keys := make([]string, 0)
 	values := make([]string, 0)
-	for _, ktv := range item.dbKeyTypeValues() {
-		keys = append(keys, ktv.K)
-		values = append(values, ktv.V)
+	for _, kv := range item.dbKeyValues() {
+		keys = append(keys, kv.K)
+		values = append(values, kv.V)
 	}
 	keystr := strings.Join(keys, ", ")
 	valuestr := strings.Join(values, ", ")
@@ -64,7 +60,7 @@ func SelectAll(db *sql.DB, table string) (*sql.Rows, error) {
 func AddProject(db *sql.DB, prj string) error {
 	// TODO: add project to projects table
 	// TODO: add project info, task, tracking table
-	if err := CreateTableIfNotExists(db, prj+"_shot", Shot{}); err != nil {
+	if err := CreateTableIfNotExists(db, prj+"_shot", ShotTableFields); err != nil {
 		return err
 	}
 	return nil

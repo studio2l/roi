@@ -70,19 +70,32 @@ func ShotFromMap(m map[string]string) Shot {
 	}
 }
 
-func (s Shot) dbKeyTypeValues() []KTV {
-	ktv := []KTV{
-		{"project", "STRING CHECK(length(project) > 0)", q(s.Project)},
-		{"book", "INT", strconv.Itoa(s.Book)},
-		{"scene", "STRING CHECK (length(scene) > 0)", q(s.Scene)},
-		{"name", "STRING CHECK (length(name) > 0)", q(s.Name)},
-		{"status", "STRING", q(s.Status)},
-		{"description", "STRING", q(s.Description)},
-		{"cg_description", "STRING", q(s.CGDescription)},
-		{"timecode_in", "STRING", q(s.TimecodeIn)},
-		{"timecode_out", "STRING", q(s.TimecodeOut)},
+var ShotTableFields = []string{
+	"project STRING CHECK (length(project) > 0)",
+	"book INT",
+	"scene STRING",
+	"name STRING CHECK (length(name) > 0)",
+	"status STRING",
+	"description STRING",
+	"cg_description STRING",
+	"timecode_in STRING",
+	"timecode_out STRING",
+	"UNIQUE (project, scene, name)",
+}
+
+func (s Shot) dbKeyValues() []KV {
+	kv := []KV{
+		{"project", q(s.Project)},
+		{"book", strconv.Itoa(s.Book)},
+		{"scene", q(s.Scene)},
+		{"name", q(s.Name)},
+		{"status", q(s.Status)},
+		{"description", q(s.Description)},
+		{"cg_description", q(s.CGDescription)},
+		{"timecode_in", q(s.TimecodeIn)},
+		{"timecode_out", q(s.TimecodeOut)},
 	}
-	return ktv
+	return kv
 }
 
 type TaskStatus int

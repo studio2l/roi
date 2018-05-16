@@ -63,7 +63,11 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	dev = true
-
+	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		log.Fatal("error connecting to the database: ", err)
+	}
+	roi.AddProject(db, "test")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
 	log.Fatal(http.ListenAndServe("0.0.0.0:7070", mux))
