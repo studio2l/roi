@@ -18,6 +18,10 @@ type KTV struct {
 	V string
 }
 
+func q(s string) string {
+	return fmt.Sprint("'", s, "'")
+}
+
 func createTableIfNotExists(db *sql.DB, table string, item dbItem) error {
 	fields := []string{
 		// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
