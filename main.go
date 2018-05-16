@@ -27,7 +27,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("error connecting to the database: ", err)
 	}
 
-	shots, err := selectShots(db, "test")
+	prj := "test"
+
+	shots, err := selectShots(db, prj)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,9 +50,11 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	recipt := struct {
-		Shots []Shot
+		Project string
+		Shots   []Shot
 	}{
-		Shots: shots,
+		Project: prj,
+		Shots:   shots,
 	}
 	executeTemplate(w, "index.html", recipt)
 }
