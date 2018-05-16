@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 
 	_ "github.com/lib/pq"
@@ -51,4 +52,28 @@ func insertInto(db *sql.DB, table string, item dbItem) error {
 	fmt.Println(stmt)
 	_, err := db.Exec(stmt)
 	return err
+}
+
+func selectAll(db *sql.DB, table string) (*sql.Rows, error) {
+	stmt := fmt.Sprintf("SELECT * FROM %s", table)
+	fmt.Println(stmt)
+	return db.Query(stmt)
+}
+
+func selectShots(db *sql.DB, prj string) ([]Shot, error) {
+	rows, err := selectAll(db, prj+"_shot")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	shots := make([]Shot, 0)
+	for rows.Next() {
+		var id string
+		var s Shot
+		if err := rows.Scan(&id, &s.Project, &s.Book, &s.Scene, &s.Name, &s.Status, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut); err != nil {
+			return nil, err
+		}
+		shots = append(shots, s)
+	}
+	return shots, nil
 }
