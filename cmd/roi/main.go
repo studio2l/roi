@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"sort"
+
+	"dev.2lfilm.com/2l/roi"
 )
 
 var dev bool
@@ -29,7 +31,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	prj := "test"
 
-	shots, err := selectShots(db, prj)
+	shots, err := roi.SelectShots(db, prj)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,7 +53,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	recipt := struct {
 		Project string
-		Shots   []Shot
+		Shots   []roi.Shot
 	}{
 		Project: prj,
 		Shots:   shots,

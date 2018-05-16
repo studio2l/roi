@@ -1,4 +1,4 @@
-package main
+package roi
 
 import (
 	"database/sql"
@@ -20,10 +20,11 @@ type KTV struct {
 }
 
 func q(s string) string {
+	s = strings.Replace(s, "'", "''", -1)
 	return fmt.Sprint("'", s, "'")
 }
 
-func createTableIfNotExists(db *sql.DB, table string, item dbItem) error {
+func CreateTableIfNotExists(db *sql.DB, table string, item dbItem) error {
 	fields := []string{
 		// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
 		"id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
@@ -39,7 +40,7 @@ func createTableIfNotExists(db *sql.DB, table string, item dbItem) error {
 	return err
 }
 
-func insertInto(db *sql.DB, table string, item dbItem) error {
+func InsertInto(db *sql.DB, table string, item dbItem) error {
 	keys := make([]string, 0)
 	values := make([]string, 0)
 	for _, ktv := range item.dbKeyTypeValues() {
@@ -54,23 +55,23 @@ func insertInto(db *sql.DB, table string, item dbItem) error {
 	return err
 }
 
-func selectAll(db *sql.DB, table string) (*sql.Rows, error) {
+func SelectAll(db *sql.DB, table string) (*sql.Rows, error) {
 	stmt := fmt.Sprintf("SELECT * FROM %s", table)
 	fmt.Println(stmt)
 	return db.Query(stmt)
 }
 
-func addProject(db *sql.DB, prj string) error {
+func AddProject(db *sql.DB, prj string) error {
 	// TODO: add project to projects table
 	// TODO: add project info, task, tracking table
-	if err := createTableIfNotExists(db, prj+"_shot", Shot{}); err != nil {
+	if err := CreateTableIfNotExists(db, prj+"_shot", Shot{}); err != nil {
 		return err
 	}
 	return nil
 }
 
-func selectShots(db *sql.DB, prj string) ([]Shot, error) {
-	rows, err := selectAll(db, prj+"_shot")
+func SelectShots(db *sql.DB, prj string) ([]Shot, error) {
+	rows, err := SelectAll(db, prj+"_shot")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -87,11 +88,11 @@ func selectShots(db *sql.DB, prj string) ([]Shot, error) {
 	return shots, nil
 }
 
-func addShot(db *sql.DB, s Shot) error {
+func AddShot(db *sql.DB, s Shot) error {
 	if s.Project == "" {
 		return fmt.Errorf("project not specified in shot: %v", s)
 	}
-	if err := insertInto(db, s.Project+"_shot", s); err != nil {
+	if err := InsertInto(db, s.Project+"_shot", s); err != nil {
 		return err
 	}
 	return nil
