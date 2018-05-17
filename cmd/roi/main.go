@@ -77,15 +77,37 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prjs, err := db.Query("SELECT * FROM projects WHERE code=$1 LIMIT 1", code)
+	prjRows, err := db.Query("SELECT code FROM projects")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "project selection error: ", err)
 		return
 	}
-	defer prjs.Close()
-	if !prjs.Next() {
-		http.Error(w, fmt.Sprintf("not found project: %s", code), http.StatusInternalServerError)
+	defer prjRows.Close()
+	prjs := make([]string, 0)
+	for prjRows.Next() {
+		prj := ""
+		if err := prjRows.Scan(&prj); err != nil {
+			fmt.Fprintln(os.Stderr, "error getting prject info from database: ", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		prjs = append(prjs, prj)
+	}
+	if len(prjs) == 0 {
+		fmt.Fprintln(os.Stderr, "no projects")
 		return
+	}
+
+	found := false
+	for _, p := range prjs {
+		if p == code {
+			found = true
+		}
+	}
+	if !found {
+		fmt.Fprintln(os.Stderr, "not found")
+		return
+		// http.Error(w, fmt.Sprintf("not found project: %s", code), http.StatusNotFound)
 	}
 
 	shots, err := roi.SelectShots(db, code)
@@ -109,11 +131,13 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	recipt := struct {
-		Project string
-		Shots   []roi.Shot
+		Projects []string
+		Project  string
+		Shots    []roi.Shot
 	}{
-		Project: code,
-		Shots:   shots,
+		Projects: prjs,
+		Project:  code,
+		Shots:    shots,
 	}
 	executeTemplate(w, "index.html", recipt)
 }

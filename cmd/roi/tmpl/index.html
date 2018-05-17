@@ -12,32 +12,41 @@
 			<div style="background-color:#37F; width:120px; margin:0px 1px; font-size:20px; display:flex; padding:5px; justify-content:center; align-items:flex-end"><div>Shot</div></div>
 			<div style="background-color:#37F; flex-grow:1;"></div>
 	</div>
-	<div style="background-color:#48F; display:flex; color:#FFF; height:40px; align-items:center;">
-		<span>프로젝트 {{.Project}}</span>
+	<div style="display:flex; flex: 1;">
+		<div style="flex: 0 0 200px;">
+			{{range .Projects}}
+			<div><a href="{{.}}">{{.}}</a></div>
+			{{end}}
+		</div>
+		<div style="flex:1;">
+			<div style="background-color:#48F; display:flex; color:#FFF; height:40px; align-items:center;">
+				<span>프로젝트 {{.Project}}</span>
+			</div>
+			<table style="width:100%">
+				<tr>
+					<th>권</th>
+					<th>씬</th>
+					<th>샷</th>
+					<th>상태</th>
+					<th>내용</th>
+					<th>CG</th>
+					<th>T.In</th>
+					<th>T.Out</th>
+				</tr>
+				{{range .Shots}}
+				<tr>
+					<td>{{.Book}}</td>
+					<td>{{.Scene}}</td>
+					<td>{{.Name}}</td>
+					<td>{{.Status}}</td>
+					<td>{{.Description}}</td>
+					<td>{{.CGDescription}}</td>
+					<td>{{.TimecodeIn}}</td>
+					<td>{{.TimecodeOut}}</td>
+				</tr>
+				{{end}}
+			</table>
+		</div>
 	</div>
-	<table style="width:100%">
-		<tr>
-			<th>권</th>
-			<th>씬</th>
-			<th>샷</th>
-			<th>상태</th>
-			<th>내용</th>
-			<th>CG</th>
-			<th>T.In</th>
-			<th>T.Out</th>
-		</tr>
-		{{range .Shots}}
-		<tr>
-			<td>{{.Book}}</td>
-			<td>{{.Scene}}</td>
-			<td>{{.Name}}</td>
-			<td>{{.Status}}</td>
-			<td>{{.Description}}</td>
-			<td>{{.CGDescription}}</td>
-			<td>{{.TimecodeIn}}</td>
-			<td>{{.TimecodeOut}}</td>
-		</tr>
-		{{end}}
-	</table>
 </body>
 </html>
