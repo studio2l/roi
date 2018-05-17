@@ -69,13 +69,14 @@ func main() {
 		log.Fatal("error connecting to the database: ", err)
 	}
 
-	if roi.AddProject(db, prj); err != nil {
-		log.Fatal(err)
+	if err := roi.AddProject(db, prj); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 
 	for _, shot := range shots {
 		if err := roi.InsertInto(db, prj+"_shot", shot); err != nil {
-			log.Print(err)
+			fmt.Fprintln(os.Stderr, err)
 		}
 	}
 }

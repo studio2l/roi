@@ -67,7 +67,7 @@ func main() {
 	if err != nil {
 		log.Fatal("error connecting to the database: ", err)
 	}
-	roi.AddProject(db, "test")
+	roi.CreateTableIfNotExists(db, "projects", roi.ProjectTableFields)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
 	log.Fatal(http.ListenAndServe("0.0.0.0:7070", mux))

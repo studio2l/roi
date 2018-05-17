@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -21,6 +22,11 @@ type KV struct {
 func q(s string) string {
 	s = strings.Replace(s, "'", "''", -1)
 	return fmt.Sprint("'", s, "'")
+}
+
+func dbDate(t time.Time) string {
+	ft := t.Format("2006-01-02")
+	return "DATE " + q(ft)
 }
 
 func CreateTableIfNotExists(db *sql.DB, table string, fields []string) error {
@@ -58,7 +64,9 @@ func SelectAll(db *sql.DB, table string) (*sql.Rows, error) {
 }
 
 func AddProject(db *sql.DB, prj string) error {
-	// TODO: add project to projects table
+	if err := InsertInto(db, "projects", Project{Code: prj}); err != nil {
+		return err
+	}
 	// TODO: add project info, task, tracking table
 	if err := CreateTableIfNotExists(db, prj+"_shot", ShotTableFields); err != nil {
 		return err
