@@ -2,9 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 
 	"dev.2lfilm.com/2l/roi"
@@ -23,6 +25,7 @@ func executeTemplate(w http.ResponseWriter, name string, data interface{}) {
 	}
 	templates.ExecuteTemplate(w, name, data)
 }
+
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
 	if err != nil {
@@ -61,14 +64,71 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	executeTemplate(w, "index.html", recipt)
 }
 
+func projectHandler(w http.ResponseWriter, r *http.Request) {
+	code := r.URL.Path[len("/project/"):]
+	if code == "" {
+		return
+	}
+
+	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	prjs, err := db.Query("SELECT * FROM projects WHERE code=$1 LIMIT 1", code)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "project selection error: ", err)
+		return
+	}
+	defer prjs.Close()
+	if !prjs.Next() {
+		http.Error(w, fmt.Sprintf("not found project: %s", code), http.StatusInternalServerError)
+		return
+	}
+
+	shots, err := roi.SelectShots(db, code)
+	if err != nil {
+		log.Fatal(err)
+	}
+	sort.Slice(shots, func(i int, j int) bool {
+		if shots[i].Project < shots[j].Project {
+			return true
+		}
+		if shots[i].Project > shots[j].Project {
+			return false
+		}
+		if shots[i].Scene < shots[j].Scene {
+			return true
+		}
+		if shots[i].Scene > shots[j].Scene {
+			return false
+		}
+		return shots[i].Name <= shots[j].Name
+	})
+
+	recipt := struct {
+		Project string
+		Shots   []roi.Shot
+	}{
+		Project: code,
+		Shots:   shots,
+	}
+	executeTemplate(w, "index.html", recipt)
+}
+
 func main() {
 	dev = true
+
 	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
 	if err != nil {
 		log.Fatal("error connecting to the database: ", err)
 	}
 	roi.CreateTableIfNotExists(db, "projects", roi.ProjectTableFields)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
+	mux.HandleFunc("/project/", projectHandler)
 	log.Fatal(http.ListenAndServe("0.0.0.0:7070", mux))
 }
