@@ -65,7 +65,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func projectHandler(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Path[len("/project/"):]
+	code := r.URL.Path[len("/shot/"):]
 	if code == "" {
 		return
 	}
@@ -153,6 +153,6 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
-	mux.HandleFunc("/project/", projectHandler)
+	mux.HandleFunc("/shot/", projectHandler)
 	log.Fatal(http.ListenAndServe("0.0.0.0:7070", mux))
 }
