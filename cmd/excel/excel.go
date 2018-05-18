@@ -75,7 +75,7 @@ func main() {
 	}
 
 	for _, shot := range shots {
-		if err := roi.InsertInto(db, prj+"_shot", shot); err != nil {
+		if err := roi.InsertInto(db, prj+"_shots", shot); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
 	}

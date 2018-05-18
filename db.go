@@ -68,14 +68,14 @@ func AddProject(db *sql.DB, prj string) error {
 		return err
 	}
 	// TODO: add project info, task, tracking table
-	if err := CreateTableIfNotExists(db, prj+"_shot", ShotTableFields); err != nil {
+	if err := CreateTableIfNotExists(db, prj+"_shots", ShotTableFields); err != nil {
 		return err
 	}
 	return nil
 }
 
 func SelectShots(db *sql.DB, prj string) ([]Shot, error) {
-	rows, err := SelectAll(db, prj+"_shot")
+	rows, err := SelectAll(db, prj+"_shots")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -96,7 +96,7 @@ func AddShot(db *sql.DB, s Shot) error {
 	if s.Project == "" {
 		return fmt.Errorf("project not specified in shot: %v", s)
 	}
-	if err := InsertInto(db, s.Project+"_shot", s); err != nil {
+	if err := InsertInto(db, s.Project+"_shots", s); err != nil {
 		return err
 	}
 	return nil
