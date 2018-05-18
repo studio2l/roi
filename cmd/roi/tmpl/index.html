@@ -23,9 +23,9 @@
 		<div>..</div>
 		<div>{{.Project}}</div>
 		<form>
-			<input type="text" name="book" placeholder="권">
-			<input type="text" name="scene" placeholder="씬">
-			<input type="text" name="status" placeholder="상태">
+			<input type="text" name="book" placeholder="권" value="{{$.FilterBook}}">
+			<input type="text" name="scene" placeholder="씬" value="{{$.FilterScene}}">
+			<input type="text" name="status" placeholder="상태" value="{{$.FilterStatus}}">
 			<input type="submit" value="검색">
 		</form>
 	</div>

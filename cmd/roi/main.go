@@ -132,15 +132,21 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	recipt := struct {
-		Projects []string
-		Project  string
-		Scenes   []string
-		Shots    []roi.Shot
+		Projects     []string
+		Project      string
+		Scenes       []string
+		Shots        []roi.Shot
+		FilterBook   string
+		FilterScene  string
+		FilterStatus string
 	}{
-		Projects: prjs,
-		Project:  code,
-		Scenes:   scenes,
-		Shots:    shots,
+		Projects:     prjs,
+		Project:      code,
+		Scenes:       scenes,
+		Shots:        shots,
+		FilterBook:   where["book"],
+		FilterScene:  where["scene"],
+		FilterStatus: where["status"],
 	}
 	executeTemplate(w, "index.html", recipt)
 }
