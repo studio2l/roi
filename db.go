@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -72,6 +73,30 @@ func AddProject(db *sql.DB, prj string) error {
 		return err
 	}
 	return nil
+}
+
+func SelectScenes(db *sql.DB, prj string) ([]string, error) {
+	stmt := fmt.Sprintf("SELECT DISTINCT scene FROM %s_shots", prj)
+	rows, err := db.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	scenes := make([]string, 0)
+	for rows.Next() {
+		var sc string
+		if err := rows.Scan(&sc); err != nil {
+			return nil, err
+		}
+		scenes = append(scenes, sc)
+	}
+	sort.Slice(scenes, func(i int, j int) bool {
+		if strings.Compare(scenes[i], scenes[j]) < 0 {
+			return true
+		}
+		return false
+	})
+	return scenes, nil
 }
 
 func SelectShots(db *sql.DB, prj string) ([]Shot, error) {

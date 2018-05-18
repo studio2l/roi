@@ -110,6 +110,11 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 		// http.Error(w, fmt.Sprintf("not found project: %s", code), http.StatusNotFound)
 	}
 
+	scenes, err := roi.SelectScenes(db, code)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	shots, err := roi.SelectShots(db, code)
 	if err != nil {
 		log.Fatal(err)
@@ -133,10 +138,12 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 	recipt := struct {
 		Projects []string
 		Project  string
+		Scenes   []string
 		Shots    []roi.Shot
 	}{
 		Projects: prjs,
 		Project:  code,
+		Scenes:   scenes,
 		Shots:    shots,
 	}
 	executeTemplate(w, "index.html", recipt)
