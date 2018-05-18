@@ -105,7 +105,7 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if !found {
-		fmt.Fprintln(os.Stderr, "not found")
+		fmt.Fprintf(os.Stderr, "not found project %s\n", code)
 		return
 		// http.Error(w, fmt.Sprintf("not found project: %s", code), http.StatusNotFound)
 	}
