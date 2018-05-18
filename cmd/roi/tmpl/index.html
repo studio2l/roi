@@ -31,20 +31,6 @@
 		</form>
 	</div>
 	<div style="display:flex; flex: 1;">
-		<div style="flex: 0 0 200px;">
-			<div style="border-style: solid; border-radius: 5px; border-width: 1px; color: black; margin:5px;">
-				<div style="padding:10px;">프로젝트</div>
-				{{range .Projects}}
-				<div style="padding:10px; border-top: 1px solid black; display: flex; align-items: center; {{if eq . $.Project}}background-color:grey;{{end}}"><a href="{{.}}">{{.}}</a></div>
-				{{end}}
-			</div>
-			<div style="border-style: solid; border-radius: 5px; border-width: 1px; color: black; margin:5px;">
-				<div style="padding:10px;">씬</div>
-				{{range .Scenes}}
-				<div style="padding:10px; border-top: 1px solid black; display: flex; align-items: center; {{if eq . $.Project}}background-color:grey;{{end}}"><a href="{{.}}">{{.}}</a></div>
-				{{end}}
-			</div>
-		</div>
 		<div style="flex:1;">
 			<table style="width:100%">
 				<tr>
