@@ -58,8 +58,18 @@ func InsertInto(db *sql.DB, table string, item dbItem) error {
 	return err
 }
 
-func SelectAll(db *sql.DB, table string) (*sql.Rows, error) {
+func SelectAll(db *sql.DB, table string, where map[string]string) (*sql.Rows, error) {
 	stmt := fmt.Sprintf("SELECT * FROM %s", table)
+	if len(where) != 0 {
+		wheres := ""
+		for k, v := range where {
+			if wheres != "" {
+				wheres += " AND "
+			}
+			wheres += fmt.Sprintf("(%s = '%s')", k, v)
+		}
+		stmt += " WHERE " + wheres
+	}
 	fmt.Println(stmt)
 	return db.Query(stmt)
 }
@@ -99,8 +109,8 @@ func SelectScenes(db *sql.DB, prj string) ([]string, error) {
 	return scenes, nil
 }
 
-func SelectShots(db *sql.DB, prj string) ([]Shot, error) {
-	rows, err := SelectAll(db, prj+"_shots")
+func SelectShots(db *sql.DB, prj string, where map[string]string) ([]Shot, error) {
+	rows, err := SelectAll(db, prj+"_shots", where)
 	if err != nil {
 		log.Fatal(err)
 	}

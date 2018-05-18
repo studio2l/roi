@@ -34,7 +34,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	prj := "test"
 
-	shots, err := roi.SelectShots(db, prj)
+	shots, err := roi.SelectShots(db, prj, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	executeTemplate(w, "index.html", recipt)
 }
 
-func projectHandler(w http.ResponseWriter, r *http.Request) {
+func shotHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Path[len("/shot/"):]
 	if code == "" {
 		return
@@ -115,7 +115,18 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	shots, err := roi.SelectShots(db, code)
+	where := make(map[string]string)
+	if err := r.ParseForm(); err != nil {
+		log.Fatal(err)
+	}
+	for _, k := range []string{"book", "scene", "status"} {
+		v := r.Form.Get(k)
+		if v != "" {
+			where[k] = v
+		}
+	}
+	fmt.Println(where)
+	shots, err := roi.SelectShots(db, code, where)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -145,6 +156,6 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
-	mux.HandleFunc("/shot/", projectHandler)
+	mux.HandleFunc("/shot/", shotHandler)
 	log.Fatal(http.ListenAndServe("0.0.0.0:7070", mux))
 }
