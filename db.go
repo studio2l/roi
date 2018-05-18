@@ -114,6 +114,21 @@ func SelectShots(db *sql.DB, prj string) ([]Shot, error) {
 		}
 		shots = append(shots, s)
 	}
+	sort.Slice(shots, func(i int, j int) bool {
+		if shots[i].Project < shots[j].Project {
+			return true
+		}
+		if shots[i].Project > shots[j].Project {
+			return false
+		}
+		if shots[i].Scene < shots[j].Scene {
+			return true
+		}
+		if shots[i].Scene > shots[j].Scene {
+			return false
+		}
+		return shots[i].Name <= shots[j].Name
+	})
 	return shots, nil
 }
 

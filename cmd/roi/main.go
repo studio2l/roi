@@ -119,21 +119,6 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	sort.Slice(shots, func(i int, j int) bool {
-		if shots[i].Project < shots[j].Project {
-			return true
-		}
-		if shots[i].Project > shots[j].Project {
-			return false
-		}
-		if shots[i].Scene < shots[j].Scene {
-			return true
-		}
-		if shots[i].Scene > shots[j].Scene {
-			return false
-		}
-		return shots[i].Name <= shots[j].Name
-	})
 
 	recipt := struct {
 		Projects []string
