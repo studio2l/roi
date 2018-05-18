@@ -163,5 +163,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
 	mux.HandleFunc("/shot/", shotHandler)
+	fs := http.FileServer(http.Dir("static"))
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 	log.Fatal(http.ListenAndServe("0.0.0.0:7070", mux))
 }
