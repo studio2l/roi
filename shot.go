@@ -29,7 +29,7 @@ func ShotFromMap(m map[string]string) Shot {
 	return Shot{
 		Book:          book,
 		Scene:         m["scene"],
-		Name:          m["name"],
+		Name:          m["shot"],
 		Status:        m["status"],
 		Description:   m["description"],
 		CGDescription: m["cg_description"],
@@ -41,20 +41,20 @@ func ShotFromMap(m map[string]string) Shot {
 var ShotTableFields = []string{
 	"book INT",
 	"scene STRING NOT NULL",
-	"name STRING NOT NULL CHECK (length(name) > 0)",
+	"shot STRING NOT NULL CHECK (length(shot) > 0)",
 	"status STRING",
 	"description STRING",
 	"cg_description STRING",
 	"timecode_in STRING",
 	"timecode_out STRING",
-	"UNIQUE (scene, name)",
+	"UNIQUE (scene, shot)",
 }
 
 func (s Shot) dbKeyValues() []KV {
 	kv := []KV{
 		{"book", strconv.Itoa(s.Book)},
 		{"scene", q(s.Scene)},
-		{"name", q(s.Name)},
+		{"shot", q(s.Name)},
 		{"status", q(s.Status)},
 		{"description", q(s.Description)},
 		{"cg_description", q(s.CGDescription)},
