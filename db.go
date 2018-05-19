@@ -119,18 +119,12 @@ func SelectShots(db *sql.DB, prj string, where map[string]string) ([]Shot, error
 	for rows.Next() {
 		var id string
 		var s Shot
-		if err := rows.Scan(&id, &s.Project, &s.Book, &s.Scene, &s.Name, &s.Status, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut); err != nil {
+		if err := rows.Scan(&id, &s.Book, &s.Scene, &s.Name, &s.Status, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut); err != nil {
 			return nil, err
 		}
 		shots = append(shots, s)
 	}
 	sort.Slice(shots, func(i int, j int) bool {
-		if shots[i].Project < shots[j].Project {
-			return true
-		}
-		if shots[i].Project > shots[j].Project {
-			return false
-		}
 		if shots[i].Scene < shots[j].Scene {
 			return true
 		}
@@ -142,11 +136,11 @@ func SelectShots(db *sql.DB, prj string, where map[string]string) ([]Shot, error
 	return shots, nil
 }
 
-func AddShot(db *sql.DB, s Shot) error {
-	if s.Project == "" {
-		return fmt.Errorf("project not specified in shot: %v", s)
+func AddShot(db *sql.DB, prj string, s Shot) error {
+	if prj == "" {
+		return fmt.Errorf("project code not specified")
 	}
-	if err := InsertInto(db, s.Project+"_shots", s); err != nil {
+	if err := InsertInto(db, prj+"_shots", s); err != nil {
 		return err
 	}
 	return nil

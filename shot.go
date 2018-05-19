@@ -13,11 +13,10 @@ const (
 )
 
 type Shot struct {
-	Project string
-	Book    int
-	Scene   string
-	Name    string
-	Status  string
+	Book   int
+	Scene  string
+	Name   string
+	Status string
 
 	Description   string
 	CGDescription string
@@ -28,7 +27,6 @@ type Shot struct {
 func ShotFromMap(m map[string]string) Shot {
 	book, _ := strconv.Atoi(m["book"])
 	return Shot{
-		Project:       m["project"],
 		Book:          book,
 		Scene:         m["scene"],
 		Name:          m["name"],
@@ -41,7 +39,6 @@ func ShotFromMap(m map[string]string) Shot {
 }
 
 var ShotTableFields = []string{
-	"project STRING NOT NULL CHECK (length(project) > 0)",
 	"book INT",
 	"scene STRING NOT NULL",
 	"name STRING NOT NULL CHECK (length(name) > 0)",
@@ -50,12 +47,11 @@ var ShotTableFields = []string{
 	"cg_description STRING",
 	"timecode_in STRING",
 	"timecode_out STRING",
-	"UNIQUE (project, scene, name)",
+	"UNIQUE (scene, name)",
 }
 
 func (s Shot) dbKeyValues() []KV {
 	kv := []KV{
-		{"project", q(s.Project)},
 		{"book", strconv.Itoa(s.Book)},
 		{"scene", q(s.Scene)},
 		{"name", q(s.Name)},
