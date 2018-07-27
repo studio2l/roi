@@ -18,11 +18,11 @@ func parseTemplate() {
 	templates = template.Must(template.ParseGlob("tmpl/*.html"))
 }
 
-func executeTemplate(w http.ResponseWriter, name string, data interface{}) {
+func executeTemplate(w http.ResponseWriter, name string, data interface{}) error {
 	if dev {
 		parseTemplate()
 	}
-	templates.ExecuteTemplate(w, name, data)
+	return templates.ExecuteTemplate(w, name, data)
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +128,10 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		FilterScene:  where["scene"],
 		FilterStatus: where["status"],
 	}
-	executeTemplate(w, "index.html", recipt)
+	err = executeTemplate(w, "index.html", recipt)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
