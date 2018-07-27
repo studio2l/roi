@@ -116,7 +116,6 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		Project      string
 		Scenes       []string
 		Shots        []roi.Shot
-		FilterBook   string
 		FilterScene  string
 		FilterStatus string
 	}{
@@ -124,7 +123,6 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		Project:      code,
 		Scenes:       scenes,
 		Shots:        shots,
-		FilterBook:   where["book"],
 		FilterScene:  where["scene"],
 		FilterStatus: where["status"],
 	}
