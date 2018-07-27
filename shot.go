@@ -41,13 +41,12 @@ func ShotFromMap(m map[string]string) Shot {
 var ShotTableFields = []string{
 	"book INT",
 	"scene STRING NOT NULL",
-	"shot STRING NOT NULL CHECK (length(shot) > 0)",
+	"shot STRING UNIQUE NOT NULL CHECK (length(shot) > 0)",
 	"status STRING",
 	"description STRING",
 	"cg_description STRING",
 	"timecode_in STRING",
 	"timecode_out STRING",
-	"UNIQUE (scene, shot)",
 }
 
 func (s Shot) dbKeyValues() []KV {
