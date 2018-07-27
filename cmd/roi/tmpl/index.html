@@ -4,6 +4,10 @@
 	<title>roi</title>
 	<script src="/static/vue.js"></script>
 	<script>
+	function projectChanged() {
+		prj = document.getElementById("project-select").value;
+		document.location.href = prj;
+	}
 	</script>
 	<style>
 		hr {
@@ -25,6 +29,11 @@
 	<div style="display: flex;">
 		<div>..</div>
 		<div>{{.Project}}</div>
+		<select id="project-select" onchange="projectChanged()">
+			{{range $.Projects}}
+				<option value={{.}} {{if eq . $.Project}}selected{{end}}>{{.}}</option>
+			{{end}}
+		</select>
 		<form>
 			<input type="text" name="scene" placeholder="씬" value="{{$.FilterScene}}">
 			<select id="status-select" name="status">
