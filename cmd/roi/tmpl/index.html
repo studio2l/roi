@@ -27,8 +27,6 @@
 			<div style="background-color:#37F; flex-grow:1;"></div>
 	</div>
 	<div style="display: flex;">
-		<div>..</div>
-		<div>{{.Project}}</div>
 		<select id="project-select" onchange="projectChanged()">
 			{{range $.Projects}}
 				<option value={{.}} {{if eq . $.Project}}selected{{end}}>{{.}}</option>
