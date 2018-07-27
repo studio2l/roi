@@ -77,10 +77,6 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		prjs = append(prjs, prj)
 	}
-	if len(prjs) == 0 {
-		fmt.Fprintln(os.Stderr, "no projects")
-		return
-	}
 
 	found := false
 	for _, p := range prjs {
