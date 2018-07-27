@@ -99,7 +99,7 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Fatal(err)
 	}
-	for _, k := range []string{"book", "scene", "status"} {
+	for _, k := range []string{"scene", "status"} {
 		v := r.Form.Get(k)
 		if v != "" {
 			where[k] = v

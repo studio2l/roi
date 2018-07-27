@@ -26,7 +26,6 @@
 		<div>..</div>
 		<div>{{.Project}}</div>
 		<form>
-			<input type="text" name="book" placeholder="권" value="{{$.FilterBook}}">
 			<input type="text" name="scene" placeholder="씬" value="{{$.FilterScene}}">
 			<select id="status-select" name="status">
 				<option value="" {{if eq $.FilterStatus ""}}selected{{end}}>모든 상태</option>
@@ -40,7 +39,6 @@
 		<div style="flex:1;">
 			<table style="width:100%">
 				<tr>
-					<th>권</th>
 					<th>씬</th>
 					<th>샷</th>
 					<th>상태</th>
@@ -51,7 +49,6 @@
 				</tr>
 				{{range .Shots}}
 				<tr>
-					<td>{{.Book}}</td>
 					<td>{{.Scene}}</td>
 					<td>{{.Name}}</td>
 					<td>{{.Status}}</td>
