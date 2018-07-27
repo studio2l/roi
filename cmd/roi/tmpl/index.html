@@ -4,14 +4,6 @@
 	<title>roi</title>
 	<script src="/static/vue.js"></script>
 	<script>
-		window.onload = function() {
-			const statusSelect = new Vue({
-				el: '#status-select',
-				data: {
-					selected: '{{$.FilterStatus}}'
-				},
-			});
-		}
 	</script>
 	<style>
 		hr {
@@ -36,10 +28,10 @@
 		<form>
 			<input type="text" name="book" placeholder="권" value="{{$.FilterBook}}">
 			<input type="text" name="scene" placeholder="씬" value="{{$.FilterScene}}">
-			<select id="status-select" name="status" v-model="selected">
-				<option value="">모든 상태</option>
-				<option value="in-progress">진행중</option>
-				<option value="done">완료</option>
+			<select id="status-select" name="status">
+				<option value="" {{if eq $.FilterStatus ""}}selected{{end}}>모든 상태</option>
+				<option value="in-progress" {{if eq $.FilterStatus "in-progress"}}selected{{end}}>진행중</option>
+				<option value="done" {{if eq $.FilterStatus "done"}}selected{{end}}>완료</option>
 			</select>
 			<input type="submit" value="검색">
 		</form>
