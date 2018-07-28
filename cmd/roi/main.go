@@ -128,7 +128,7 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		FilterShot:   where["shot"],
 		FilterStatus: where["status"],
 	}
-	err = executeTemplate(w, "index.html", recipt)
+	err = executeTemplate(w, "shot.html", recipt)
 	if err != nil {
 		log.Fatal(err)
 	}

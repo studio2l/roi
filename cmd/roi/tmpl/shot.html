@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+	<title>roi</title>
+	<script src="/static/vue.js"></script>
+	<script>
+	function projectChanged() {
+		prj = document.getElementById("project-select").value;
+		document.location.href = prj;
+	}
+	</script>
+	<link rel="stylesheet" href="/static/roi.css">
+</head>
+<body style="">
+	{{template "header.html"}}
+	<div style="display: flex;">
+		<select id="project-select" onchange="projectChanged()">
+			{{range $.Projects}}
+				<option value={{.}} {{if eq . $.Project}}selected{{end}}>{{.}}</option>
+			{{end}}
+		</select>
+		<form>
+			<input type="text" name="scene" placeholder="씬" value="{{$.FilterScene}}">
+			<input type="text" name="shot" placeholder="샷" value="{{$.FilterShot}}">
+			<select id="status-select" name="status">
+				<option value="" {{if eq $.FilterStatus ""}}selected{{end}}>모든 상태</option>
+				<option value="in-progress" {{if eq $.FilterStatus "in-progress"}}selected{{end}}>진행중</option>
+				<option value="done" {{if eq $.FilterStatus "done"}}selected{{end}}>완료</option>
+			</select>
+			<input type="submit" value="검색">
+		</form>
+	</div>
+	<div style="display:flex; flex: 1;">
+		<div style="flex:1;">
+			<table style="width:100%">
+				<tr>
+					<th>씬</th>
+					<th>샷</th>
+					<th>상태</th>
+					<th>내용</th>
+					<th>CG</th>
+					<th>T.In</th>
+					<th>T.Out</th>
+				</tr>
+				{{range .Shots}}
+				<tr>
+					<td>{{.Scene}}</td>
+					<td>{{.Name}}</td>
+					<td>{{.Status}}</td>
+					<td>{{.Description}}</td>
+					<td>{{.CGDescription}}</td>
+					<td>{{.TimecodeIn}}</td>
+					<td>{{.TimecodeOut}}</td>
+				</tr>
+				{{end}}
+			</table>
+		</div>
+	</div>
+</body>
+</html>
