@@ -99,7 +99,7 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Fatal(err)
 	}
-	for _, k := range []string{"scene", "status"} {
+	for _, k := range []string{"scene", "shot", "status"} {
 		v := r.Form.Get(k)
 		if v != "" {
 			where[k] = v
@@ -117,6 +117,7 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		Scenes       []string
 		Shots        []roi.Shot
 		FilterScene  string
+		FilterShot   string
 		FilterStatus string
 	}{
 		Projects:     prjs,
@@ -124,6 +125,7 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		Scenes:       scenes,
 		Shots:        shots,
 		FilterScene:  where["scene"],
+		FilterShot:   where["shot"],
 		FilterStatus: where["status"],
 	}
 	err = executeTemplate(w, "index.html", recipt)
