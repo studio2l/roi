@@ -9,23 +9,10 @@
 		document.location.href = prj;
 	}
 	</script>
-	<style>
-		hr {
-			border: 0;
-			height: 0;
-			border-top: 1px solid black
-		}
-	</style>
+	<link rel="stylesheet" href="/static/roi.css">
 </head>
 <body style="">
-	<div style="background-color:#48F; display:flex; height:60px; color:#999;">
-			<div style="width:150px; background-color:#37F; display:flex; margin:0px 1px;">
-				<div style="color:white; align-self:center; font-size:30px; padding-left:10px;">Roi</div>
-			</div>
-			<div style="background-color:#37F; width:120px; margin:0px 1px; font-size:20px; display:flex; padding:5px; justify-content:center; align-items:flex-end"><div>Project</div></div>
-			<div style="background-color:#37F; width:120px; margin:0px 1px; font-size:20px; display:flex; padding:5px; justify-content:center; align-items:flex-end"><div>Shot</div></div>
-			<div style="background-color:#37F; flex-grow:1;"></div>
-	</div>
+	{{template "header.html"}}
 	<div style="display: flex;">
 		<select id="project-select" onchange="projectChanged()">
 			{{range $.Projects}}
