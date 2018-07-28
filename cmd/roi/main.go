@@ -50,9 +50,6 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 func shotHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Path[len("/shot/"):]
-	if code == "" {
-		return
-	}
 
 	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
 	if err != nil {
@@ -78,6 +75,9 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		prjs = append(prjs, prj)
 	}
 
+	if code == "" {
+		code = prjs[0]
+	}
 	found := false
 	for _, p := range prjs {
 		if p == code {
