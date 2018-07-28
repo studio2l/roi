@@ -40,8 +40,8 @@ func ShotFromMap(m map[string]string) Shot {
 
 var ShotTableFields = []string{
 	"book INT",
-	"scene STRING NOT NULL",
-	"shot STRING UNIQUE NOT NULL CHECK (length(shot) > 0)",
+	"scene STRING NOT NULL CHECK (scene NOT LIKE '% %')",
+	"shot STRING UNIQUE NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %')",
 	"status STRING",
 	"description STRING",
 	"cg_description STRING",
