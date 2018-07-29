@@ -25,7 +25,7 @@ type Project struct {
 }
 
 var ProjectTableFields = []string{
-	"code STRING NOT NULL UNIQUE CHECK (LENGTH(code) > 0)",
+	"code STRING NOT NULL UNIQUE CHECK (LENGTH(code) > 0) CHECK (code NOT LIKE '% %')",
 	"name STRING",
 	"status STRING",
 	"client STRING",
