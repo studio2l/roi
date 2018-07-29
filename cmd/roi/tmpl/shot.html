@@ -3,6 +3,11 @@
 <head>
 	<title>roi</title>
 	<link rel="stylesheet" href="/static/roi.css">
+	<style>
+	a {
+		text-decoration: none;
+	}
+	</style>
 </head>
 <body style="">
 	{{template "header.html"}}
@@ -10,17 +15,26 @@
 		<div style="font-size:30px;">{{$.Shot.Name}}</div>
 		<div style="width:20px;"></div>
 		<div style="font-size:15px;background-color:#4488AA;margin:5px;padding:1px 4px;border-radius:2px;">{{$.Shot.Status}}</div>
+		<div style="font-size:15px;background-color:#44AA66;margin:5px;padding:1px 4px;border-radius:2px;">2018-01-01 (187일 지남)</div>
 		<div style="flex:1;"></div>
-		<div style="font-size:15px;"><a href="/search/{{$.Project}}">{{$.Project}}</a> / <a href="/search/{{$.Project}}?scene={{$.Shot.Scene}}">{{$.Shot.Scene}}</a></div>
+		<div style="font-size:15px;"><a href="/search/{{$.Project}}" style="color:grey;">{{$.Project}}</a> <span style="color:#444444">/</span> <a href="/search/{{$.Project}}?scene={{$.Shot.Scene}}" style="color:grey;">{{$.Shot.Scene}}</a></div>
 	</div>
 	<hr>
 	<div style="display:flex;">
 		<div style="min-width:320px;min-height:180px;background-color:grey;"></div>
+		<div style="min-width:20px;"></div>
+		<!--
+		<div style="flex:2;display:flex;flex-direction:column;">
+		</div>
+		-->
 		<div style="flex:1;display:flex;flex-direction:column;">
-			<div style="display:flex;min-width:150px;"><div style="width:80px;">마감일</div><div style="flex:1;">2018-01-01</div></div>
-			<div style="display:flex;min-width:150px;"><div style="width:80px;">타임코드</div><div style="flex:1;">{{.Shot.TimecodeIn}}-{{.Shot.TimecodeOut}}</div></div>
-			<div>프레임</div>
-			<div>스캔경로</div>
+			<div style="display:flex;"><div style="min-width:80px;">샷 내용</div><div style="color:grey;min-width:20px;">|</div><div>{{.Shot.Description}}</div></div>
+			<div style="display:flex;"><div style="min-width:80px;">CG내용</div><div style="color:grey;min-width:20px;">|</div><div>{{.Shot.CGDescription}}</div></div>
+			<div style="flex:1;"></div>
+			<div style="display:flex;min-width:150px;"><div style="width:80px;">타임코드</div><div style="color:grey;min-width:20px;">|</div><div style="flex:1;">{{.Shot.TimecodeIn}}-{{.Shot.TimecodeOut}}</div></div>
+			<div style="display:flex;min-width:150px;"><div style="width:80px;">프레임</div><div style="color:grey;min-width:20px;">|</div></div>
+			<div style="display:flex;min-width:150px;"><div style="width:80px;">스캔경로</div><div style="color:grey;min-width:20px;">|</div></div>
+			<div style="display:flex;min-width:150px;"><div style="width:80px;">mov경로</div><div style="color:grey;min-width:20px;">|</div></div>
 		</div>
 	</div>
 </body>
