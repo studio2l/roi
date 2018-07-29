@@ -56,8 +56,10 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		prjs = append(prjs, prj)
 	}
 
-	if code == "" {
-		code = prjs[0]
+	if code == "" && len(prjs) != 0 {
+		// 할일: 추후 사용자가 마지막으로 선택했던 프로젝트로 이동
+		http.Redirect(w, r, "/search/"+prjs[0], http.StatusSeeOther)
+		return
 	}
 	found := false
 	for _, p := range prjs {
