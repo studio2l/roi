@@ -67,6 +67,11 @@ func main() {
 		log.Fatal("error connecting to the database: ", err)
 	}
 
+	if err := roi.CreateTableIfNotExists(db, "projects", roi.ProjectTableFields); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
 	if err := roi.AddProject(db, prj); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
