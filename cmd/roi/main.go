@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"dev.2lfilm.com/2l/roi"
 )
@@ -117,6 +118,42 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func shotHandler(w http.ResponseWriter, r *http.Request) {
+	pth := r.URL.Path[len("/shot/"):]
+	pths := strings.Split(pth, "/")
+	if len(pths) != 2 {
+		http.NotFound(w, r)
+		return
+	}
+	prj := pths[0]
+	s := pths[1]
+	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	shot, err := roi.FindShot(db, prj, s)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if shot.Name == "" {
+		http.NotFound(w, r)
+		return
+	}
+	recipt := struct {
+		Project string
+		Shot    roi.Shot
+	}{
+		Project: prj,
+		Shot:    shot,
+	}
+	err = executeTemplate(w, "shot.html", recipt)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func main() {
 	dev = true
 
@@ -129,6 +166,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
 	mux.HandleFunc("/search/", searchHandler)
+	mux.HandleFunc("/shot/", shotHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 	log.Fatal(http.ListenAndServe("0.0.0.0:7070", mux))

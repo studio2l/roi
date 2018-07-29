@@ -145,3 +145,22 @@ func AddShot(db *sql.DB, prj string, s Shot) error {
 	}
 	return nil
 }
+
+func FindShot(db *sql.DB, prj string, s string) (Shot, error) {
+	stmt := fmt.Sprintf("SELECT * FROM %s_shots WHERE shot='%s' LIMIT 1", prj, s)
+	fmt.Println(stmt)
+	rows, err := db.Query(stmt)
+	if err != nil {
+		return Shot{}, err
+	}
+	ok := rows.Next()
+	if !ok {
+		return Shot{}, nil
+	}
+	var shot Shot
+	var id string
+	if err := rows.Scan(&id, &shot.Book, &shot.Scene, &shot.Name, &shot.Status, &shot.Description, &shot.CGDescription, &shot.TimecodeIn, &shot.TimecodeOut); err != nil {
+		return Shot{}, err
+	}
+	return shot, nil
+}
