@@ -26,30 +26,11 @@ func executeTemplate(w http.ResponseWriter, name string, data interface{}) error
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
-	if err != nil {
-		log.Fatal("error connecting to the database: ", err)
-	}
-
-	prj := "test"
-
-	shots, err := roi.SelectShots(db, prj, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	recipt := struct {
-		Project string
-		Shots   []roi.Shot
-	}{
-		Project: prj,
-		Shots:   shots,
-	}
-	executeTemplate(w, "index.html", recipt)
+	executeTemplate(w, "index.html", nil)
 }
 
 func shotHandler(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Path[len("/shot/"):]
+	code := r.URL.Path[len("/search/"):]
 
 	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
 	if err != nil {
@@ -145,7 +126,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
-	mux.HandleFunc("/shot/", shotHandler)
+	mux.HandleFunc("/search/", shotHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 	log.Fatal(http.ListenAndServe("0.0.0.0:7070", mux))
