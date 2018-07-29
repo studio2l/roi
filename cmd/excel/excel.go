@@ -55,7 +55,7 @@ func main() {
 		}
 	}
 	shots := make([]roi.Shot, 0)
-	for i, row := range rows[1:] {
+	for _, row := range rows[1:] {
 		xlrow := make(map[string]string)
 		for j := range title {
 			k := title[j]
