@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"dev.2lfilm.com/2l/roi"
 
@@ -17,18 +19,23 @@ func main() {
 		prj   string
 		sheet string
 	)
-	flag.StringVar(&prj, "prj", "", "샷을 추가할 프로젝트")
+	flag.StringVar(&prj, "prj", "", "샷을 추가할 프로젝트, 없으면 엑셀 파일이름을 따른다.")
 	flag.StringVar(&sheet, "sheet", "Sheet1", "엑셀 시트명")
 	flag.Parse()
 
 	if len(flag.Args()) != 1 {
-		fmt.Fprintln(os.Stderr, "need one excel file as an argument.")
+		flag.PrintDefaults()
+		fmt.Fprintln(os.Stderr, "엑셀 파일 경로를 입력하세요.")
 		os.Exit(1)
 	}
 	f := flag.Arg(0)
 
 	if prj == "" {
-		fmt.Fprintln(os.Stderr, "please set project to add shots with -prj flag.")
+		fname := filepath.Base(f)
+		prj = strings.TrimSuffix(fname, filepath.Ext(fname))
+	}
+	if !roi.IsValidProjectName(prj) {
+		fmt.Fprintln(os.Stderr, prj, "이 프로젝트 이름으로 적절치 않습니다.")
 		os.Exit(1)
 	}
 

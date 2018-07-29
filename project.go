@@ -1,6 +1,15 @@
 package roi
 
-import "time"
+import (
+	"regexp"
+	"time"
+)
+
+var reValidProjectName = regexp.MustCompile(`^[a-zA-z0-9]+$`)
+
+func IsValidProjectName(name string) bool {
+	return reValidProjectName.MatchString(name)
+}
 
 type Project struct {
 	Code string
