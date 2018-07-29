@@ -29,7 +29,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	executeTemplate(w, "index.html", nil)
 }
 
-func shotHandler(w http.ResponseWriter, r *http.Request) {
+func searchHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Path[len("/search/"):]
 
 	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
@@ -111,7 +111,7 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		FilterShot:   where["shot"],
 		FilterStatus: where["status"],
 	}
-	err = executeTemplate(w, "shot.html", recipt)
+	err = executeTemplate(w, "search.html", recipt)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -128,7 +128,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
-	mux.HandleFunc("/search/", shotHandler)
+	mux.HandleFunc("/search/", searchHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 	log.Fatal(http.ListenAndServe("0.0.0.0:7070", mux))
