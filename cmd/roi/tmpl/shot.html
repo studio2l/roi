@@ -32,30 +32,9 @@
 	</div>
 	<div style="display:flex; flex: 1;">
 		<div style="flex:1;">
-			<table style="width:100%">
-				<tr>
-					<th>썸네일</th>
-					<th>씬</th>
-					<th>샷</th>
-					<th>상태</th>
-					<th>내용</th>
-					<th>CG</th>
-					<th>T.In</th>
-					<th>T.Out</th>
-				</tr>
-				{{range .Shots}}
-				<tr>
-					<td><img src="/static/thumbnail_blank.png" /></td>
-					<td>{{.Scene}}</td>
-					<td>{{.Name}}</td>
-					<td>{{.Status}}</td>
-					<td>{{.Description}}</td>
-					<td>{{.CGDescription}}</td>
-					<td>{{.TimecodeIn}}</td>
-					<td>{{.TimecodeOut}}</td>
-				</tr>
-				{{end}}
-			</table>
+		{{range .Shots}}
+			{{template "shot_item.html" .}}
+		{{end}}
 		</div>
 	</div>
 </body>
