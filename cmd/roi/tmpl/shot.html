@@ -6,10 +6,22 @@
 </head>
 <body style="">
 	{{template "header.html"}}
-	<div>
-		<div style="font-size:30px;display:inline-block;">{{$.Shot.Name}}</div>
-		<div style="width:10px;display:inline-block;"></div>
-		<div style="font-size:15px;display:inline-block;">({{$.Project}})</div>
+	<div style="display:flex;align-items:end;">
+		<div style="font-size:30px;">{{$.Shot.Name}}</div>
+		<div style="width:20px;"></div>
+		<div style="font-size:15px;background-color:#4488AA;margin:5px;padding:1px 4px;border-radius:2px;">{{$.Shot.Status}}</div>
+		<div style="flex:1;"></div>
+		<div style="font-size:15px;"><a href="/search/{{$.Project}}">{{$.Project}}</a> / <a href="/search/{{$.Project}}?scene={{$.Shot.Scene}}">{{$.Shot.Scene}}</a></div>
+	</div>
+	<hr>
+	<div style="display:flex;">
+		<div style="min-width:320px;min-height:180px;background-color:grey;"></div>
+		<div style="flex:1;display:flex;flex-direction:column;">
+			<div style="display:flex;min-width:150px;"><div style="width:80px;">마감일</div><div style="flex:1;">2018-01-01</div></div>
+			<div style="display:flex;min-width:150px;"><div style="width:80px;">타임코드</div><div style="flex:1;">{{.Shot.TimecodeIn}}-{{.Shot.TimecodeOut}}</div></div>
+			<div>프레임</div>
+			<div>스캔경로</div>
+		</div>
 	</div>
 </body>
 </html>
