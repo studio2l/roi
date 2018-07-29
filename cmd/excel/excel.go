@@ -76,6 +76,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	// 기존의 데이터를 일단 지운다. 더 쉽게 테스트하기 위한 임시방편이다.
+	if _, err := db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s_shots", prj)); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
 	if err := roi.AddProject(db, prj); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
