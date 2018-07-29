@@ -13,41 +13,45 @@
 </head>
 <body style="">
 	{{template "header.html"}}
-	<div style="display: flex;">
-		<select id="project-select" onchange="projectChanged()">
-			{{range $.Projects}}
-				<option value={{.}} {{if eq . $.Project}}selected{{end}}>{{.}}</option>
-			{{end}}
-		</select>
-		<form>
-			<input type="text" name="scene" placeholder="씬" value="{{$.FilterScene}}">
-			<input type="text" name="shot" placeholder="샷" value="{{$.FilterShot}}">
-			<select id="status-select" name="status">
-				<option value="" {{if eq $.FilterStatus ""}}selected{{end}}>모든 상태</option>
-				<option value="in-progress" {{if eq $.FilterStatus "in-progress"}}selected{{end}}>진행중</option>
-				<option value="done" {{if eq $.FilterStatus "done"}}selected{{end}}>완료</option>
+	<div style="position:sticky;top:60px;width:100%;height:40px;">
+		<div style="display:flex;background-color:white;">
+			<select id="project-select" onchange="projectChanged()">
+				{{range $.Projects}}
+					<option value={{.}} {{if eq . $.Project}}selected{{end}}>{{.}}</option>
+				{{end}}
 			</select>
-			<input type="submit" value="검색">
-		</form>
+			<form>
+				<input type="text" name="scene" placeholder="씬" value="{{$.FilterScene}}">
+				<input type="text" name="shot" placeholder="샷" value="{{$.FilterShot}}">
+				<select id="status-select" name="status">
+					<option value="" {{if eq $.FilterStatus ""}}selected{{end}}>모든 상태</option>
+					<option value="in-progress" {{if eq $.FilterStatus "in-progress"}}selected{{end}}>진행중</option>
+					<option value="done" {{if eq $.FilterStatus "done"}}selected{{end}}>완료</option>
+				</select>
+				<input type="submit" value="검색">
+			</form>
+		</div>
 	</div>
-	<div style="display:flex; flex: 1;">
-		<div style="flex:1;">
-		{{range .Shots}}
-			<hr>
-			<div>
-				<div><a href="/shot/{{$.Project}}/{{.Name}}">{{.Name}}</a></div>
-				<div style="display:flex;">
-					<div><img src="/static/thumbnail_blank.png" /></div>
-					<div>
-						<div><div style="display:inline-block; width:70px;">씬</div><div style="display:inline-block; width:100px;">{{.Scene}}</div></div>
-						<div><div style="display:inline-block; width:70px;">프레임</div><div style="display:inline-block; width:100px;">{{.TimecodeIn}}-{{.TimecodeOut}}</div></div>
-						<div><div style="display:inline-block; width:70px;">상태</div><div style="display:inline-block; width:100px;">{{.Status}}</div></div>
+	<div style="margin:8px;">
+		<div style="display:flex;flex:1;">
+			<div style="flex:1;">
+			{{range .Shots}}
+				<hr>
+				<div>
+					<div><a href="/shot/{{$.Project}}/{{.Name}}">{{.Name}}</a></div>
+					<div style="display:flex;">
+						<div><img src="/static/thumbnail_blank.png" /></div>
+						<div>
+							<div><div style="display:inline-block; width:70px;">씬</div><div style="display:inline-block; width:100px;">{{.Scene}}</div></div>
+							<div><div style="display:inline-block; width:70px;">프레임</div><div style="display:inline-block; width:100px;">{{.TimecodeIn}}-{{.TimecodeOut}}</div></div>
+							<div><div style="display:inline-block; width:70px;">상태</div><div style="display:inline-block; width:100px;">{{.Status}}</div></div>
+						</div>
+						<div style="display:inline-block; flex:1;">{{.Description}}</div>
+						<div style="display:inline-block; flex:1;">{{.CGDescription}}</div>
 					</div>
-					<div style="display:inline-block; flex:1;">{{.Description}}</div>
-					<div style="display:inline-block; flex:1;">{{.CGDescription}}</div>
 				</div>
+			{{end}}
 			</div>
-		{{end}}
 		</div>
 	</div>
 </body>
