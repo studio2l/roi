@@ -30,6 +30,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	executeTemplate(w, "index.html", nil)
 }
 
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	executeTemplate(w, "login.html", nil)
+}
+
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Path[len("/search/"):]
 
@@ -165,6 +169,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
+	mux.HandleFunc("/login/", loginHandler)
 	mux.HandleFunc("/search/", searchHandler)
 	mux.HandleFunc("/shot/", shotHandler)
 	fs := http.FileServer(http.Dir("static"))
