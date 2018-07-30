@@ -74,6 +74,39 @@ func SelectAll(db *sql.DB, table string, where map[string]string) (*sql.Rows, er
 	return db.Query(stmt)
 }
 
+func AddUser(db *sql.DB, id, hashedPassword string) error {
+	rows, err := SelectAll(db, "users", map[string]string{"userid": id})
+	if err != nil {
+		return err
+	}
+	if rows.Next() {
+		return fmt.Errorf("user %s already exists", id)
+	}
+	if err := InsertInto(db, "users", User{ID: id, HashedPassword: hashedPassword}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetUser(db *sql.DB, id string) (User, error) {
+	stmt := fmt.Sprintf("SELECT * FROM users WHERE userid='%s'", id)
+	fmt.Println(stmt)
+	rows, err := db.Query(stmt)
+	if err != nil {
+		return User{}, err
+	}
+	ok := rows.Next()
+	if !ok {
+		return User{}, nil
+	}
+	var u User
+	var uuid string
+	if err := rows.Scan(&uuid, &u.ID, &u.HashedPassword, &u.Name, &u.EngName, &u.Team, &u.Position); err != nil {
+		return User{}, err
+	}
+	return u, nil
+}
+
 func AddProject(db *sql.DB, prj string) error {
 	if err := InsertInto(db, "projects", Project{Code: prj}); err != nil {
 		return err

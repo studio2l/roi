@@ -9,6 +9,8 @@ import (
 	"os"
 	"strings"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"dev.2lfilm.com/2l/roi"
 )
 
@@ -31,10 +33,87 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		r.ParseForm()
+		id := r.Form.Get("id")
+		if id == "" {
+			http.Error(w, "id field emtpy", http.StatusBadRequest)
+			return
+		}
+		pw := r.Form.Get("password")
+		if pw == "" {
+			http.Error(w, "password field emtpy", http.StatusBadRequest)
+			return
+		}
+		db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		u, err := roi.GetUser(db, id)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("could not get user: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
+		if u.ID == "" {
+			http.Error(w, fmt.Sprintf("user %s not exists", id), http.StatusInternalServerError)
+			return
+		}
+		err = bcrypt.CompareHashAndPassword([]byte(u.HashedPassword), []byte(pw))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("password not matched: %s", err), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
 	executeTemplate(w, "login.html", nil)
 }
 
 func signupHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		r.ParseForm()
+		id := r.Form.Get("id")
+		if id == "" {
+			http.Error(w, "id field emtpy", http.StatusBadRequest)
+			return
+		}
+		pw := r.Form.Get("password")
+		if pw == "" {
+			http.Error(w, "password field emtpy", http.StatusBadRequest)
+			return
+		}
+		if len(pw) < 8 {
+			http.Error(w, "password too short", http.StatusBadRequest)
+			return
+		}
+		// 할일: password에 대한 컨펌은 프론트 엔드에서 하여야 함
+		pwc := r.Form.Get("password_confirm")
+		if pw != pwc {
+			http.Error(w, "passwords are not matched", http.StatusBadRequest)
+			return
+		}
+		hash, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+		if err != nil {
+			// 할일: 어떤 상태를 전달하는 것이 가장 좋은가?
+			http.Error(w, "password hashing error", http.StatusInternalServerError)
+			return
+		}
+		db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = roi.AddUser(db, id, string(hash))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("could not add user: %s", err), http.StatusBadRequest)
+			return
+		}
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
 	executeTemplate(w, "signup.html", nil)
 }
 
@@ -170,6 +249,7 @@ func main() {
 		log.Fatal("error connecting to the database: ", err)
 	}
 	roi.CreateTableIfNotExists(db, "projects", roi.ProjectTableFields)
+	roi.CreateTableIfNotExists(db, "users", roi.UserTableFields)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
