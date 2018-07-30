@@ -6,7 +6,11 @@
 	<div style="background-color:#37F; width:120px; margin:0px 1px; font-size:20px; display:flex; padding:5px; justify-content:center; align-items:flex-end"><div><a href="/overview/" style="color:white;">Overview</a></div></div>
 	<div style="background-color:#37F; flex-grow:1;"></div>
 	<div style="background-color:#37F; display:flex;">
+	{{if eq $.LoggedInUser ""}}
 		<div style="color:white; align-self:center; font-size:18px; padding-right:15px;"><a href="/login/" style="color:white;">로그인</a> <span style="color:#BBBBBB;font-size:12px;">또는</span> <a href="/signup/" style="color:white;">가입</a></div>
+	{{else}}
+		<div style="color:white; align-self:center; font-size:18px; padding-right:15px;">{{$.LoggedInUser}}</div>
+	{{end}}
 	</div>
 </div>
 

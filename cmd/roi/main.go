@@ -9,6 +9,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gorilla/securecookie"
+
 	"golang.org/x/crypto/bcrypt"
 
 	"dev.2lfilm.com/2l/roi"
@@ -28,8 +30,66 @@ func executeTemplate(w http.ResponseWriter, name string, data interface{}) error
 	return templates.ExecuteTemplate(w, name, data)
 }
 
+var cookieHandler = securecookie.New(
+	securecookie.GenerateRandomKey(64),
+	securecookie.GenerateRandomKey(32),
+)
+
+func setSession(w http.ResponseWriter, userid string) error {
+	value := map[string]string{
+		"userid": userid,
+	}
+	encoded, err := cookieHandler.Encode("session", value)
+	if err != nil {
+		return err
+	}
+	c := &http.Cookie{
+		Name:  "session",
+		Value: encoded,
+		Path:  "/",
+	}
+	http.SetCookie(w, c)
+	return nil
+}
+
+func getSession(r *http.Request) (map[string]string, error) {
+	c, _ := r.Cookie("session")
+	if c == nil {
+		return nil, nil
+	}
+	value := make(map[string]string)
+	err := cookieHandler.Decode("session", c.Value, &value)
+	if err != nil {
+		return nil, err
+	}
+	return value, nil
+}
+
+func clearSession(w http.ResponseWriter) {
+	c := &http.Cookie{
+		Name:   "session",
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	}
+	http.SetCookie(w, c)
+}
+
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	executeTemplate(w, "index.html", nil)
+	session, err := getSession(r)
+	if err != nil {
+		log.Print(fmt.Sprintf("could not get session: %s", err))
+		clearSession(w)
+	}
+	recipt := struct {
+		LoggedInUser string
+	}{
+		LoggedInUser: session["userid"],
+	}
+	err = executeTemplate(w, "index.html", recipt)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
@@ -65,10 +125,28 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("password not matched: %s", err), http.StatusInternalServerError)
 			return
 		}
+		err = setSession(w, id)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("could not set session: %s", err), http.StatusInternalServerError)
+			return
+		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	executeTemplate(w, "login.html", nil)
+	session, err := getSession(r)
+	if err != nil {
+		log.Print(fmt.Sprintf("could not get session: %s", err))
+		clearSession(w)
+	}
+	recipt := struct {
+		LoggedInUser string
+	}{
+		LoggedInUser: session["userid"],
+	}
+	err = executeTemplate(w, "login.html", recipt)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func signupHandler(w http.ResponseWriter, r *http.Request) {
@@ -111,10 +189,28 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("could not add user: %s", err), http.StatusBadRequest)
 			return
 		}
+		err = setSession(w, id)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("could not set session: %s", err), http.StatusInternalServerError)
+			return
+		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	executeTemplate(w, "signup.html", nil)
+	session, err := getSession(r)
+	if err != nil {
+		log.Print(fmt.Sprintf("could not get session: %s", err))
+		clearSession(w)
+	}
+	recipt := struct {
+		LoggedInUser string
+	}{
+		LoggedInUser: session["userid"],
+	}
+	err = executeTemplate(w, "signup.html", recipt)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
@@ -182,7 +278,14 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+	session, err := getSession(r)
+	if err != nil {
+		log.Print(fmt.Sprintf("could not get session: %s", err))
+		clearSession(w)
+	}
+
 	recipt := struct {
+		LoggedInUser string
 		Projects     []string
 		Project      string
 		Scenes       []string
@@ -191,6 +294,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		FilterShot   string
 		FilterStatus string
 	}{
+		LoggedInUser: session["userid"],
 		Projects:     prjs,
 		Project:      code,
 		Scenes:       scenes,
@@ -228,12 +332,21 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+
+	session, err := getSession(r)
+	if err != nil {
+		log.Print(fmt.Sprintf("could not get session: %s", err))
+		clearSession(w)
+	}
+
 	recipt := struct {
-		Project string
-		Shot    roi.Shot
+		LoggedInUser string
+		Project      string
+		Shot         roi.Shot
 	}{
-		Project: prj,
-		Shot:    shot,
+		LoggedInUser: session["userid"],
+		Project:      prj,
+		Shot:         shot,
 	}
 	err = executeTemplate(w, "shot.html", recipt)
 	if err != nil {
