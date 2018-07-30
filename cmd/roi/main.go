@@ -179,5 +179,5 @@ func main() {
 	mux.HandleFunc("/shot/", shotHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-	log.Fatal(http.ListenAndServe("0.0.0.0:7070", mux))
+	log.Fatal(http.ListenAndServeTLS("0.0.0.0:443", "cert/cert.pem", "cert/key.pem", mux))
 }
