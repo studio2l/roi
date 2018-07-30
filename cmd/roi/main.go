@@ -149,6 +149,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	clearSession(w)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
 func signupHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		r.ParseForm()
@@ -367,6 +372,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
 	mux.HandleFunc("/login/", loginHandler)
+	mux.HandleFunc("/logout/", logoutHandler)
 	mux.HandleFunc("/signup/", signupHandler)
 	mux.HandleFunc("/search/", searchHandler)
 	mux.HandleFunc("/shot/", shotHandler)
