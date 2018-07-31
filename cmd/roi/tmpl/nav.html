@@ -10,7 +10,7 @@
 		<div style="color:white; align-self:center; font-size:18px; padding-right:15px;"><a href="/login/" style="color:white;">로그인</a> <span style="color:#BBBBBB;font-size:12px;">또는</span> <a href="/signup/" style="color:white;">가입</a></div>
 	{{else}}
 		<div style="color:white; align-self:center; font-size:18px; padding-right:15px;">
-			{{$.LoggedInUser}} <a href="/logout/"><span style="color:white;font-size:12px;">(로그아웃)</span></a>
+			<a href="/settings/profile" style="color:white;">{{$.LoggedInUser}}</a> <a href="/logout/"><span style="color:white;font-size:12px;">(로그아웃)</span></a>
 		</div>
 	{{end}}
 	</div>

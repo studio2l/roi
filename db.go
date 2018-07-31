@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
+
 	_ "github.com/lib/pq"
 )
 
@@ -58,6 +60,20 @@ func InsertInto(db *sql.DB, table string, item dbItem) error {
 	return err
 }
 
+func Update(db *sql.DB, table string, where string, kvs []KV) error {
+	setstr := ""
+	for i, kv := range kvs {
+		if i != 0 {
+			setstr += ", "
+		}
+		setstr += kv.K + "=" + kv.V
+	}
+	stmt := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, setstr, where)
+	fmt.Println(stmt)
+	_, err := db.Exec(stmt)
+	return err
+}
+
 func SelectAll(db *sql.DB, table string, where map[string]string) (*sql.Rows, error) {
 	stmt := fmt.Sprintf("SELECT * FROM %s", table)
 	if len(where) != 0 {
@@ -74,7 +90,11 @@ func SelectAll(db *sql.DB, table string, where map[string]string) (*sql.Rows, er
 	return db.Query(stmt)
 }
 
-func AddUser(db *sql.DB, id, hashedPassword string) error {
+func AddUser(db *sql.DB, id, pw string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
 	rows, err := SelectAll(db, "users", map[string]string{"userid": id})
 	if err != nil {
 		return err
@@ -82,7 +102,7 @@ func AddUser(db *sql.DB, id, hashedPassword string) error {
 	if rows.Next() {
 		return fmt.Errorf("user %s already exists", id)
 	}
-	if err := InsertInto(db, "users", User{ID: id, HashedPassword: hashedPassword}); err != nil {
+	if err := InsertInto(db, "users", User{ID: id, HashedPassword: string(hashedPassword)}); err != nil {
 		return err
 	}
 	return nil
@@ -101,10 +121,58 @@ func GetUser(db *sql.DB, id string) (User, error) {
 	}
 	var u User
 	var uuid string
-	if err := rows.Scan(&uuid, &u.ID, &u.HashedPassword, &u.Name, &u.EngName, &u.Team, &u.Position); err != nil {
+	if err := rows.Scan(&uuid, &u.ID, &u.HashedPassword, &u.KorName, &u.Name, &u.Team, &u.Position, &u.Email, &u.PhoneNumber, &u.EntryDate); err != nil {
 		return User{}, err
 	}
 	return u, nil
+}
+
+func UserHasPassword(db *sql.DB, id, pw string) (bool, error) {
+	u, err := GetUser(db, id)
+	if err != nil {
+		return false, err
+	}
+	if u.ID == "" {
+		return false, fmt.Errorf("user '%s' not exists", id)
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(u.HashedPassword), []byte(pw))
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func SetUser(db *sql.DB, id string, u User) error {
+	kvs := u.dbKeyValues()
+	fmt.Println(kvs)
+	// 유저의 암호는 독립된 요청에 의해서만 업데이트하기에 제외한다.
+	find := -1
+	for i, kv := range kvs {
+		if kv.K == "hashed_password" {
+			find = i
+		}
+	}
+	if find == -1 {
+		log.Fatal("user should have \"hashed_password\" key")
+	}
+	kvs = append(kvs[:find], kvs[find+1:]...)
+	fmt.Println(kvs)
+	if err := Update(db, "users", "userid="+q(id), kvs); err != nil {
+		return err
+	}
+	return nil
+}
+
+func SetUserPassword(db *sql.DB, id, pw string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	kvs := []KV{{"hashed_password", q(string(hashedPassword))}}
+	if err := Update(db, "users", "userid="+q(id), kvs); err != nil {
+		return err
+	}
+	return nil
 }
 
 func AddProject(db *sql.DB, prj string) error {

@@ -11,8 +11,6 @@ import (
 
 	"github.com/gorilla/securecookie"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"dev.2lfilm.com/2l/roi"
 )
 
@@ -111,18 +109,13 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		u, err := roi.GetUser(db, id)
+		match, err := roi.UserHasPassword(db, id, pw)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("could not get user: %s", err.Error()), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if u.ID == "" {
-			http.Error(w, fmt.Sprintf("user %s not exists", id), http.StatusInternalServerError)
-			return
-		}
-		err = bcrypt.CompareHashAndPassword([]byte(u.HashedPassword), []byte(pw))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("password not matched: %s", err), http.StatusInternalServerError)
+		if !match {
+			http.Error(w, "entered password is not correct", http.StatusBadRequest)
 			return
 		}
 		err = setSession(w, id)
@@ -177,19 +170,13 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "passwords are not matched", http.StatusBadRequest)
 			return
 		}
-		hash, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
-		if err != nil {
-			// 할일: 어떤 상태를 전달하는 것이 가장 좋은가?
-			http.Error(w, "password hashing error", http.StatusInternalServerError)
-			return
-		}
 		db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		err = roi.AddUser(db, id, string(hash))
+		err = roi.AddUser(db, id, pw)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not add user: %s", err), http.StatusBadRequest)
 			return
@@ -216,6 +203,111 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func profileHandler(w http.ResponseWriter, r *http.Request) {
+	session, err := getSession(r)
+	if err != nil {
+		log.Print(fmt.Sprintf("could not get session: %s", err))
+		clearSession(w)
+		http.Redirect(w, r, "/login/", http.StatusSeeOther)
+		return
+	}
+	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if r.Method == "POST" {
+		r.ParseForm()
+		u := roi.User{
+			ID:          session["userid"],
+			KorName:     r.Form.Get("kor-name"),
+			Name:        r.Form.Get("name"),
+			Team:        r.Form.Get("team"),
+			Position:    r.Form.Get("position"),
+			Email:       r.Form.Get("email"),
+			PhoneNumber: r.Form.Get("phone-number"),
+			EntryDate:   r.Form.Get("entry-date"),
+		}
+		err = roi.SetUser(db, session["userid"], u)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("could not set user: %s", err), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, "/settings/profile", http.StatusSeeOther)
+		return
+	}
+	u, err := roi.GetUser(db, session["userid"])
+	if err != nil {
+		http.Error(w, fmt.Sprintf("could not get user: %s", err.Error()), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println(u)
+	recipt := struct {
+		LoggedInUser string
+		User         roi.User
+	}{
+		LoggedInUser: session["userid"],
+		User:         u,
+	}
+	err = executeTemplate(w, "profile.html", recipt)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	session, err := getSession(r)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("could not get session: %s", err), http.StatusInternalServerError)
+		clearSession(w)
+		return
+	}
+	r.ParseForm()
+	oldpw := r.Form.Get("old-password")
+	if oldpw == "" {
+		http.Error(w, "old password field emtpy", http.StatusBadRequest)
+		return
+	}
+	newpw := r.Form.Get("new-password")
+	if newpw == "" {
+		http.Error(w, "new password field emtpy", http.StatusBadRequest)
+		return
+	}
+	if len(newpw) < 8 {
+		http.Error(w, "new password too short", http.StatusBadRequest)
+		return
+	}
+	// 할일: password에 대한 컨펌은 프론트 엔드에서 하여야 함
+	newpwc := r.Form.Get("new-password-confirm")
+	if newpw != newpwc {
+		http.Error(w, "passwords are not matched", http.StatusBadRequest)
+		return
+	}
+	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	id := session["userid"]
+	match, err := roi.UserHasPassword(db, id, oldpw)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if !match {
+		http.Error(w, "entered password is not correct", http.StatusBadRequest)
+		return
+	}
+	err = roi.SetUserPassword(db, id, newpw)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("could not change user password: %s", err), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/settings/profile", http.StatusSeeOther)
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
@@ -373,6 +465,8 @@ func main() {
 	mux.HandleFunc("/", rootHandler)
 	mux.HandleFunc("/login/", loginHandler)
 	mux.HandleFunc("/logout/", logoutHandler)
+	mux.HandleFunc("/settings/profile", profileHandler)
+	mux.HandleFunc("/update-password", updatePasswordHandler)
 	mux.HandleFunc("/signup/", signupHandler)
 	mux.HandleFunc("/search/", searchHandler)
 	mux.HandleFunc("/shot/", shotHandler)
