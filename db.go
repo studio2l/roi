@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -25,6 +26,12 @@ type KV struct {
 func q(s string) string {
 	s = strings.Replace(s, "'", "''", -1)
 	return fmt.Sprint("'", s, "'")
+}
+
+// toInt는 받아들인 문자열을 정수로 바꾼다. 바꿀수 없는 문자열이면 0을 반환한다.
+func toInt(s string) int {
+	i, _ := strconv.Atoi(s)
+	return i
 }
 
 func dbDate(t time.Time) string {
@@ -175,6 +182,28 @@ func SetUserPassword(db *sql.DB, id, pw string) error {
 	return nil
 }
 
+func SelectProject(db *sql.DB, prj string) (Project, error) {
+	rows, err := SelectAll(db, "projects", map[string]string{"code": prj})
+	if err != nil {
+		return Project{}, err
+	}
+	if !rows.Next() {
+		return Project{}, nil
+	}
+	var id string
+	p := Project{}
+	err = rows.Scan(
+		&id, &p.Code, &p.Name, &p.Status, &p.Client,
+		&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CrankIn,
+		&p.CrankUp, &p.StartDate, &p.ReleaseDate, &p.VFXDueDate, &p.OutputSize,
+		&p.LutFile,
+	)
+	if err != nil {
+		return Project{}, err
+	}
+	return p, nil
+}
+
 func AddProject(db *sql.DB, prj string) error {
 	if err := InsertInto(db, "projects", Project{Code: prj}); err != nil {
 		return err
@@ -220,8 +249,12 @@ func SelectShots(db *sql.DB, prj string, where map[string]string) ([]Shot, error
 	for rows.Next() {
 		var id string
 		var s Shot
-		if err := rows.Scan(&id, &s.Book, &s.Scene, &s.Name, &s.Status, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut); err != nil {
-			return nil, err
+		if err := rows.Scan(
+			&id, &s.Book, &s.Scene, &s.Name, &s.Status,
+			&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
+			&s.Duration, &s.Tags,
+		); err != nil {
+			return nil, fmt.Errorf("shot scan: %s", err)
 		}
 		shots = append(shots, s)
 	}
@@ -247,8 +280,9 @@ func AddShot(db *sql.DB, prj string, s Shot) error {
 	return nil
 }
 
-func FindShot(db *sql.DB, prj string, s string) (Shot, error) {
-	stmt := fmt.Sprintf("SELECT * FROM %s_shots WHERE shot='%s' LIMIT 1", prj, s)
+// 할일 FindShot과 SelectShot은 중복의 느낌이다.
+func FindShot(db *sql.DB, prj string, shot string) (Shot, error) {
+	stmt := fmt.Sprintf("SELECT * FROM %s_shots WHERE shot='%s' LIMIT 1", prj, shot)
 	fmt.Println(stmt)
 	rows, err := db.Query(stmt)
 	if err != nil {
@@ -258,10 +292,14 @@ func FindShot(db *sql.DB, prj string, s string) (Shot, error) {
 	if !ok {
 		return Shot{}, nil
 	}
-	var shot Shot
+	var s Shot
 	var id string
-	if err := rows.Scan(&id, &shot.Book, &shot.Scene, &shot.Name, &shot.Status, &shot.Description, &shot.CGDescription, &shot.TimecodeIn, &shot.TimecodeOut); err != nil {
+	if err := rows.Scan(
+		&id, &s.Book, &s.Scene, &s.Name, &s.Status,
+		&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
+		&s.Duration, &s.Tags,
+	); err != nil {
 		return Shot{}, err
 	}
-	return shot, nil
+	return s, nil
 }

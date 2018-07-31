@@ -81,6 +81,10 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+	if _, err := db.Exec(fmt.Sprintf("DELETE FROM projects WHERE code='%s'", prj)); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 
 	if err := roi.AddProject(db, prj); err != nil {
 		fmt.Fprintln(os.Stderr, err)
