@@ -483,5 +483,7 @@ func main() {
 	mux.HandleFunc("/shot/", shotHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	thumbfs := http.FileServer(http.Dir("roi-userdata/thumbnail"))
+	mux.Handle("/thumbnail/", http.StripPrefix("/thumbnail/", thumbfs))
 	log.Fatal(http.ListenAndServeTLS(https, cert, key, mux))
 }

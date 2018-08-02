@@ -41,7 +41,7 @@
 						<div style="height:20px;display:flex;align-items:end;margin-bottom:3px;">
 							<div style="font-size:15px;"><a href="/shot/{{$.Project}}/{{.Name}}" style="color:black;">{{.Name}}</a> {{if ne .Scene ""}}<div style="font-size:10px;color:#BBBBBB;display:inline-block;"> / {{.Scene}}</div>{{end}}</div>
 						</div>
-						<div><img style="width:192px;" src="/static/thumbnail_blank.png" /></div>
+						<div><img style="width:192px;" src="/thumbnail/{{$.Project}}/{{.Name}}.png" /></div>
 						<div style="display:flex;justify-content:space-between;font-size:10px;color:gray;">
 							<div>{{.TimecodeIn}} - {{.TimecodeOut}}</div><div style="">{{.Duration}}f</div>
 						</div>
