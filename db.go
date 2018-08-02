@@ -354,18 +354,26 @@ func AddThumbnail(prj, shot, thumbf string) error {
 	if err != nil {
 		return wrap(err)
 	}
+	defer from.Close()
 	// thumbf가 지원하는 이미지 파일이 맞는지 확인한다.
 	_, ext, err := image.Decode(from)
 	if err != nil {
 		return wrap(err)
 	}
-	if err := os.MkdirAll(fmt.Sprintf("roi-data/thumbnail/%s", prj), 0755); err != nil {
+	// 위의 Decode가 파일을 읽기 때문에, 다시 읽으려면
+	// Seek을 통해 커서를 원점으로 되돌려줄 필요가 있다.
+	from.Seek(0, 0)
+	if err := os.MkdirAll(fmt.Sprintf("roi-userdata/thumbnail/%s", prj), 0755); err != nil {
 		if !os.IsExist(err) {
 			return wrap(err)
 		}
 	}
-	to, err := os.Open(fmt.Sprintf("roi-data/thumbnail/%s/%s.%s", prj, shot, ext))
-	if _, err := io.Copy(from, to); err != nil {
+	to, err := os.Create(fmt.Sprintf("roi-userdata/thumbnail/%s/%s.%s", prj, shot, ext))
+	if err != nil {
+		return wrap(err)
+	}
+	defer to.Close()
+	if _, err := io.Copy(to, from); err != nil {
 		return wrap(err)
 	}
 	return nil
