@@ -1,16 +1,16 @@
 package roi
 
-type TaskStatus int
+type TaskStatus string
 
 const (
-	TaskWaiting = TaskStatus(iota)
-	TaskAssigned
-	TaskInProgress
-	TaskPending
-	TaskRetake
-	TaskDone
-	TaskHold
-	TaskOmit
+	TaskWaiting    = TaskStatus("waiting")
+	TaskAssigned   = TaskStatus("assigned")
+	TaskInProgress = TaskStatus("in-progress")
+	TaskPending    = TaskStatus("pending")
+	TaskRetake     = TaskStatus("retake")
+	TaskDone       = TaskStatus("done")
+	TaskHold       = TaskStatus("hold")
+	TaskOmit       = TaskStatus("omit") // 할일: task에 omit이 필요할까?
 )
 
 type Task struct {
