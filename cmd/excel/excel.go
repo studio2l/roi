@@ -62,6 +62,9 @@ func main() {
 			v := row[j]
 			xlrow[k] = v
 		}
+		if xlrow["shot"] == "" {
+			break
+		}
 		shot := roi.ShotFromMap(xlrow)
 		shots = append(shots, shot)
 	}
