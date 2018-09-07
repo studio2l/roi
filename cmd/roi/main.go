@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"html/template"
 	"log"
@@ -454,6 +455,16 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	dev = true
 
+	var (
+		https string
+		cert  string
+		key   string
+	)
+	flag.StringVar(&https, "https", ":443", "address to open https port. it doesn't offer http for security reason.")
+	flag.StringVar(&cert, "cert", "cert/cert.pem", "https cert file. if you don't have one, use cert/generate-self-signed-cert.sh script.")
+	flag.StringVar(&key, "key", "cert/key.pem", "https key file. if you don't have one, use cert/generate-self-signed-cert.sh script.")
+	flag.Parse()
+
 	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
 	if err != nil {
 		log.Fatal("error connecting to the database: ", err)
@@ -472,5 +483,5 @@ func main() {
 	mux.HandleFunc("/shot/", shotHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-	log.Fatal(http.ListenAndServeTLS("0.0.0.0:443", "cert/cert.pem", "cert/key.pem", mux))
+	log.Fatal(http.ListenAndServeTLS(https, cert, key, mux))
 }
