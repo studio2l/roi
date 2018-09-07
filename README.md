@@ -1,3 +1,31 @@
 # roi
 
-roi는 2l의 새로운 파이프라인 서버입니다.
+roi는 2L의 새 파이프라인 서버이자, 첫번째 오픈소스 프로젝트입니다!
+
+
+## 주의
+
+roi는 아직 디자인이 끝나지 않았으며, 구현의 초기 단계입니다.
+
+즉, 언제든 모든 것이 바뀔수 있습니다.
+
+
+## 설치
+
+설치는 일반적인 go 프로그램의 설치와 같은 방법으로 합니다.
+
+```
+go get github.com/studio2l/roi
+
+cd $GOPATH/github.com/studio2l/roi
+
+go install ./...
+```
+
+### DB
+
+저희는 [cockroach db](https://cockroachlabs.com) 사용을 권장합니다.
+
+cockroach db는 postgres와 호환되며, 쉽게 스케일을 키울수 있는 db입니다.
+
+또는 postgres를 사용하셔도 됩니다.
