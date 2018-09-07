@@ -47,7 +47,7 @@ cockroach sql --insecure
 > \q
 
 # 테스트 데이터 추가
-cd $GOPATH/github.com/studio2l/roi/roishot
+cd $GOPATH/github.com/studio2l/roi/cmd/roishot
 go install
 roishot testdata/test.xlsx
 
