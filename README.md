@@ -16,9 +16,7 @@ roi는 아직 디자인이 끝나지 않았으며, 구현의 초기 단계입니
 
 ```
 go get github.com/studio2l/roi
-
 cd $GOPATH/github.com/studio2l/roi
-
 go install ./...
 ```
 
@@ -29,3 +27,27 @@ go install ./...
 cockroach db는 postgres와 호환되며, 쉽게 스케일을 키울수 있는 db입니다.
 
 또는 postgres를 사용하셔도 됩니다.
+
+cockroach db는 바이너리 파일로 배포하기 때문에 쉽게 설치하실 수 있습니다.
+
+다운로드 받은 후 원하는 곳에서 실행하시면
+
+그 아래에 cockroach-data 디렉토리가 생성되며 실행됩니다.
+
+## 실행
+
+```
+cockroach start --insecure
+cockroach sql --insecure
+> CREATE USER maxroach;
+> CREATE DATABASE roi;
+> GRANT ALL ON roi TO maxroach;
+> \q
+
+cd $GOPATH/github.com/studio2l/roi/cmd/roi/cert
+sh generate-self-signed-cert.sh
+
+cd $GOPATH/github.com/studio2l/roi/cmd/roi
+go install
+roi
+```
