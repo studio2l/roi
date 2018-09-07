@@ -11,7 +11,7 @@ import (
 
 	"github.com/gorilla/securecookie"
 
-	"dev.2lfilm.com/2l/roi"
+	"github.com/studio2l/roi"
 )
 
 var dev bool
