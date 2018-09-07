@@ -14,15 +14,19 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// dbKeyValues 함수를 가지는 오브젝트는 모두 dbItem이다.
 type dbItem interface {
 	dbKeyValues() []KV
 }
 
+// KV는 키와 값의 쌍이다.
+// db의 컬럼명과 그 값을 정의할 때 사용한다.
 type KV struct {
 	K string
 	V string
 }
 
+// q는 문자열을 db에서 인식할 수 있는 형식으로 변경한다.
 func q(s string) string {
 	s = strings.Replace(s, "'", "''", -1)
 	return fmt.Sprint("'", s, "'")
@@ -34,11 +38,13 @@ func toInt(s string) int {
 	return i
 }
 
+// dbDate는 시간을 db에서 인식할 수 있는 문자열 형식으로 변경한다.
 func dbDate(t time.Time) string {
 	ft := t.Format("2006-01-02")
 	return "DATE " + q(ft)
 }
 
+// CreateTableIfNotExists는 db에 해당 테이블이 없을 때 추가한다.
 func CreateTableIfNotExists(db *sql.DB, table string, fields []string) error {
 	// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
 	fields = append(
@@ -52,6 +58,7 @@ func CreateTableIfNotExists(db *sql.DB, table string, fields []string) error {
 	return err
 }
 
+// InsertInto는 특정 db 테이블에 하나의 열을 추가한다.
 func InsertInto(db *sql.DB, table string, item dbItem) error {
 	keys := make([]string, 0)
 	values := make([]string, 0)
@@ -67,6 +74,7 @@ func InsertInto(db *sql.DB, table string, item dbItem) error {
 	return err
 }
 
+// Update는 특정 db 테이블에서 원하는 열을 찾아, 그 값을 업데이트 한다.
 func Update(db *sql.DB, table string, where string, kvs []KV) error {
 	setstr := ""
 	for i, kv := range kvs {
@@ -81,6 +89,7 @@ func Update(db *sql.DB, table string, where string, kvs []KV) error {
 	return err
 }
 
+// SelectAll은 특정 db 테이블의 모든 열을 검색하여 *sql.Rows 형태로 반환한다.
 func SelectAll(db *sql.DB, table string, where map[string]string) (*sql.Rows, error) {
 	stmt := fmt.Sprintf("SELECT * FROM %s", table)
 	if len(where) != 0 {
@@ -97,6 +106,7 @@ func SelectAll(db *sql.DB, table string, where map[string]string) (*sql.Rows, er
 	return db.Query(stmt)
 }
 
+// AddUser는 db에 한 명의 사용자를 추가한다.
 func AddUser(db *sql.DB, id, pw string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
 	if err != nil {
@@ -115,6 +125,8 @@ func AddUser(db *sql.DB, id, pw string) error {
 	return nil
 }
 
+// GetUser는 db에서 사용자를 검색한다.
+// 반환된 User의 ID가 비어있다면 해당 유저를 찾지 못한것이다.
 func GetUser(db *sql.DB, id string) (User, error) {
 	stmt := fmt.Sprintf("SELECT * FROM users WHERE userid='%s'", id)
 	fmt.Println(stmt)
@@ -134,6 +146,7 @@ func GetUser(db *sql.DB, id string) (User, error) {
 	return u, nil
 }
 
+// UserHasPassword는 db에 저장된 사용자의 비밀번호와 입력된 비밀번호가 같은지를 비교한다.
 func UserHasPassword(db *sql.DB, id, pw string) (bool, error) {
 	u, err := GetUser(db, id)
 	if err != nil {
@@ -149,6 +162,7 @@ func UserHasPassword(db *sql.DB, id, pw string) (bool, error) {
 	return true, nil
 }
 
+// SetUser는 db에 비밀번호를 제외한 사용자 필드를 업데이트 한다.
 func SetUser(db *sql.DB, id string, u User) error {
 	kvs := u.dbKeyValues()
 	fmt.Println(kvs)
@@ -170,6 +184,7 @@ func SetUser(db *sql.DB, id string, u User) error {
 	return nil
 }
 
+// SetUserPassword는 db에 저장된 사용자 패스워드를 수정한다.
 func SetUserPassword(db *sql.DB, id, pw string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
 	if err != nil {
@@ -182,6 +197,8 @@ func SetUserPassword(db *sql.DB, id, pw string) error {
 	return nil
 }
 
+// SelectProject는 db에서 특정 프로젝트 정보를 부른다.
+// 반환된 Project에 Code 값이 없다면 해당 프로젝트가 없다는 뜻이다.
 func SelectProject(db *sql.DB, prj string) (Project, error) {
 	rows, err := SelectAll(db, "projects", map[string]string{"code": prj})
 	if err != nil {
@@ -204,6 +221,7 @@ func SelectProject(db *sql.DB, prj string) (Project, error) {
 	return p, nil
 }
 
+// AddProject는 db에 프로젝트를 추가한다.
 func AddProject(db *sql.DB, prj string) error {
 	if err := InsertInto(db, "projects", Project{Code: prj}); err != nil {
 		return err
@@ -215,6 +233,7 @@ func AddProject(db *sql.DB, prj string) error {
 	return nil
 }
 
+// SelectScenes는 특정 프로젝트의 모든 씬이름을 반환한다.
 func SelectScenes(db *sql.DB, prj string) ([]string, error) {
 	stmt := fmt.Sprintf("SELECT DISTINCT scene FROM %s_shots", prj)
 	rows, err := db.Query(stmt)
@@ -239,6 +258,7 @@ func SelectScenes(db *sql.DB, prj string) ([]string, error) {
 	return scenes, nil
 }
 
+// SelectShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
 func SelectShots(db *sql.DB, prj string, where map[string]string) ([]Shot, error) {
 	rows, err := SelectAll(db, prj+"_shots", where)
 	if err != nil {
@@ -270,6 +290,7 @@ func SelectShots(db *sql.DB, prj string, where map[string]string) ([]Shot, error
 	return shots, nil
 }
 
+// AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
 func AddShot(db *sql.DB, prj string, s Shot) error {
 	if prj == "" {
 		return fmt.Errorf("project code not specified")
@@ -280,6 +301,8 @@ func AddShot(db *sql.DB, prj string, s Shot) error {
 	return nil
 }
 
+// FindShot은 db의 특정 프로젝트에서 샷 이름으로 해당 샷을 찾는다.
+// 반환된 Shot의 Name이 비어있다면 그 이름의 샷이 없었다는 뜻이다.
 // 할일 FindShot과 SelectShot은 중복의 느낌이다.
 func FindShot(db *sql.DB, prj string, shot string) (Shot, error) {
 	stmt := fmt.Sprintf("SELECT * FROM %s_shots WHERE shot='%s' LIMIT 1", prj, shot)
