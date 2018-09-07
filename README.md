@@ -37,6 +37,8 @@ cockroach db는 바이너리 파일로 배포하기 때문에 쉽게 설치하�
 ## 실행
 
 ```
+# DB 실행 및 최초 셑업
+cd ~ # 또는 원하는 실행 장소에서
 cockroach start --insecure
 cockroach sql --insecure
 > CREATE USER maxroach;
@@ -44,9 +46,16 @@ cockroach sql --insecure
 > GRANT ALL ON roi TO maxroach;
 > \q
 
+# 테스트 데이터 추가
+cd $GOPATH/github.com/studio2l/roi/excel
+go install
+excel testdata/test.xlsx
+
+# 자가 https 인증서 추가
 cd $GOPATH/github.com/studio2l/roi/cmd/roi/cert
 sh generate-self-signed-cert.sh
 
+# 서버 실행
 cd $GOPATH/github.com/studio2l/roi/cmd/roi
 go install
 roi
