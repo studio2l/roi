@@ -55,6 +55,7 @@ func main() {
 		}
 	}
 	shots := make([]roi.Shot, 0)
+	thumbs := make(map[string]string)
 	for _, row := range rows[1:] {
 		xlrow := make(map[string]string)
 		for j := range title {
@@ -67,6 +68,9 @@ func main() {
 		}
 		shot := roi.ShotFromMap(xlrow)
 		shots = append(shots, shot)
+		if xlrow["thumbnail"] != "" {
+			thumbs[xlrow["shot"]] = xlrow["thumbnail"]
+		}
 	}
 
 	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
@@ -97,6 +101,12 @@ func main() {
 	for _, shot := range shots {
 		if err := roi.InsertInto(db, prj+"_shots", shot); err != nil {
 			fmt.Fprintln(os.Stderr, err)
+		}
+		thumb := thumbs[shot.Name]
+		if thumb != "" {
+			if err := roi.AddThumbnail(prj, shot.Name, thumb); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+			}
 		}
 	}
 }
