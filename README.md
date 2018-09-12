@@ -16,7 +16,7 @@ roi는 아직 디자인이 끝나지 않았으며, 구현의 초기 단계입니
 
 ```
 go get github.com/studio2l/roi
-cd $GOPATH/github.com/studio2l/roi
+cd $GOPATH/src/github.com/studio2l/roi
 go install ./...
 ```
 
