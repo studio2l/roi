@@ -16,7 +16,7 @@ roi는 아직 디자인이 끝나지 않았으며, 구현의 초기 단계입니
 
 ```
 go get github.com/studio2l/roi
-cd $GOPATH/github.com/studio2l/roi
+cd $GOPATH/src/github.com/studio2l/roi
 go install ./...
 ```
 
@@ -47,16 +47,16 @@ cockroach sql --insecure
 > \q
 
 # 테스트 데이터 추가
-cd $GOPATH/github.com/studio2l/roi/cmd/roishot
+cd $GOPATH/src/github.com/studio2l/roi/cmd/roishot
 go install
 roishot testdata/test.xlsx
 
 # 자가 https 인증서 추가
-cd $GOPATH/github.com/studio2l/roi/cmd/roi/cert
+cd $GOPATH/src/github.com/studio2l/roi/cmd/roi/cert
 sh generate-self-signed-cert.sh
 
 # 서버 실행
-cd $GOPATH/github.com/studio2l/roi/cmd/roi
+cd $GOPATH/src/github.com/studio2l/roi/cmd/roi
 go install
 roi
 ```
