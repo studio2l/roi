@@ -18,8 +18,26 @@ import (
 var dev bool
 var templates *template.Template
 
+// hasThumbnail은 해당 특정 프로젝트 샷에 썸네일이 있는지 검사한다.
+//
+// 주의: 만일 썸네일 파일 검사시 에러가 나면 이 함수는 썸네일이 있다고 판단한다.
+// 이 함수는 템플릿 안에서 쓰이기 때문에 프론트 엔드에서 한번 더 검사하게
+// 만들기 위해서이다.
+func hasThumbnail(prj, shot string) bool {
+	_, err := os.Stat(fmt.Sprintf("roi-userdata/thumbnail/%s/%s.png", prj, shot))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+		return true // 함수 주석 참고
+	}
+	return true
+}
+
 func parseTemplate() {
-	templates = template.Must(template.ParseGlob("tmpl/*.html"))
+	templates = template.Must(template.New("").Funcs(template.FuncMap{
+		"hasThumbnail": hasThumbnail,
+	}).ParseGlob("tmpl/*.html"))
 }
 
 func executeTemplate(w http.ResponseWriter, name string, data interface{}) error {
@@ -471,6 +489,8 @@ func main() {
 	}
 	roi.CreateTableIfNotExists(db, "projects", roi.ProjectTableFields)
 	roi.CreateTableIfNotExists(db, "users", roi.UserTableFields)
+
+	parseTemplate()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
