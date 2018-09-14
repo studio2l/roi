@@ -43,7 +43,7 @@ cockroach start --insecure
 cockroach sql --insecure
 > CREATE USER maxroach;
 > CREATE DATABASE roi;
-> GRANT ALL ON roi TO maxroach;
+> GRANT ALL ON DATABASE roi TO maxroach;
 > \q
 
 # 테스트 데이터 추가
