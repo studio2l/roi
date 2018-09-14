@@ -46,7 +46,7 @@
 						{{if $hasThumb}}
 							<img style="width:192px;height:108px" src="/thumbnail/{{$.Project}}/{{.Name}}.png" />
 						{{else}}
-							<img style="width:192px;height:108px" src="/static/thumbnail_blank.png" />
+							<div style="box-sizing:border-box;width:192px;height:108px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;">{{.Description}}</div>
 						{{end}}
 						</div>
 						<div style="display:flex;justify-content:space-between;font-size:10px;color:gray;">
