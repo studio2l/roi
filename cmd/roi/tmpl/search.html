@@ -23,6 +23,7 @@
 			<form>
 				<input type="text" name="scene" placeholder="씬" value="{{$.FilterScene}}">
 				<input type="text" name="shot" placeholder="샷" value="{{$.FilterShot}}">
+				<input type="text" name="tag" placeholder="태그" value="{{$.FilterTag}}">
 				<select id="status-select" name="status">
 					<option value="" {{if eq $.FilterStatus ""}}selected{{end}}>모든 상태</option>
 					<option value="in-progress" {{if eq $.FilterStatus "in-progress"}}selected{{end}}>진행중</option>

@@ -378,18 +378,14 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	where := make(map[string]string)
 	if err := r.ParseForm(); err != nil {
 		log.Fatal(err)
 	}
-	for _, k := range []string{"scene", "shot", "status"} {
-		v := r.Form.Get(k)
-		if v != "" {
-			where[k] = v
-		}
-	}
-	fmt.Println(where)
-	shots, err := roi.SelectShots(db, code, where)
+	sceneFilter := r.Form.Get("scene")
+	shotFilter := r.Form.Get("shot")
+	tagFilter := r.Form.Get("tag")
+	statusFilter := r.Form.Get("status")
+	shots, err := roi.SearchShots(db, code, sceneFilter, shotFilter, tagFilter, statusFilter)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -408,6 +404,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		Shots        []roi.Shot
 		FilterScene  string
 		FilterShot   string
+		FilterTag    string
 		FilterStatus string
 	}{
 		LoggedInUser: session["userid"],
@@ -415,9 +412,10 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		Project:      code,
 		Scenes:       scenes,
 		Shots:        shots,
-		FilterScene:  where["scene"],
-		FilterShot:   where["shot"],
-		FilterStatus: where["status"],
+		FilterScene:  sceneFilter,
+		FilterShot:   shotFilter,
+		FilterTag:    tagFilter,
+		FilterStatus: statusFilter,
 	}
 	err = executeTemplate(w, "search.html", recipt)
 	if err != nil {
