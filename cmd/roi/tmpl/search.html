@@ -48,19 +48,16 @@
 						<div style="font-size:12px;align-items:end;padding:0 4px;background-color:#4488AA;color:white;">{{.Status}}</div>
 					</div>
 					<div class="shot-main" style="display:flex;">
-						{{$hasThumb := hasThumbnail $.Project .Name}}
 						<div style="width:192px;margin-right:20px;">
-						{{if $hasThumb}}
+						{{if hasThumbnail $.Project .Name}}
 							<img style="width:192px;height:108px" src="/thumbnail/{{$.Project}}/{{.Name}}.png" />
 						{{else}}
 							<div style="box-sizing:border-box;width:192px;height:108px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;">{{.Description}}</div>
 						{{end}}
 						</div>
-						<div class="shot-version" style="flex:1;font-size:12px;display:flex;flex-direction:column;margin-right:20px;border-top:solid 1px gray;">
-							<div class="shot-work">
-								<div style="display:flex;border-bottom:solid 1px #BBBBBB;margin-top:2px;">
-									<div style="width:30px;">1</div><div style="width:100px;">2014-01-01</div><div style="flex:1;">O.K</div>
-								</div>
+						<div class="shot-output" style="flex:1;font-size:12px;display:flex;flex-direction:column;margin-right:20px;border-top:solid 1px gray;">
+							<div style="display:flex;border-bottom:solid 1px #BBBBBB;margin-top:2px;">
+								<div style="width:30px;">1</div><div style="width:100px;">2014-01-01</div><div style="flex:1;">O.K</div>
 							</div>
 						</div>
 					</div>
