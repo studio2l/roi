@@ -15,7 +15,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 // dbKeyValues 함수를 가지는 오브젝트는 모두 dbItem이다.
@@ -276,7 +276,7 @@ func SelectShots(db *sql.DB, prj string, where map[string]string) ([]Shot, error
 		if err := rows.Scan(
 			&id, &s.Book, &s.Scene, &s.Name, &s.Status,
 			&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
-			&s.Duration, &s.Tags,
+			&s.Duration, pq.Array(&s.Tags),
 		); err != nil {
 			return nil, fmt.Errorf("shot scan: %s", err)
 		}
@@ -299,7 +299,24 @@ func AddShot(db *sql.DB, prj string, s Shot) error {
 	if prj == "" {
 		return fmt.Errorf("project code not specified")
 	}
-	if err := InsertInto(db, prj+"_shots", s); err != nil {
+	keys := ""
+	idxs := ""
+	vals := make([]interface{}, 0)
+	m := s.toOrdMap()
+	for i, k := range m.Keys() {
+		if i != 0 {
+			keys += ", "
+			idxs += ", "
+		}
+		keys += k
+		idxs += fmt.Sprintf("$%d", i+1)
+		vals = append(vals, m.Get(k))
+	}
+	stmt, err := db.Prepare(fmt.Sprintf("INSERT INTO %s_shots (%s) VALUES (%s)", prj, keys, idxs))
+	if err != nil {
+		return err
+	}
+	if _, err := stmt.Exec(vals...); err != nil {
 		return err
 	}
 	return nil
@@ -324,7 +341,7 @@ func FindShot(db *sql.DB, prj string, shot string) (Shot, error) {
 	if err := rows.Scan(
 		&id, &s.Book, &s.Scene, &s.Name, &s.Status,
 		&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
-		&s.Duration, &s.Tags,
+		&s.Duration, pq.Array(&s.Tags),
 	); err != nil {
 		return Shot{}, err
 	}

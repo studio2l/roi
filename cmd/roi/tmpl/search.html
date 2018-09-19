@@ -66,7 +66,9 @@
 							<div>{{.TimecodeIn}} - {{.TimecodeOut}}</div><div>{{.Duration}}f</div>
 						</div>
 						<div style="font-size:11px;color:gray;">
-							{{.Tags}}
+							{{range $i, $v := .Tags -}}
+								{{if ne $i 0}}, {{end}}<a href="?tag={{.}}" style="color:gray;">{{.}}</a>
+							{{- end}}
 						</div>
 					</div>
 				</div>

@@ -7,12 +7,50 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/studio2l/roi"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 )
+
+func shotFromMap(m map[string]string) roi.Shot {
+	return roi.Shot{
+		Book:          toInt(m["book"]),
+		Scene:         m["scene"],
+		Name:          m["shot"],
+		Status:        m["status"],
+		EditOrder:     toInt(m["edit_order"]),
+		Description:   m["description"],
+		CGDescription: m["cg_description"],
+		TimecodeIn:    m["timecode_in"],
+		TimecodeOut:   m["timecode_out"],
+		Duration:      toInt(m["duration"]),
+		Tags:          fields(m["tags"]),
+	}
+}
+
+// q는 문자열을 db에서 인식할 수 있는 형식으로 변경한다.
+func q(s string) string {
+	s = strings.Replace(s, "'", "''", -1)
+	return fmt.Sprint("'", s, "'")
+}
+
+// toInt는 받아들인 문자열을 정수로 바꾼다. 바꿀수 없는 문자열이면 0을 반환한다.
+func toInt(s string) int {
+	i, _ := strconv.Atoi(s)
+	return i
+}
+
+// fields는 문자열을 콤마로 분리한 뒤 각 필드 앞 뒤에 스페이스를 지운다.
+func fields(s string) []string {
+	ss := strings.Split(s, ",")
+	for i, v := range ss {
+		ss[i] = strings.TrimSpace(v)
+	}
+	return ss
+}
 
 func main() {
 	var (
@@ -66,7 +104,7 @@ func main() {
 		if xlrow["shot"] == "" {
 			break
 		}
-		shot := roi.ShotFromMap(xlrow)
+		shot := shotFromMap(xlrow)
 		shots = append(shots, shot)
 		if xlrow["thumbnail"] != "" {
 			thumbs[xlrow["shot"]] = xlrow["thumbnail"]
@@ -99,7 +137,7 @@ func main() {
 	}
 
 	for _, shot := range shots {
-		if err := roi.InsertInto(db, prj+"_shots", shot); err != nil {
+		if err := roi.AddShot(db, prj, shot); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
 		thumb := thumbs[shot.Name]

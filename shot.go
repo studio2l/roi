@@ -2,6 +2,9 @@ package roi
 
 import (
 	"strconv"
+	"strings"
+
+	"github.com/lib/pq"
 )
 
 type ShotStatus int
@@ -25,23 +28,7 @@ type Shot struct {
 	TimecodeIn    string
 	TimecodeOut   string
 	Duration      int
-	Tags          string // 콤마로 분리
-}
-
-func ShotFromMap(m map[string]string) Shot {
-	return Shot{
-		Book:          toInt(m["book"]),
-		Scene:         m["scene"],
-		Name:          m["shot"],
-		Status:        m["status"],
-		EditOrder:     toInt(m["edit_order"]),
-		Description:   m["description"],
-		CGDescription: m["cg_description"],
-		TimecodeIn:    m["timecode_in"],
-		TimecodeOut:   m["timecode_out"],
-		Duration:      toInt(m["duration"]),
-		Tags:          m["tags"],
-	}
+	Tags          []string
 }
 
 var ShotTableFields = []string{
@@ -55,7 +42,7 @@ var ShotTableFields = []string{
 	"timecode_in STRING",
 	"timecode_out STRING",
 	"duration INT NOT NULL",
-	"tags STRING",
+	"tags STRING[]",
 	// 할일: 샷과 소스에 대해서 서로 어떤 역할을 가지는지 확실히 이해한 뒤 추가.
 	// "base_source STRING",
 	// "other_sources STRING[]",
@@ -73,7 +60,23 @@ func (s Shot) dbKeyValues() []KV {
 		{"timecode_in", q(s.TimecodeIn)},
 		{"timecode_out", q(s.TimecodeOut)},
 		{"duration", strconv.Itoa(s.Duration)},
-		{"tags", q(s.Tags)},
+		{"tags", q(strings.Join(s.Tags, ","))},
 	}
 	return kv
+}
+
+func (s Shot) toOrdMap() *ordMap {
+	o := newOrdMap()
+	o.Set("book", s.Book)
+	o.Set("scene", s.Scene)
+	o.Set("shot", s.Name)
+	o.Set("status", s.Status)
+	o.Set("edit_order", s.EditOrder)
+	o.Set("description", s.Description)
+	o.Set("cg_description", s.CGDescription)
+	o.Set("timecode_in", s.TimecodeIn)
+	o.Set("timecode_out", s.TimecodeOut)
+	o.Set("duration", s.Duration)
+	o.Set("tags", pq.Array(s.Tags))
+	return o
 }
