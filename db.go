@@ -227,7 +227,7 @@ func SelectProject(db *sql.DB, prj string) (Project, error) {
 
 // AddProject는 db에 프로젝트를 추가한다.
 func AddProject(db *sql.DB, prj string) error {
-	if err := InsertInto(db, "projects", Project{Code: prj}); err != nil {
+	if _, err := db.Exec("INSERT INTO projects (code) VALUES ($1)", prj); err != nil {
 		return err
 	}
 	// TODO: add project info, task, tracking table

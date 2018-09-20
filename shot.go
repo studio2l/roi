@@ -1,9 +1,6 @@
 package roi
 
 import (
-	"strconv"
-	"strings"
-
 	"github.com/lib/pq"
 )
 
@@ -46,23 +43,6 @@ var ShotTableFields = []string{
 	// 할일: 샷과 소스에 대해서 서로 어떤 역할을 가지는지 확실히 이해한 뒤 추가.
 	// "base_source STRING",
 	// "other_sources STRING[]",
-}
-
-func (s Shot) dbKeyValues() []KV {
-	kv := []KV{
-		{"book", strconv.Itoa(s.Book)},
-		{"scene", q(s.Scene)},
-		{"shot", q(s.Name)},
-		{"status", q(s.Status)},
-		{"edit_order", strconv.Itoa(s.EditOrder)},
-		{"description", q(s.Description)},
-		{"cg_description", q(s.CGDescription)},
-		{"timecode_in", q(s.TimecodeIn)},
-		{"timecode_out", q(s.TimecodeOut)},
-		{"duration", strconv.Itoa(s.Duration)},
-		{"tags", q(strings.Join(s.Tags, ","))},
-	}
-	return kv
 }
 
 func (s Shot) toOrdMap() *ordMap {
