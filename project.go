@@ -52,7 +52,7 @@ var ProjectTableFields = []string{
 }
 
 func (p Project) toOrdMap() *ordMap {
-	o := &ordMap{}
+	o := newOrdMap()
 	o.Set("code", p.Code)
 	o.Set("name", p.Name)
 	o.Set("status", p.Status)
