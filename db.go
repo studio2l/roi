@@ -9,44 +9,12 @@ import (
 	"log"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/lib/pq"
 )
-
-// dbKeyValues 함수를 가지는 오브젝트는 모두 dbItem이다.
-type dbItem interface {
-	dbKeyValues() []KV
-}
-
-// KV는 키와 값의 쌍이다.
-// db의 컬럼명과 그 값을 정의할 때 사용한다.
-type KV struct {
-	K string
-	V string
-}
-
-// q는 문자열을 db에서 인식할 수 있는 형식으로 변경한다.
-func q(s string) string {
-	s = strings.Replace(s, "'", "''", -1)
-	return fmt.Sprint("'", s, "'")
-}
-
-// toInt는 받아들인 문자열을 정수로 바꾼다. 바꿀수 없는 문자열이면 0을 반환한다.
-func toInt(s string) int {
-	i, _ := strconv.Atoi(s)
-	return i
-}
-
-// dbDate는 시간을 db에서 인식할 수 있는 문자열 형식으로 변경한다.
-func dbDate(t time.Time) string {
-	ft := t.Format("2006-01-02")
-	return "DATE " + q(ft)
-}
 
 // CreateTableIfNotExists는 db에 해당 테이블이 없을 때 추가한다.
 func CreateTableIfNotExists(db *sql.DB, table string, fields []string) error {
@@ -57,37 +25,6 @@ func CreateTableIfNotExists(db *sql.DB, table string, fields []string) error {
 	)
 	field := strings.Join(fields, ", ")
 	stmt := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s)", table, field)
-	fmt.Println(stmt)
-	_, err := db.Exec(stmt)
-	return err
-}
-
-// InsertInto는 특정 db 테이블에 하나의 열을 추가한다.
-func InsertInto(db *sql.DB, table string, item dbItem) error {
-	keys := make([]string, 0)
-	values := make([]string, 0)
-	for _, kv := range item.dbKeyValues() {
-		keys = append(keys, kv.K)
-		values = append(values, kv.V)
-	}
-	keystr := strings.Join(keys, ", ")
-	valuestr := strings.Join(values, ", ")
-	stmt := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table, keystr, valuestr)
-	fmt.Println(stmt)
-	_, err := db.Exec(stmt)
-	return err
-}
-
-// Update는 특정 db 테이블에서 원하는 열을 찾아, 그 값을 업데이트 한다.
-func Update(db *sql.DB, table string, where string, kvs []KV) error {
-	setstr := ""
-	for i, kv := range kvs {
-		if i != 0 {
-			setstr += ", "
-		}
-		setstr += kv.K + "=" + kv.V
-	}
-	stmt := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, setstr, where)
 	fmt.Println(stmt)
 	_, err := db.Exec(stmt)
 	return err
