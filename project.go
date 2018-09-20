@@ -70,3 +70,23 @@ func (p Project) dbKeyValues() []KV {
 		{"lut_file", q(p.LutFile)},
 	}
 }
+
+func (p Project) toOrdMap() *ordMap {
+	o := &ordMap{}
+	o.Set("code", p.Code)
+	o.Set("name", p.Name)
+	o.Set("status", p.Status)
+	o.Set("client", p.Client)
+	o.Set("director", p.Director)
+	o.Set("producer", p.Producer)
+	o.Set("vfx_supervisor", p.VFXSupervisor)
+	o.Set("vfx_manager", p.VFXManager)
+	o.Set("crank_in", p.CrankIn)
+	o.Set("crank_up", p.CrankUp)
+	o.Set("start_date", p.StartDate)
+	o.Set("release_date", p.ReleaseDate)
+	o.Set("vfx_due_date", p.VFXDueDate)
+	o.Set("output_size", p.OutputSize)
+	o.Set("lut_file", p.LutFile)
+	return o
+}
