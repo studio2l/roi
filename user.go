@@ -25,17 +25,16 @@ var UserTableFields = []string{
 	"entry_date STRING",
 }
 
-func (u User) dbKeyValues() []KV {
-	kv := []KV{
-		{"userid", q(u.ID)},
-		{"hashed_password", q(u.HashedPassword)},
-		{"kor_name", q(u.KorName)},
-		{"name", q(u.Name)},
-		{"team", q(u.Team)},
-		{"position", q(u.Position)},
-		{"email", q(u.Email)},
-		{"phone_number", q(u.PhoneNumber)},
-		{"entry_date", q(u.EntryDate)},
-	}
-	return kv
+func (u User) toOrdMap() *ordMap {
+	o := newOrdMap()
+	o.Set("userid", u.ID)
+	o.Set("hashed_password", u.HashedPassword)
+	o.Set("kor_name", u.KorName)
+	o.Set("name", u.Name)
+	o.Set("team", u.Team)
+	o.Set("position", u.Position)
+	o.Set("email", u.Email)
+	o.Set("phone_number", u.PhoneNumber)
+	o.Set("entry_date", u.EntryDate)
+	return o
 }

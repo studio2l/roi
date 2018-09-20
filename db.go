@@ -110,6 +110,19 @@ func SelectAll(db *sql.DB, table string, where map[string]string) (*sql.Rows, er
 	return db.Query(stmt)
 }
 
+// pgIndices는 "$1" 부터 "$n"까지의 문자열 슬라이스를 반환한다.
+// 이는 postgres에 대한 db.Exec나 db.Query를 위한 질의문을 만들때 유용하게 쓰인다.
+func pgIndices(n int) []string {
+	if n <= 0 {
+		return []string{}
+	}
+	idxs := make([]string, n)
+	for i := 0; i < n; i++ {
+		idxs[i] = fmt.Sprintf("$%d", i+1)
+	}
+	return idxs
+}
+
 // AddUser는 db에 한 명의 사용자를 추가한다.
 func AddUser(db *sql.DB, id, pw string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
@@ -123,7 +136,15 @@ func AddUser(db *sql.DB, id, pw string) error {
 	if rows.Next() {
 		return fmt.Errorf("user %s already exists", id)
 	}
-	if err := InsertInto(db, "users", User{ID: id, HashedPassword: string(hashedPassword)}); err != nil {
+	var u = User{}
+	u.ID = id
+	u.HashedPassword = string(hashedPassword)
+	m := u.toOrdMap()
+	keystr := strings.Join(m.Keys(), ", ")
+	idxstr := strings.Join(pgIndices(m.Len()), ", ")
+	stmt := fmt.Sprintf("INSERT INTO users (%s) VALUES (%s)", keystr, idxstr)
+	fmt.Println(stmt)
+	if _, err := db.Exec(stmt, m.Values()...); err != nil {
 		return err
 	}
 	return nil
@@ -168,21 +189,23 @@ func UserHasPassword(db *sql.DB, id, pw string) (bool, error) {
 
 // SetUser는 db에 비밀번호를 제외한 사용자 필드를 업데이트 한다.
 func SetUser(db *sql.DB, id string, u User) error {
-	kvs := u.dbKeyValues()
-	fmt.Println(kvs)
+	m := u.toOrdMap()
 	// 유저의 암호는 독립된 요청에 의해서만 업데이트하기에 제외한다.
-	find := -1
-	for i, kv := range kvs {
-		if kv.K == "hashed_password" {
-			find = i
-		}
-	}
-	if find == -1 {
+	if ok := m.Delete("hashed_password"); !ok {
 		log.Fatal("user should have \"hashed_password\" key")
 	}
-	kvs = append(kvs[:find], kvs[find+1:]...)
-	fmt.Println(kvs)
-	if err := Update(db, "users", "userid="+q(id), kvs); err != nil {
+	setstr := ""
+	i := 0
+	for _, k := range m.Keys() {
+		if i != 0 {
+			setstr += ", "
+		}
+		setstr += fmt.Sprintf("%s=$%d", k, i+1)
+		i++
+	}
+	stmt := fmt.Sprintf("UPDATE users SET %s WHERE userid='%s'", setstr, id)
+	fmt.Println(stmt)
+	if _, err := db.Exec(stmt, m.Values()...); err != nil {
 		return err
 	}
 	return nil
@@ -194,8 +217,8 @@ func SetUserPassword(db *sql.DB, id, pw string) error {
 	if err != nil {
 		return err
 	}
-	kvs := []KV{{"hashed_password", q(string(hashedPassword))}}
-	if err := Update(db, "users", "userid="+q(id), kvs); err != nil {
+	stmt := "UPDATE users SET (hashed_password=$1) WHERE userid=$2"
+	if _, err := db.Exec(stmt, hashedPassword, id); err != nil {
 		return err
 	}
 	return nil

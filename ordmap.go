@@ -18,6 +18,11 @@ func newOrdMap() *ordMap {
 	}
 }
 
+// Len은 맵에 저장된 항목의 갯수를 반환한다.
+func (o *ordMap) Len() int {
+	return len(o.keys)
+}
+
 // Set은 맵에 해당 키에 대한 값을 추가하거나, 재설정한다.
 func (o *ordMap) Set(k string, v interface{}) {
 	_, ok := o.idx[k]
@@ -33,6 +38,24 @@ func (o *ordMap) Get(k string) interface{} {
 	return o.val[k]
 }
 
+// Delete는 맵에서 특정 키, 값을 지운다.
+// 맵에 해당 키가 있었다면 true, 없었다면 false를 반환한다.
+func (o *ordMap) Delete(k string) bool {
+	if _, ok := o.val[k]; !ok {
+		return false
+	}
+	i := o.idx[k]
+	o.keys = append(o.keys[:i], o.keys[i+1:]...)
+	delete(o.idx, k)
+	delete(o.val, k)
+	for k, v := range o.idx {
+		if v > i {
+			o.idx[k] = v - 1
+		}
+	}
+	return true
+}
+
 // Keys는 맵에 추가된 순서에 따른 키모음을 []string 형태로 반환한다.
 func (o *ordMap) Keys() []string {
 	return o.keys
@@ -41,8 +64,8 @@ func (o *ordMap) Keys() []string {
 // Values는 맵에 추가된 순서에 따른 값모음을 []interface{} 형태로 반환한다.
 func (o *ordMap) Values() []interface{} {
 	vals := make([]interface{}, len(o.keys))
-	for _, k := range o.keys {
-		vals = append(vals, o.val[k])
+	for i, k := range o.keys {
+		vals[i] = o.val[k]
 	}
 	return vals
 }
