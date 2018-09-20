@@ -37,3 +37,12 @@ func (o *ordMap) Get(k string) interface{} {
 func (o *ordMap) Keys() []string {
 	return o.keys
 }
+
+// Values는 맵에 추가된 순서에 따른 값모음을 []interface{} 형태로 반환한다.
+func (o *ordMap) Values() []interface{} {
+	vals := make([]interface{}, len(o.keys))
+	for _, k := range o.keys {
+		vals = append(vals, o.val[k])
+	}
+	return vals
+}
