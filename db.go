@@ -222,47 +222,28 @@ func SelectScenes(db *sql.DB, prj string) ([]string, error) {
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
 func SearchShots(db *sql.DB, prj, scene, shot, tag, status string) ([]Shot, error) {
 	stmt := fmt.Sprintf("SELECT * FROM %s_shots", prj)
-	i := 1
+	m := newOrdMap()
+	m.Set("scene=$%d", scene)
+	m.Set("shot=$%d", shot)
+	m.Set("$%d::string = ANY(tags)", tag)
+	m.Set("status=$%d", status)
+	wherestr := ""
+	i := 0
 	vals := make([]interface{}, 0)
-	if scene != "" {
-		if i == 1 {
-			stmt += " WHERE"
-		} else {
-			stmt += " AND"
+	for _, k := range m.Keys() {
+		v := m.Get(k)
+		if v.(string) == "" {
+			continue
 		}
-		stmt += fmt.Sprintf(" scene=$%d", i)
-		vals = append(vals, scene)
+		if i != 0 {
+			wherestr += " AND "
+		}
+		wherestr += fmt.Sprintf(k, i+1)
+		vals = append(vals, v)
 		i++
 	}
-	if shot != "" {
-		if i == 1 {
-			stmt += " WHERE"
-		} else {
-			stmt += " AND"
-		}
-		stmt += fmt.Sprintf(" shot=$%d", i)
-		vals = append(vals, shot)
-		i++
-	}
-	if tag != "" {
-		if i == 1 {
-			stmt += " WHERE"
-		} else {
-			stmt += " AND"
-		}
-		stmt += fmt.Sprintf(" $%d::string = ANY(tags)", i)
-		vals = append(vals, tag)
-		i++
-	}
-	if status != "" {
-		if i == 1 {
-			stmt += " WHERE"
-		} else {
-			stmt += " AND"
-		}
-		stmt += fmt.Sprintf(" status=$%d", i)
-		vals = append(vals, status)
-		i++
+	if wherestr != "" {
+		stmt += " WHERE " + wherestr
 	}
 	fmt.Println(stmt)
 	rows, err := db.Query(stmt, vals...)
