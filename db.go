@@ -303,24 +303,11 @@ func AddShot(db *sql.DB, prj string, s Shot) error {
 	if prj == "" {
 		return fmt.Errorf("project code not specified")
 	}
-	keys := ""
-	idxs := ""
-	vals := make([]interface{}, 0)
 	m := s.toOrdMap()
-	for i, k := range m.Keys() {
-		if i != 0 {
-			keys += ", "
-			idxs += ", "
-		}
-		keys += k
-		idxs += fmt.Sprintf("$%d", i+1)
-		vals = append(vals, m.Get(k))
-	}
-	stmt, err := db.Prepare(fmt.Sprintf("INSERT INTO %s_shots (%s) VALUES (%s)", prj, keys, idxs))
-	if err != nil {
-		return err
-	}
-	if _, err := stmt.Exec(vals...); err != nil {
+	keys := strings.Join(m.Keys(), ", ")
+	idxs := strings.Join(pgIndices(m.Len()), ", ")
+	stmt := fmt.Sprintf("INSERT INTO %s_shots (%s) VALUES (%s)", prj, keys, idxs)
+	if _, err := db.Exec(stmt, m.Values()...); err != nil {
 		return err
 	}
 	return nil
