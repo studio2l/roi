@@ -21,7 +21,7 @@ func AddThumbnail(prj, shot, thumbf string) error {
 	}
 	maxKB := int64(200)
 	if fi.Size() > (maxKB << 10) {
-		return wrap(fmt.Errorf("file size is bigger than %sKB: %s", maxKB))
+		return wrap(fmt.Errorf("file size is bigger than %dKB: %s", maxKB, thumbf))
 	}
 	from, err := os.Open(thumbf)
 	if err != nil {
