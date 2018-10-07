@@ -24,15 +24,11 @@ go install ./...
 
 저희는 [cockroach db](https://cockroachlabs.com) 사용을 권장합니다.
 
-cockroach db는 postgres와 호환되며, 쉽게 스케일을 키울수 있는 db입니다.
-
-또는 postgres를 사용하셔도 됩니다.
+cockroach db는 postgresql의 호환 문법을 사용하며, 쉽게 스케일을 키울수 있는 db입니다.
 
 cockroach db는 바이너리 파일로 배포하기 때문에 쉽게 설치하실 수 있습니다.
 
-다운로드 받은 후 원하는 곳에서 실행하시면
-
-그 아래에 cockroach-data 디렉토리가 생성되며 실행됩니다.
+다운로드 받은 후 원하는 곳에서 실행하시면 그 아래에 cockroach-data 디렉토리가 생성되며 실행됩니다.
 
 ## 실행
 
