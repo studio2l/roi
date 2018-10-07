@@ -34,6 +34,8 @@ type Project struct {
 }
 
 var ProjectTableFields = []string{
+	// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
+	"id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
 	"code STRING NOT NULL UNIQUE CHECK (LENGTH(code) > 0) CHECK (code NOT LIKE '% %')",
 	"name STRING",
 	"status STRING",

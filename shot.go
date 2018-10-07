@@ -29,6 +29,8 @@ type Shot struct {
 }
 
 var ShotTableFields = []string{
+	// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
+	"id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
 	"book INT",
 	"scene STRING NOT NULL CHECK (scene NOT LIKE '% %')",
 	"shot STRING UNIQUE NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %')",

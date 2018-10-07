@@ -15,11 +15,6 @@ import (
 
 // CreateTableIfNotExists는 db에 해당 테이블이 없을 때 추가한다.
 func CreateTableIfNotExists(db *sql.DB, table string, fields []string) error {
-	// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
-	fields = append(
-		[]string{"id UUID PRIMARY KEY DEFAULT gen_random_uuid()"},
-		fields...,
-	)
 	field := strings.Join(fields, ", ")
 	stmt := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s)", table, field)
 	fmt.Println(stmt)

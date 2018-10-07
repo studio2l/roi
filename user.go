@@ -13,7 +13,8 @@ type User struct {
 }
 
 var UserTableFields = []string{
-	// id는 자동 추가되는 필드이기 때문에 userid라는 이름을 사용
+	// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
+	"id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
 	"userid STRING UNIQUE NOT NULL CHECK (length(userid) > 0) CHECK (userid NOT LIKE '% %')",
 	"hashed_password STRING NOT NULL",
 	"kor_name STRING",
