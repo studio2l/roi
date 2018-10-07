@@ -52,11 +52,8 @@ var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(32),
 )
 
-func setSession(w http.ResponseWriter, userid string) error {
-	value := map[string]string{
-		"userid": userid,
-	}
-	encoded, err := cookieHandler.Encode("session", value)
+func setSession(w http.ResponseWriter, session map[string]string) error {
+	encoded, err := cookieHandler.Encode("session", session)
 	if err != nil {
 		return err
 	}
@@ -137,7 +134,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "entered password is not correct", http.StatusBadRequest)
 			return
 		}
-		err = setSession(w, id)
+		session := map[string]string{
+			"userid": id,
+		}
+		err = setSession(w, session)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not set session: %s", err), http.StatusInternalServerError)
 			return
@@ -200,7 +200,10 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("could not add user: %s", err), http.StatusBadRequest)
 			return
 		}
-		err = setSession(w, id)
+		session := map[string]string{
+			"userid": id,
+		}
+		err = setSession(w, session)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not set session: %s", err), http.StatusInternalServerError)
 			return
