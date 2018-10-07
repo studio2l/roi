@@ -15,7 +15,10 @@ import (
 	"github.com/studio2l/roi"
 )
 
+// dev는 현재 개발모드인지를 나타낸다.
 var dev bool
+
+// templates에는 사용자에게 보일 페이지의 템플릿이 담긴다.
 var templates *template.Template
 
 // hasThumbnail은 해당 특정 프로젝트 샷에 썸네일이 있는지 검사한다.
@@ -34,12 +37,16 @@ func hasThumbnail(prj, shot string) bool {
 	return true
 }
 
+// parseTemplate은 tmpl 디렉토리 안의 html파일들을 파싱하여 http 응답에 사용될 수 있도록 한다.
 func parseTemplate() {
 	templates = template.Must(template.New("").Funcs(template.FuncMap{
 		"hasThumbnail": hasThumbnail,
 	}).ParseGlob("tmpl/*.html"))
 }
 
+// executeTemplate은 템플릿과 정보를 이용하여 w에 응답한다.
+// templates.ExecuteTemplate 대신 이 함수를 쓰는 이유는 개발모드일 때
+// 재 컴파일 없이 업데이트된 템플릿을 사용할 수 있기 때문이다.
 func executeTemplate(w http.ResponseWriter, name string, data interface{}) error {
 	if dev {
 		parseTemplate()
@@ -47,11 +54,13 @@ func executeTemplate(w http.ResponseWriter, name string, data interface{}) error
 	return templates.ExecuteTemplate(w, name, data)
 }
 
+// cookieHandler는 클라이언트 브라우저 세션에 암호화된 쿠키를 저장을 돕는다.
 var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
 	securecookie.GenerateRandomKey(32),
 )
 
+// setSession은 클라이언트 브라우저에 세션을 저장한다.
 func setSession(w http.ResponseWriter, session map[string]string) error {
 	encoded, err := cookieHandler.Encode("session", session)
 	if err != nil {
@@ -66,6 +75,7 @@ func setSession(w http.ResponseWriter, session map[string]string) error {
 	return nil
 }
 
+// getSession은 클라이언트 브라우저에 저장되어 있던 세션을 불러온다.
 func getSession(r *http.Request) (map[string]string, error) {
 	c, _ := r.Cookie("session")
 	if c == nil {
@@ -79,6 +89,7 @@ func getSession(r *http.Request) (map[string]string, error) {
 	return value, nil
 }
 
+// clearSession은 클라이언트 브라우저에 저장되어 있던 세션을 지운다.
 func clearSession(w http.ResponseWriter) {
 	c := &http.Cookie{
 		Name:   "session",
@@ -89,6 +100,7 @@ func clearSession(w http.ResponseWriter) {
 	http.SetCookie(w, c)
 }
 
+// rootHandler는 루트경로(/)를 포함해 정의되지 않은 페이지로의 사용자 접속을 처리한다.
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	session, err := getSession(r)
 	if err != nil {
@@ -106,6 +118,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// loginHandler는 /login 페이지로 사용자가 접속했을때 로그인 페이지를 반환한다.
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		r.ParseForm()
@@ -161,11 +174,13 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// logoutHandler는 /logout 페이지로 사용자가 접속했을때 사용자를 로그아웃 시킨다.
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	clearSession(w)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+// signupHandler는 /signup 페이지로 사용자가 접속했을때 가입 페이지를 반환한다.
 func signupHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		r.ParseForm()
@@ -227,6 +242,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// profileHandler는 /profile 페이지로 사용자가 접속했을 때 사용자 프로필 페이지를 반환한다.
 func profileHandler(w http.ResponseWriter, r *http.Request) {
 	session, err := getSession(r)
 	if err != nil {
@@ -280,6 +296,8 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// updatePasswordHandler는 /update-password 페이지로 사용자가 패스워드 변경과 관련된 정보를 보내면
+// 사용자 패스워드를 변경한다.
 func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	session, err := getSession(r)
 	if err != nil {
@@ -332,6 +350,7 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/settings/profile", http.StatusSeeOther)
 }
 
+// searchHandler는 /search/ 하위 페이지로 사용자가 접속했을때 페이지를 반환한다.
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Path[len("/search/"):]
 
@@ -426,6 +445,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// shotHandler는 /shot/ 하위 페이지로 사용자가 접속했을때 샷 정보가 담긴 페이지를 반환한다.
 func shotHandler(w http.ResponseWriter, r *http.Request) {
 	pth := r.URL.Path[len("/shot/"):]
 	pths := strings.Split(pth, "/")
