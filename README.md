@@ -46,9 +46,9 @@ cp -i cockroach-v2.0.6.linux-amd64/cockroach /usr/local/bin
 cd ~ # 또는 원하는 실행 장소에서
 cockroach start --insecure
 cockroach sql --insecure
-> CREATE USER maxroach;
+> CREATE USER roiuser;
 > CREATE DATABASE roi;
-> GRANT ALL ON DATABASE roi TO maxroach;
+> GRANT ALL ON DATABASE roi TO roiuser;
 > \q
 
 # 테스트 데이터 추가

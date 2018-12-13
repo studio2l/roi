@@ -132,7 +132,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "password field emtpy", http.StatusBadRequest)
 			return
 		}
-		db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+		db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -204,7 +204,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "passwords are not matched", http.StatusBadRequest)
 			return
 		}
-		db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+		db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -251,7 +251,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login/", http.StatusSeeOther)
 		return
 	}
-	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -326,7 +326,7 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "passwords are not matched", http.StatusBadRequest)
 		return
 	}
-	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -354,7 +354,7 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Path[len("/search/"):]
 
-	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -455,7 +455,7 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	prj := pths[0]
 	s := pths[1]
-	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -504,7 +504,7 @@ func main() {
 	flag.StringVar(&key, "key", "cert/key.pem", "https key file. if you don't have one, use cert/generate-self-signed-cert.sh script.")
 	flag.Parse()
 
-	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/roi?sslmode=disable")
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {
 		log.Fatal("error connecting to the database: ", err)
 	}
