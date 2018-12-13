@@ -30,11 +30,11 @@ cockroach db는 바이너리 파일로 배포하기 때문에 쉽게 설치하�
 
 다음은 cockroachdb 홈페이지에 나와있는 설치법입니다.
 
-v2.0.6은 현재 roi가 사용하는 버전입니다. 또는 [이 곳](https://www.cockroachlabs.com/docs/stable/install-cockroachdb.html)에서 최신 버전을 다운로드 받으실 수 있습니다.
+v2.1.2는 현재 roi가 사용하는 버전입니다. 또는 [이 곳](https://www.cockroachlabs.com/docs/stable/install-cockroachdb.html)에서 최신 버전을 다운로드 받으실 수 있습니다.
 
 ```
-wget -qO- https://binaries.cockroachdb.com/cockroach-v2.0.6.linux-amd64.tgz | tar  xvz
-cp -i cockroach-v2.0.6.linux-amd64/cockroach /usr/local/bin
+wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.2.linux-amd64.tgz | tar  xvz
+cp -i cockroach-v2.1.2.linux-amd64/cockroach /usr/local/bin
 ```
 
 다운로드 받은 후 원하는 곳에서 실행하시면 그 아래에 cockroach-data 디렉토리가 생성되며 실행됩니다.
