@@ -495,14 +495,34 @@ func main() {
 	dev = true
 
 	var (
+		init  bool
 		https string
 		cert  string
 		key   string
 	)
+	flag.BoolVar(&init, "init", false, "setup roi.")
 	flag.StringVar(&https, "https", ":443", "address to open https port. it doesn't offer http for security reason.")
 	flag.StringVar(&cert, "cert", "cert/cert.pem", "https cert file. if you don't have one, use cert/generate-self-signed-cert.sh script.")
 	flag.StringVar(&key, "key", "cert/key.pem", "https key file. if you don't have one, use cert/generate-self-signed-cert.sh script.")
 	flag.Parse()
+
+	if init {
+		db, err := sql.Open("postgres", "postgresql://root@localhost:26257/roi?sslmode=disable")
+		if err != nil {
+			log.Fatal("error connecting to the database: ", err)
+		}
+		if _, err := db.Exec("CREATE USER IF NOT EXISTS roiuser"); err != nil {
+			log.Fatal("error creating user 'roiuser': ", err)
+		}
+		fmt.Println("hey")
+		if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
+			log.Fatal("error creating db 'roi': ", err)
+		}
+		if _, err := db.Exec("GRANT ALL ON DATABASE roi TO roiuser"); err != nil {
+			log.Fatal("error granting 'roi' to 'roiuser': ", err)
+		}
+		return
+	}
 
 	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {

@@ -44,12 +44,7 @@ cp -i cockroach-v2.0.6.linux-amd64/cockroach /usr/local/bin
 ```
 # DB 실행 및 최초 셑업
 cd ~ # 또는 원하는 실행 장소에서
-cockroach start --insecure
-cockroach sql --insecure
-> CREATE USER roiuser;
-> CREATE DATABASE roi;
-> GRANT ALL ON DATABASE roi TO roiuser;
-> \q
+cockroach start --insecure &
 
 # 테스트 데이터 추가
 cd $GOPATH/src/github.com/studio2l/roi/cmd/roishot
@@ -63,5 +58,6 @@ sh generate-self-signed-cert.sh
 # 서버 실행
 cd $GOPATH/src/github.com/studio2l/roi/cmd/roi
 go install
+roi -init
 roi
 ```
