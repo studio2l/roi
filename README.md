@@ -48,8 +48,8 @@ cockroach start --insecure &
 
 # 테스트 데이터 추가
 cd $GOPATH/src/github.com/studio2l/roi/cmd/roishot
-go install
-roishot testdata/test.xlsx
+go build
+./roishot testdata/test.xlsx
 
 # 자가 https 인증서 추가
 cd $GOPATH/src/github.com/studio2l/roi/cmd/roi/cert
@@ -57,7 +57,7 @@ sh generate-self-signed-cert.sh
 
 # 서버 실행
 cd $GOPATH/src/github.com/studio2l/roi/cmd/roi
-go install
-roi -init
-roi
+go build
+./roi -init
+sudo ./roi
 ```
