@@ -42,7 +42,7 @@ cp -i cockroach-v2.0.6.linux-amd64/cockroach /usr/local/bin
 ## 실행
 
 ```
-# DB 실행 및 최초 셑업
+# DB 실행
 cd ~ # 또는 원하는 실행 장소에서
 cockroach start --insecure &
 
