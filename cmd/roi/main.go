@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/gorilla/securecookie"
@@ -502,8 +503,8 @@ func main() {
 	)
 	flag.BoolVar(&init, "init", false, "setup roi.")
 	flag.StringVar(&https, "https", ":443", "address to open https port. it doesn't offer http for security reason.")
-	flag.StringVar(&cert, "cert", "cert/cert.pem", "https cert file. if you don't have one, use cert/generate-self-signed-cert.sh script.")
-	flag.StringVar(&key, "key", "cert/key.pem", "https key file. if you don't have one, use cert/generate-self-signed-cert.sh script.")
+	flag.StringVar(&cert, "cert", "cert/cert.pem", "https cert file. default one for testing will created by -init.")
+	flag.StringVar(&key, "key", "cert/key.pem", "https key file. default one for testing will created by -init.")
 	flag.Parse()
 
 	if init {
@@ -520,6 +521,27 @@ func main() {
 		}
 		if _, err := db.Exec("GRANT ALL ON DATABASE roi TO roiuser"); err != nil {
 			log.Fatal("error granting 'roi' to 'roiuser': ", err)
+		}
+
+		// 기본 Self Signed Certificate는 항상 정해진 위치에 생성되어야 한다.
+		cert := "cert/cert.pem"
+		key := "cert/key.pem"
+		// 해당 위치에 이미 파일이 생성되어 있다면 건너 뛴다.
+		// 사용자가 직접 추가한 인증서 파일을 덮어쓰는 위험을 없애기 위함이다.
+		exist, err := anyFileExist(cert, key)
+		if err != nil {
+			log.Fatalf("error checking a certificate file: %s", cert, err)
+		}
+		if exist {
+			log.Print("already have certificate file. will not create.")
+		} else {
+			// cert와 key가 없다. 인증서 생성.
+			c := exec.Command("sh", "generate-self-signed-cert.sh")
+			c.Dir = "cert"
+			_, err := c.CombinedOutput()
+			if err != nil {
+				log.Fatal("error generating certificate files: ", err)
+			}
 		}
 		return
 	}
