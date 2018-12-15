@@ -514,7 +514,6 @@ func main() {
 		if _, err := db.Exec("CREATE USER IF NOT EXISTS roiuser"); err != nil {
 			log.Fatal("error creating user 'roiuser': ", err)
 		}
-		fmt.Println("hey")
 		if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
 			log.Fatal("error creating db 'roi': ", err)
 		}
