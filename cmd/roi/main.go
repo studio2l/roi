@@ -545,5 +545,24 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 	thumbfs := http.FileServer(http.Dir("roi-userdata/thumbnail"))
 	mux.Handle("/thumbnail/", http.StripPrefix("/thumbnail/", thumbfs))
+
+	// Show https binding information
+	addrToShow := "https://"
+	addrs := strings.Split(https, ":")
+	if len(addrs) == 2 {
+		if addrs[0] == "" {
+			addrToShow += "localhost"
+		} else {
+			addrToShow += addrs[0]
+		}
+		if addrs[1] != "443" {
+			addrToShow += ":" + addrs[1]
+		}
+	}
+	fmt.Println()
+	log.Printf("roi is start to running. see %s", addrToShow)
+	fmt.Println()
+
+	// Bind
 	log.Fatal(http.ListenAndServeTLS(https, cert, key, mux))
 }
