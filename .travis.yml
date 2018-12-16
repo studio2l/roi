@@ -6,5 +6,5 @@ go:
 before_install:
 	- go get ./...
 
-install:
+script:
 	- go test ./...
