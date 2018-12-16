@@ -1,0 +1,35 @@
+version: v1.0
+name: First pipeline example
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+
+blocks:
+  # Sample Build는 semaphore-ci가 자동으로 만들어주는
+  # 기본 예제 중 추후 참고하려고 남겨둔 하나의 태스크이다.
+  - name: "Sample Build"
+    task:
+      env_vars:
+        - name: APP_ENV
+          value: prod
+      jobs:
+      - name: Docker build
+        commands:
+          - checkout
+          - ls -1
+          - echo $APP_ENV
+          - echo "Docker build..."
+          - echo "done"
+
+  - name: "Unit tests"
+    task:
+      jobs:
+      - name: Go Test All
+        commands:
+          - checkout
+          - change-go-version 1.11
+          - export GOMODULE111=on
+          - go get ./...
+          - go test ./...
+

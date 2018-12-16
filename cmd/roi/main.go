@@ -529,7 +529,7 @@ func main() {
 		// 사용자가 직접 추가한 인증서 파일을 덮어쓰는 위험을 없애기 위함이다.
 		exist, err := anyFileExist(cert, key)
 		if err != nil {
-			log.Fatalf("error checking a certificate file: %s", cert, err)
+			log.Fatalf("error checking a certificate file %s: %s", cert, err)
 		}
 		if exist {
 			log.Print("already have certificate file. will not create.")
