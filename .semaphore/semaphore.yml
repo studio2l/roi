@@ -34,6 +34,8 @@ blocks:
       - name: Go Test All
         commands:
           - checkout
+          - go version
+          - export GOMODULE111=on
           - go get ./...
           - go test ./...
 
