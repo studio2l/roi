@@ -34,7 +34,7 @@ blocks:
       - name: Go Test All
         commands:
           - checkout
-          - echo "go test ./..."
+          - go test ./...
 
   - name: "Integration tests"
     task:
