@@ -31,20 +31,10 @@ blocks:
   - name: "Unit tests"
     task:
       jobs:
-      - name: RSpec
+      - name: Go Test All
         commands:
           - checkout
-          - echo "make rspec"
-
-      - name: Lint code
-        commands:
-          - checkout
-          - echo "make lint"
-
-      - name: Check security
-        commands:
-          - checkout
-          - echo "make security"
+          - echo "go test ./..."
 
   - name: "Integration tests"
     task:
