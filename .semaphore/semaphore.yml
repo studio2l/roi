@@ -6,6 +6,8 @@ agent:
     os_image: ubuntu1804
 
 blocks:
+  # Sample Build는 semaphore-ci가 자동으로 만들어주는
+  # 기본 예제 중 추후 참고하려고 남겨둔 하나의 태스크이다.
   - name: "Sample Build"
     task:
       env_vars:
