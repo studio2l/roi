@@ -20,14 +20,6 @@ blocks:
           - echo "Docker build..."
           - echo "done"
 
-  - name: "Smoke tests"
-    task:
-      jobs:
-      - name: Smoke
-        commands:
-          - checkout
-          - echo "make smoke"
-
   - name: "Unit tests"
     task:
       jobs:
@@ -38,14 +30,6 @@ blocks:
           - export GOMODULE111=on
           - go get ./...
           - go test ./...
-
-  - name: "Integration tests"
-    task:
-      jobs:
-      - name: Cucumber
-        commands:
-          - checkout
-          - echo "make cucumber"
 
   - name: "Push Image"
     task:
