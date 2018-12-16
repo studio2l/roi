@@ -6,7 +6,7 @@ agent:
     os_image: ubuntu1804
 
 blocks:
-  - name: "Build"
+  - name: "Sample Build"
     task:
       env_vars:
         - name: APP_ENV
@@ -32,10 +32,3 @@ blocks:
           - go get ./...
           - go test ./...
 
-  - name: "Push Image"
-    task:
-      jobs:
-      - name: Push
-        commands:
-          - checkout
-          - echo "make docker.push"
