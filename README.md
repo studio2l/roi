@@ -46,11 +46,6 @@ cp -i cockroach-v2.1.2.linux-amd64/cockroach /usr/local/bin
 cd ~ # 또는 원하는 실행 장소에서
 cockroach start --insecure &
 
-# 테스트 데이터 추가
-cd $GOPATH/src/github.com/studio2l/roi/cmd/roishot
-go build
-./roishot testdata/test.xlsx
-
 # 서버 실행
 cd $GOPATH/src/github.com/studio2l/roi/cmd/roi
 go build
