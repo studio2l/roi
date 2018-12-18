@@ -1,16 +1,4 @@
-<!doctype html>
-<html>
-<head>
-	<title>roi</title>
-	<script src="/static/vue.js"></script>
-	<script>
-	function projectChanged() {
-		prj = document.getElementById("project-select").value;
-		document.location.href = prj;
-	}
-	</script>
-	<link rel="stylesheet" href="/static/roi.css">
-</head>
+{{template "head.html" }}
 <body style="">
 	{{template "nav.html" $}}
 	<div style="position:sticky;top:40px;width:100%;height:45px;background-color:#DDDDDD;padding:5px;">
@@ -79,5 +67,11 @@
 			</div>
 		</div>
 	</div>
+<script>
+function projectChanged() {
+	prj = document.getElementById("project-select").value;
+	document.location.href = prj;
+};
+</script>
 </body>
 </html>
