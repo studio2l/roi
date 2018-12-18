@@ -118,7 +118,7 @@ fi
 
 "$GOROOT/bin/go" run "$GOROOT/src/crypto/tls/generate_cert.go" -host="localhost" -ca=true
 `)})
-	bakego = append(bakego, BakeGoFile{"static\Semantic-UI-CSS-2.4.1\LICENSE", "", []byte(`The MIT License (MIT)
+	bakego = append(bakego, BakeGoFile{"static/Semantic-UI-CSS-2.4.1/LICENSE", "", []byte(`The MIT License (MIT)
 
 Copyright (c) 2015 Semantic Org
 
@@ -141,7 +141,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 `)})
-	bakego = append(bakego, BakeGoFile{"static\Semantic-UI-CSS-2.4.1\README.md", "", []byte(`# CSS  Distribution
+	bakego = append(bakego, BakeGoFile{"static/Semantic-UI-CSS-2.4.1/README.md", "", []byte(`# CSS  Distribution
 
 This repository is automatically synced with the main [Semantic UI](https://github.com/Semantic-Org/Semantic-UI) repository to provide lightweight CSS only version of Semantic UI.
 
@@ -149,7 +149,7 @@ This package **does not support theming** and includes generated CSS files of th
 
 You can view more on Semantic UI at [LearnSemantic.com](http://www.learnsemantic.com) and [Semantic-UI.com](http://www.semantic-ui.com)
 `)})
-	bakego = append(bakego, BakeGoFile{"static\Semantic-UI-CSS-2.4.1\semantic.css", "", []byte(` /*
+	bakego = append(bakego, BakeGoFile{"static/Semantic-UI-CSS-2.4.1/semantic.css", "", []byte(` /*
  * # Semantic UI - 2.4.0
  * https://github.com/Semantic-Org/Semantic-UI
  * http://www.semantic-ui.com/
@@ -40453,7 +40453,7 @@ body.pushable > .pusher {
 /*******************************
          Site Overrides
 *******************************/`)})
-	bakego = append(bakego, BakeGoFile{"static\Semantic-UI-CSS-2.4.1\semantic.js", "", []byte(` /*
+	bakego = append(bakego, BakeGoFile{"static/Semantic-UI-CSS-2.4.1/semantic.js", "", []byte(` /*
  * # Semantic UI - 2.4.1
  * https://github.com/Semantic-Org/Semantic-UI
  * http://www.semantic-ui.com/
@@ -62969,7 +62969,7 @@ $.fn.visibility.settings = {
 
 })( jQuery, window, document );
 `)})
-	bakego = append(bakego, BakeGoFile{"static\jquery-3.3.1.js", "", []byte(`/*!
+	bakego = append(bakego, BakeGoFile{"static/jquery-3.3.1.js", "", []byte(`/*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
  *
@@ -73334,7 +73334,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 `)})
-	bakego = append(bakego, BakeGoFile{"static\roi.css", "", []byte(`body {
+	bakego = append(bakego, BakeGoFile{"static/roi.css", "", []byte(`body {
 	background-color:#EEEEEE;
 	margin: 0;
 }
@@ -73353,14 +73353,14 @@ hr {
 	padding: 8px;
 }
 `)})
-	bakego = append(bakego, BakeGoFile{"static\thumbnail_blank.png", "hex", []byte(`89504e470d0a1a0a0000000d49484452000000a00000005a0802000000b0a4ca05000000017352474200aece1ce90000000467414d410000b18f0bfc61050000
+	bakego = append(bakego, BakeGoFile{"static/thumbnail_blank.png", "hex", []byte(`89504e470d0a1a0a0000000d49484452000000a00000005a0802000000b0a4ca05000000017352474200aece1ce90000000467414d410000b18f0bfc61050000
 00097048597300000ec300000ec301c76fa864000000d749444154785eedd1010d00000cc3a03b9ff5fb20c502b7d00ac6158c2b185730ae605cc1b8827105e3
 0ac6158c2b185730ae605cc1b8827105e30ac6158c2b185730ae605cc1b8827105e30ac6158c2b185730ae605cc1b8827105e30ac6158c2b185730ae605cc1b8
 827105e30ac6158c2b185730ae605cc1b8827105e30ac6158c2b185730ae605cc1b8827105e30ac6158c2b185730ae605cc1b8827105e30ac6158c2b185730ae
 605cc1b8827105e30ac6158c2b185730ae605cc1b8827105e30ac6158c2b185730ae605cc1b8827105e30aa66d0f6d3ebc1e37ad5be00000000049454e44ae42
 6082
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl\head.html", "", []byte(`<!doctype html>
+	bakego = append(bakego, BakeGoFile{"tmpl/head.html", "", []byte(`<!doctype html>
 <html>
 <head>
 	<title>roi</title>
@@ -73369,13 +73369,13 @@ hr {
     <script src="/static/jquery-3.3.1.js"></script>
     <script src="/static/Semantic-UI-CSS-2.4.1/semantic.js"></script>
 </head>`)})
-	bakego = append(bakego, BakeGoFile{"tmpl\index.html", "", []byte(`{{template "head.html"}}
+	bakego = append(bakego, BakeGoFile{"tmpl/index.html", "", []byte(`{{template "head.html"}}
 <body style="">
 	{{template "nav.html" $}}
 </body>
 </html>
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl\login.html", "", []byte(`{{template "head.html"}}
+	bakego = append(bakego, BakeGoFile{"tmpl/login.html", "", []byte(`{{template "head.html"}}
 <body style="background-color:#F0F0F0">
 	{{template "nav.html" $}}
 	<div style="width:350px;margin:auto;">
@@ -73396,7 +73396,7 @@ hr {
 </body>
 </html>
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl\nav.html", "", []byte(`<div style="position:sticky;top:0;width:100%;height:40px;background-color:#48F; display:flex; color:#999;">
+	bakego = append(bakego, BakeGoFile{"tmpl/nav.html", "", []byte(`<div style="position:sticky;top:0;width:100%;height:40px;background-color:#48F; display:flex; color:#999;">
 	<div style="width:150px; background-color:#37F; display:flex; margin:0px 1px;">
 		<div style="color:white; align-self:center; font-size:30px; padding-left:10px;"><a href="/" style="color:white;">ROI</a></div>
 	</div>
@@ -73415,7 +73415,7 @@ hr {
 </div>
 
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl\profile.html", "", []byte(`{{template "head.html"}}
+	bakego = append(bakego, BakeGoFile{"tmpl/profile.html", "", []byte(`{{template "head.html"}}
 <body style="">
 	{{template "nav.html" $}}
 	<div id="main" style="display:flex">
@@ -73477,7 +73477,7 @@ hr {
 </body>
 </html>
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl\search.html", "", []byte(`{{template "head.html" }}
+	bakego = append(bakego, BakeGoFile{"tmpl/search.html", "", []byte(`{{template "head.html" }}
 <body style="">
 	{{template "nav.html" $}}
 	<div style="position:sticky;top:40px;width:100%;height:45px;background-color:#DDDDDD;padding:5px;">
@@ -73555,7 +73555,7 @@ function projectChanged() {
 </body>
 </html>
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl\shot.html", "", []byte(`{{template "head.html" }}
+	bakego = append(bakego, BakeGoFile{"tmpl/shot.html", "", []byte(`{{template "head.html" }}
 <body style="">
 	{{template "nav.html" $}}
 	<div id="main">
@@ -73613,7 +73613,7 @@ function projectChanged() {
 </body>
 </html>
 `)})
-	bakego = append(bakego, BakeGoFile{"tmpl\signup.html", "", []byte(`{{template "head.html" }}
+	bakego = append(bakego, BakeGoFile{"tmpl/signup.html", "", []byte(`{{template "head.html" }}
 <body style="background-color:#F0F0F0">
 	{{template "nav.html" $}}
 	<div style="width:350px;margin:auto;">
