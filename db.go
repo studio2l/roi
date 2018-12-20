@@ -54,10 +54,7 @@ func pgIndices(n int) []string {
 
 // AddUser는 db에 한 명의 사용자를 추가한다.
 func AddUser(db *sql.DB, id, pw string) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
+	// 이 이름을 가진 사용자가 이미 있는지 검사한다.
 	rows, err := SelectAll(db, "users", map[string]string{"userid": id})
 	if err != nil {
 		return err
@@ -65,10 +62,14 @@ func AddUser(db *sql.DB, id, pw string) error {
 	if rows.Next() {
 		return fmt.Errorf("user %s already exists", id)
 	}
-	var u = User{}
-	u.ID = id
-	u.HashedPassword = string(hashedPassword)
-	m := u.toOrdMap()
+	// 패스워드 해시
+	hashed, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	hashed_password := string(hashed)
+	// 사용자 생성
+	m := NewUserMap(id, hashed_password)
 	keystr := strings.Join(m.Keys(), ", ")
 	idxstr := strings.Join(pgIndices(m.Len()), ", ")
 	stmt := fmt.Sprintf("INSERT INTO users (%s) VALUES (%s)", keystr, idxstr)
@@ -82,9 +83,9 @@ func AddUser(db *sql.DB, id, pw string) error {
 // GetUser는 db에서 사용자를 검색한다.
 // 반환된 User의 ID가 비어있다면 해당 유저를 찾지 못한것이다.
 func GetUser(db *sql.DB, id string) (User, error) {
-	stmt := fmt.Sprintf("SELECT * FROM users WHERE userid='%s'", id)
+	stmt := "SELECT userid, kor_name, name, team, position, email, phone_number, entry_date FROM users WHERE userid=$1"
 	fmt.Println(stmt)
-	rows, err := db.Query(stmt)
+	rows, err := db.Query(stmt, id)
 	if err != nil {
 		return User{}, err
 	}
@@ -93,23 +94,28 @@ func GetUser(db *sql.DB, id string) (User, error) {
 		return User{}, nil
 	}
 	var u User
-	var uuid string
-	if err := rows.Scan(&uuid, &u.ID, &u.HashedPassword, &u.KorName, &u.Name, &u.Team, &u.Position, &u.Email, &u.PhoneNumber, &u.EntryDate); err != nil {
+	if err := rows.Scan(&u.ID, &u.KorName, &u.Name, &u.Team, &u.Position, &u.Email, &u.PhoneNumber, &u.EntryDate); err != nil {
 		return User{}, err
 	}
 	return u, nil
 }
 
 // UserHasPassword는 db에 저장된 사용자의 비밀번호와 입력된 비밀번호가 같은지를 비교한다.
+// 해당 사용자가 없거나, 불러오는데 에러가 나면 false와 에러를 반환한다.
 func UserHasPassword(db *sql.DB, id, pw string) (bool, error) {
-	u, err := GetUser(db, id)
+	stmt := "SELECT hashed_password FROM users WHERE userid=$1"
+	fmt.Println(stmt)
+	rows, err := db.Query(stmt, id)
 	if err != nil {
 		return false, err
 	}
-	if u.ID == "" {
+	ok := rows.Next()
+	if !ok {
 		return false, fmt.Errorf("user '%s' not exists", id)
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(u.HashedPassword), []byte(pw))
+	var hashed_password string
+	rows.Scan(&hashed_password)
+	err = bcrypt.CompareHashAndPassword([]byte(hashed_password), []byte(pw))
 	if err != nil {
 		return false, err
 	}
@@ -119,10 +125,6 @@ func UserHasPassword(db *sql.DB, id, pw string) (bool, error) {
 // SetUser는 db에 비밀번호를 제외한 사용자 필드를 업데이트 한다.
 func SetUser(db *sql.DB, id string, u User) error {
 	m := u.toOrdMap()
-	// 유저의 암호는 독립된 요청에 의해서만 업데이트하기에 제외한다.
-	if ok := m.Delete("hashed_password"); !ok {
-		log.Fatal("user should have \"hashed_password\" key")
-	}
 	setstr := ""
 	i := 0
 	for _, k := range m.Keys() {
@@ -142,12 +144,14 @@ func SetUser(db *sql.DB, id string, u User) error {
 
 // SetUserPassword는 db에 저장된 사용자 패스워드를 수정한다.
 func SetUserPassword(db *sql.DB, id, pw string) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+	hashed, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	stmt := "UPDATE users SET (hashed_password=$1) WHERE userid=$2"
-	if _, err := db.Exec(stmt, hashedPassword, id); err != nil {
+	hashed_password := string(hashed)
+	stmt := "UPDATE users SET hashed_password=$1 WHERE userid=$2"
+	fmt.Println(stmt)
+	if _, err := db.Exec(stmt, hashed_password, id); err != nil {
 		return err
 	}
 	return nil
