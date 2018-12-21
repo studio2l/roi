@@ -17,7 +17,6 @@ import (
 
 func shotFromMap(m map[string]string) roi.Shot {
 	return roi.Shot{
-		Book:          toInt(m["book"]),
 		Scene:         m["scene"],
 		Name:          m["shot"],
 		Status:        m["status"],
