@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/securecookie"
@@ -492,6 +494,111 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type SimpleResponse struct {
+	Msg string `json:"msg"`
+	Err string `json:"err"`
+}
+
+func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	db, err := sql.Open("postgres", "postgresql://root@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("there was an internal error, sorry!")})
+		w.Write(resp)
+		return
+	}
+	prj := r.PostFormValue("project")
+	if prj == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("'project' not specified")})
+		w.Write(resp)
+		return
+	}
+	rows, err := db.Query("SELECT code FROM projects where code=$1 LIMIT 1", prj)
+	if err != nil {
+		log.Print("project selection error: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("internal error during project selection, sorry!")})
+		w.Write(resp)
+		return
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		w.WriteHeader(http.StatusBadRequest)
+		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("project '%s' not exists", prj)})
+		w.Write(resp)
+		return
+	}
+	name := r.PostFormValue("name")
+	if name == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("'name' not specified")})
+		w.Write(resp)
+		return
+	}
+	stmt := fmt.Sprintf("SELECT shot FROM %s_shots where shot=$1 LIMIT 1", prj)
+	rows, err = db.Query(stmt, name)
+	if err != nil {
+		log.Print("shot selection error: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("internal error during shot selection, sorry!")})
+		w.Write(resp)
+		return
+	}
+	defer rows.Close()
+	if rows.Next() {
+		w.WriteHeader(http.StatusBadRequest)
+		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("shot '%s' already exists", name)})
+		w.Write(resp)
+		return
+	}
+	status := "waiting"
+	v := r.PostFormValue("status")
+	if v != "" {
+		status = v
+	}
+	editOrder := 0
+	v = r.PostFormValue("edit_order")
+	if v != "" {
+		e, err := strconv.Atoi(v)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("could not convert edit_order to int: %s", r.PostFormValue("edit_order"))})
+			w.Write(resp)
+			return
+		}
+		editOrder = e
+	}
+	duration := 0
+	v = r.PostFormValue("duration")
+	if v != "" {
+		d, err := strconv.Atoi(v)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("could not convert duration to int: %s", r.PostFormValue("duration"))})
+			w.Write(resp)
+			return
+		}
+		duration = d
+	}
+	s := roi.Shot{
+		Name:          name,
+		Status:        status,
+		EditOrder:     editOrder,
+		Description:   r.PostFormValue("description"),
+		CGDescription: r.PostFormValue("cg_description"),
+		TimecodeIn:    r.PostFormValue("timecode_in"),
+		TimecodeOut:   r.PostFormValue("timecode_out"),
+		Duration:      duration,
+		Tags:          strings.Split(r.PostFormValue("tags"), ","),
+	}
+	roi.AddShot(db, prj, s)
+	w.WriteHeader(http.StatusOK)
+	resp, _ := json.Marshal(SimpleResponse{Msg: fmt.Sprintf("successfully shot '%s'", name)})
+	w.Write(resp)
+}
+
 func main() {
 	dev = true
 
@@ -575,6 +682,7 @@ func main() {
 	mux.HandleFunc("/signup/", signupHandler)
 	mux.HandleFunc("/search/", searchHandler)
 	mux.HandleFunc("/shot/", shotHandler)
+	mux.HandleFunc("/api/shot/add", addShotApiHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 	thumbfs := http.FileServer(http.Dir("roi-userdata/thumbnail"))
