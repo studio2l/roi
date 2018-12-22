@@ -595,7 +595,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	roi.AddShot(db, prj, s)
 	w.WriteHeader(http.StatusOK)
-	resp, _ := json.Marshal(SimpleResponse{Msg: fmt.Sprintf("successfully shot '%s'", name)})
+	resp, _ := json.Marshal(SimpleResponse{Msg: fmt.Sprintf("successfully add a shot: '%s'", name)})
 	w.Write(resp)
 }
 
