@@ -494,24 +494,28 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type SimpleResponse struct {
-	Msg string `json:"msg"`
-	Err string `json:"err"`
-}
-
+// addShotApiHander는 사용자가 api를 통해 샷을 생성할수 있도록 한다.
+// 응답은 json 형식이고, 샷이 잘 생성되었다면 .msg,
+// 샷 생성에 문제가 있었다면 .err에 메시지가 담긴다.
 func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
+	type response struct {
+		Msg string `json:"msg"`
+		Err string `json:"err"`
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	db, err := sql.Open("postgres", "postgresql://root@localhost:26257/roi?sslmode=disable")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("there was an internal error, sorry!")})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("there was an internal error, sorry!")})
 		w.Write(resp)
 		return
 	}
 	prj := r.PostFormValue("project")
 	if prj == "" {
+		ㅑ
 		w.WriteHeader(http.StatusBadRequest)
-		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("'project' not specified")})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("'project' not specified")})
 		w.Write(resp)
 		return
 	}
@@ -519,37 +523,38 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print("project selection error: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("internal error during project selection, sorry!")})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("internal error during project selection, sorry!")})
 		w.Write(resp)
 		return
 	}
 	defer rows.Close()
 	if !rows.Next() {
 		w.WriteHeader(http.StatusBadRequest)
-		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("project '%s' not exists", prj)})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("project '%s' not exists", prj)})
 		w.Write(resp)
 		return
 	}
 	name := r.PostFormValue("name")
 	if name == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("'name' not specified")})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("'name' not specified")})
 		w.Write(resp)
 		return
 	}
+	// 할일: 유효한 샷 이름인지 검사
 	stmt := fmt.Sprintf("SELECT shot FROM %s_shots where shot=$1 LIMIT 1", prj)
 	rows, err = db.Query(stmt, name)
 	if err != nil {
 		log.Print("shot selection error: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("internal error during shot selection, sorry!")})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("internal error during shot selection, sorry!")})
 		w.Write(resp)
 		return
 	}
 	defer rows.Close()
 	if rows.Next() {
 		w.WriteHeader(http.StatusBadRequest)
-		resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("shot '%s' already exists", name)})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("shot '%s' already exists", name)})
 		w.Write(resp)
 		return
 	}
@@ -564,7 +569,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		e, err := strconv.Atoi(v)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("could not convert edit_order to int: %s", r.PostFormValue("edit_order"))})
+			resp, _ := json.Marshal(response{Err: fmt.Sprintf("could not convert edit_order to int: %s", r.PostFormValue("edit_order"))})
 			w.Write(resp)
 			return
 		}
@@ -576,7 +581,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		d, err := strconv.Atoi(v)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			resp, _ := json.Marshal(SimpleResponse{Err: fmt.Sprintf("could not convert duration to int: %s", r.PostFormValue("duration"))})
+			resp, _ := json.Marshal(response{Err: fmt.Sprintf("could not convert duration to int: %s", r.PostFormValue("duration"))})
 			w.Write(resp)
 			return
 		}
@@ -595,7 +600,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	roi.AddShot(db, prj, s)
 	w.WriteHeader(http.StatusOK)
-	resp, _ := json.Marshal(SimpleResponse{Msg: fmt.Sprintf("successfully add a shot: '%s'", name)})
+	resp, _ := json.Marshal(response{Msg: fmt.Sprintf("successfully add a shot: '%s'", name)})
 	w.Write(resp)
 }
 
