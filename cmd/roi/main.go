@@ -575,7 +575,7 @@ func main() {
 	mux.HandleFunc("/signup/", signupHandler)
 	mux.HandleFunc("/search/", searchHandler)
 	mux.HandleFunc("/shot/", shotHandler)
-	mux.HandleFunc("/api/shot/add", addShotApiHandler)
+	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 	thumbfs := http.FileServer(http.Dir("roi-userdata/thumbnail"))
