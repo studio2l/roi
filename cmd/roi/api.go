@@ -118,7 +118,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = roi.AddShot(db, prj, s)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		resp, _ := json.Marshal(response{Err: fmt.Sprintf("%s", err)})
 		w.Write(resp)
 		return
