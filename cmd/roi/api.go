@@ -106,6 +106,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	s := roi.Shot{
 		Name:          name,
+		Scene:         r.PostFormValue("scene"),
 		Status:        status,
 		EditOrder:     editOrder,
 		Description:   r.PostFormValue("description"),
@@ -115,7 +116,13 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		Duration:      duration,
 		Tags:          strings.Split(r.PostFormValue("tags"), ","),
 	}
-	roi.AddShot(db, prj, s)
+	err = roi.AddShot(db, prj, s)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("%s", err)})
+		w.Write(resp)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 	resp, _ := json.Marshal(response{Msg: fmt.Sprintf("successfully add a shot: '%s'", name)})
 	w.Write(resp)
