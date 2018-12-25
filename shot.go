@@ -1,8 +1,17 @@
 package roi
 
 import (
+	"regexp"
+
 	"github.com/lib/pq"
 )
+
+var reValidShotName = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]+$`)
+
+// IsValidShotName은 해당 이름이 샷 이름으로 적절한지 여부를 반환한다.
+func IsValidShotName(name string) bool {
+	return reValidShotName.MatchString(name)
+}
 
 type ShotStatus int
 
