@@ -63,7 +63,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	exist, err = roi.ShotExist(db, prj, name)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		resp, _ := json.Marshal(response{Err: fmt.Sprintf("internal error during shot check, sorry!", name)})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("internal error during shot check, sorry!")})
 		w.Write(resp)
 		return
 	}
