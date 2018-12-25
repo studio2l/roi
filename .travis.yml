@@ -7,5 +7,8 @@ env:
  - GO111MODULE=on
 
 script:
- - go test ./...
+ - go test -race -coverprofile=coverage.txt -covermode=atomic ./...
  - go vet ./...
+
+after_success:
+ - bash <(curl -s https://codecov.io/bash)
