@@ -1,0 +1,2 @@
+ignore:
+ - "cmd/roi/gen_bakego.go"
