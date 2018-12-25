@@ -29,6 +29,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(resp)
 		return
 	}
+
 	prj := r.PostFormValue("project")
 	if prj == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -36,7 +37,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(resp)
 		return
 	}
-	rows, err := db.Query("SELECT code FROM projects where code=$1 LIMIT 1", prj)
+	exist, err := roi.ProjectExist(db, prj)
 	if err != nil {
 		log.Print("project selection error: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -44,13 +45,13 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(resp)
 		return
 	}
-	defer rows.Close()
-	if !rows.Next() {
+	if !exist {
 		w.WriteHeader(http.StatusBadRequest)
 		resp, _ := json.Marshal(response{Err: fmt.Sprintf("project '%s' not exists", prj)})
 		w.Write(resp)
 		return
 	}
+
 	name := r.PostFormValue("name")
 	if name == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -59,22 +60,20 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// 할일: 유효한 샷 이름인지 검사
-	stmt := fmt.Sprintf("SELECT shot FROM %s_shots where shot=$1 LIMIT 1", prj)
-	rows, err = db.Query(stmt, name)
+	exist, err = roi.ShotExist(db, prj, name)
 	if err != nil {
-		log.Print("shot selection error: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		resp, _ := json.Marshal(response{Err: fmt.Sprintf("internal error during shot selection, sorry!")})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("internal error during shot check, sorry!", name)})
 		w.Write(resp)
 		return
 	}
-	defer rows.Close()
-	if rows.Next() {
+	if exist {
 		w.WriteHeader(http.StatusBadRequest)
 		resp, _ := json.Marshal(response{Err: fmt.Sprintf("shot '%s' already exists", name)})
 		w.Write(resp)
 		return
 	}
+
 	status := "waiting"
 	v := r.PostFormValue("status")
 	if v != "" {

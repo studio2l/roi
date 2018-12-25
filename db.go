@@ -193,6 +193,15 @@ func AddProject(db *sql.DB, prj string) error {
 	return nil
 }
 
+// ProjectExist는 db에 해당 프로젝트가 존재하는지를 검사한다.
+func ProjectExist(db *sql.DB, prj string) (bool, error) {
+	rows, err := db.Query("SELECT code FROM projects WHERE code=$1 LIMIT 1", prj)
+	if err != nil {
+		return false, err
+	}
+	return rows.Next(), nil
+}
+
 // SelectScenes는 특정 프로젝트의 모든 씬이름을 반환한다.
 func SelectScenes(db *sql.DB, prj string) ([]string, error) {
 	stmt := fmt.Sprintf("SELECT DISTINCT scene FROM %s_shots", prj)
@@ -288,6 +297,16 @@ func AddShot(db *sql.DB, prj string, s Shot) error {
 		return err
 	}
 	return nil
+}
+
+// ShotExist는 db에 해당 샷이 존재하는지를 검사한다.
+func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
+	stmt := fmt.Sprintf("SELECT shot FROM %s_shots WHERE shot=$1 LIMIT 1", prj)
+	rows, err := db.Query(stmt, shot)
+	if err != nil {
+		return false, err
+	}
+	return rows.Next(), nil
 }
 
 // FindShot은 db의 특정 프로젝트에서 샷 이름으로 해당 샷을 찾는다.
