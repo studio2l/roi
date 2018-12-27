@@ -492,17 +492,29 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func redirectToHttps(httpsPort string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		to := "https://" + strings.Split(r.Host, ":")[0] + ":" + httpsPort + r.URL.Path
+		if r.URL.RawQuery != "" {
+			to += "?" + r.URL.RawQuery
+		}
+		http.Redirect(w, r, to, http.StatusTemporaryRedirect)
+	}
+}
+
 func main() {
 	dev = true
 
 	var (
-		init  bool
-		https string
-		cert  string
-		key   string
+		init     bool
+		addr     string
+		insecure bool
+		cert     string
+		key      string
 	)
 	flag.BoolVar(&init, "init", false, "setup roi.")
-	flag.StringVar(&https, "https", ":443", "address to open https port. it doesn't offer http for security reason.")
+	flag.StringVar(&addr, "addr", ":80:443", "address to open https port. indicates <ip>:<http>:<https>. any access to http will redirected to https. if you don't want the redirection, use <ip>::<https>. http-only mode (<ip>:<http>) is available only when -insecure flag is turned on.")
+	flag.BoolVar(&insecure, "insecure", false, "allow http-only mode.")
 	flag.StringVar(&cert, "cert", "cert/cert.pem", "https cert file. default one for testing will created by -init.")
 	flag.StringVar(&key, "key", "cert/key.pem", "https key file. default one for testing will created by -init.")
 	flag.Parse()
@@ -581,23 +593,75 @@ func main() {
 	thumbfs := http.FileServer(http.Dir("roi-userdata/thumbnail"))
 	mux.Handle("/thumbnail/", http.StripPrefix("/thumbnail/", thumbfs))
 
-	// Show https binding information
-	addrToShow := "https://"
-	addrs := strings.Split(https, ":")
+	// addr을 각각의 정보로 나눔
+	var (
+		ip        string
+		httpPort  string
+		httpsPort string
+		bindAddr  string
+	)
+	addrs := strings.Split(addr, ":")
 	if len(addrs) == 2 {
-		if addrs[0] == "" {
-			addrToShow += "localhost"
-		} else {
-			addrToShow += addrs[0]
+		ip = addrs[0]
+		httpPort = addrs[1]
+		bindAddr = ip + ":" + httpPort
+	} else if len(addrs) == 3 {
+		ip = addrs[0]
+		httpPort = addrs[1]
+		httpsPort = addrs[2]
+		bindAddr = ip + ":" + httpsPort
+	}
+
+	// 바인드 모드에 따른 유효성 검사
+	if httpsPort == "" {
+		if !insecure {
+			fmt.Fprintln(os.Stderr, "http-only mode needs -insecure flag")
+			return
 		}
-		if addrs[1] != "443" {
-			addrToShow += ":" + addrs[1]
+	} else {
+		if insecure {
+			fmt.Fprintln(os.Stderr, "-insecure flag is invalid in https mode")
+			return
 		}
 	}
+
+	// 바인드 정보 출력
 	fmt.Println()
-	log.Printf("roi is start to running. see %s", addrToShow)
+	adProtocol := "https://"
+	if insecure {
+		adProtocol = "http://"
+	}
+	adIP := "localhost"
+	if ip != "" {
+		adIP = ip
+	}
+	adPort := ""
+	if insecure {
+		if httpPort != "80" {
+			adPort = httpPort
+		}
+	} else {
+		if httpsPort != "443" {
+			adPort = httpsPort
+		}
+	}
+	adAddr := adProtocol + adIP
+	if adPort != "" {
+		adAddr += ":" + adPort
+	}
+	log.Printf("roi is start to running. see %s", adAddr)
 	fmt.Println()
 
-	// Bind
-	log.Fatal(http.ListenAndServeTLS(https, cert, key, mux))
+	// 바인드
+	if insecure {
+		log.Fatal(http.ListenAndServe(bindAddr, mux))
+	} else {
+		if httpPort != "" {
+			go func() {
+				httpAddr := ip + ":" + httpPort
+				log.Fatal(http.ListenAndServe(httpAddr, http.HandlerFunc(redirectToHttps(httpsPort))))
+			}()
+		}
+		log.Fatal(http.ListenAndServeTLS(bindAddr, cert, key, mux))
+	}
 }
