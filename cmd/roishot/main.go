@@ -130,7 +130,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := roi.AddProject(db, prj); err != nil {
+	var p roi.Project
+	p.Code = prj
+	if err := roi.AddProject(db, p); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
