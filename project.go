@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var reValidProjectName = regexp.MustCompile(`^[a-zA-z0-9]+$`)
+var reValidProjectName = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 
 func IsValidProjectName(name string) bool {
 	return reValidProjectName.MatchString(name)
