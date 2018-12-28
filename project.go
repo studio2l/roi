@@ -22,6 +22,7 @@ type Project struct {
 	Producer      string
 	VFXSupervisor string
 	VFXManager    string
+	CGSupervisor  string
 
 	CrankIn     time.Time
 	CrankUp     time.Time
@@ -37,20 +38,21 @@ var ProjectTableFields = []string{
 	// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
 	"id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
 	"code STRING NOT NULL UNIQUE CHECK (LENGTH(code) > 0) CHECK (code NOT LIKE '% %')",
-	"name STRING NOT NULL",
-	"status STRING NOT NULL",
-	"client STRING NOT NULL",
-	"director STRING NOT NULL",
-	"producer STRING NOT NULL",
-	"vfx_supervisor STRING NOT NULL",
-	"vfx_manager STRING NOT NULL",
-	"crank_in DATE NOT NULL",
-	"crank_up DATE NOT NULL",
-	"start_date DATE NOT NULL",
-	"release_date DATE NOT NULL",
-	"vfx_due_date DATE NOT NULL",
-	"output_size STRING NOT NULL",
-	"lut_file STRING NOT NULL",
+	"name STRING",
+	"status STRING",
+	"client STRING",
+	"director STRING",
+	"producer STRING",
+	"vfx_supervisor STRING",
+	"vfx_manager STRING",
+	"cg_supervisor STRING",
+	"crank_in DATE",
+	"crank_up DATE",
+	"start_date DATE",
+	"release_date DATE",
+	"vfx_due_date DATE",
+	"output_size STRING",
+	"lut_file STRING",
 }
 
 func (p Project) toOrdMap() *ordMap {
@@ -63,6 +65,7 @@ func (p Project) toOrdMap() *ordMap {
 	o.Set("producer", p.Producer)
 	o.Set("vfx_supervisor", p.VFXSupervisor)
 	o.Set("vfx_manager", p.VFXManager)
+	o.Set("cg_supervisor", p.CGSupervisor)
 	o.Set("crank_in", p.CrankIn)
 	o.Set("crank_up", p.CrankUp)
 	o.Set("start_date", p.StartDate)

@@ -172,8 +172,8 @@ func SelectProject(db *sql.DB, prj string) (Project, error) {
 	p := Project{}
 	err = rows.Scan(
 		&id, &p.Code, &p.Name, &p.Status, &p.Client,
-		&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CrankIn,
-		&p.CrankUp, &p.StartDate, &p.ReleaseDate, &p.VFXDueDate, &p.OutputSize,
+		&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CGSupervisor,
+		&p.CrankIn, &p.CrankUp, &p.StartDate, &p.ReleaseDate, &p.VFXDueDate, &p.OutputSize,
 		&p.LutFile,
 	)
 	if err != nil {
