@@ -1,77 +1,73 @@
 {{template "head.html" }}
-<body style="">
-	{{template "nav.html" $}}
-	<div style="position:sticky;top:40px;width:100%;height:45px;background-color:#DDDDDD;padding:5px;">
-		<div style="display:flex;">
-			<select id="project-select" onchange="projectChanged()">
-				{{range $.Projects}}
-					<option value={{.}} {{if eq . $.Project}}selected{{end}}>{{.}}</option>
-				{{end}}
-			</select>
-			<form>
-				<input type="text" name="scene" placeholder="씬" value="{{$.FilterScene}}">
-				<input type="text" name="shot" placeholder="샷" value="{{$.FilterShot}}">
-				<input type="text" name="tag" placeholder="태그" value="{{$.FilterTag}}">
-				<select id="status-select" name="status">
-					<option value="" {{if eq $.FilterStatus ""}}selected{{end}}>모든 상태</option>
-					<option value="in-progress" {{if eq $.FilterStatus "in-progress"}}selected{{end}}>진행중</option>
-					<option value="done" {{if eq $.FilterStatus "done"}}selected{{end}}>완료</option>
-				</select>
-				<input type="submit" value="검색">
-			</form>
-		</div>
-	</div>
-	<div id="main">
-		<div style="display:flex;flex:1;">
-			<div style="flex:1;">
-			{{range .Shots}}
-				<div class="shot" style="padding:5px 10px 2px 10px;border:solid 1px #DDDDDD;background-color:white;">
-					<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:3px;font-size:15px;">
-						<div style="width:192px;margin-right:20px;">
-							<a href="/shot/{{$.Project}}/{{.Name}}" style="color:black;">{{.Name}}</a>
-							{{if ne .Scene ""}}
-							<div style="font-size:10px;color:#BBBBBB;display:inline-block;"> / {{.Scene}}</div>
-							{{end}}
-						</div>
-						<div style="flex:1;font-size:14px;">{{.CGDescription}}</div>
-						<div style="font-size:12px;align-items:end;padding:0 4px;background-color:#4488AA;color:white;">{{.Status}}</div>
-					</div>
-					<div class="shot-main" style="display:flex;">
-						<div style="width:192px;margin-right:20px;">
-						{{if hasThumbnail $.Project .Name}}
-							<img style="width:192px;height:108px" src="/thumbnail/{{$.Project}}/{{.Name}}.png" />
-						{{else}}
-							<div style="box-sizing:border-box;width:192px;height:108px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;">{{.Description}}</div>
-						{{end}}
-						</div>
-						<div class="shot-output" style="flex:1;font-size:12px;display:flex;flex-direction:column;margin-right:20px;border-top:solid 1px gray;">
-							<div style="display:flex;border-bottom:solid 1px #BBBBBB;margin-top:2px;">
-								<div style="width:30px;">1</div><div style="width:100px;">2014-01-01</div><div style="flex:1;">O.K</div>
-							</div>
-						</div>
-					</div>
-					<div class="shot-footer" style="display:flex;">
-						<div class="shot-timecode" style="width:192px;margin-right:20px;display:flex;justify-content:space-between;font-size:11px;color:gray;">
-							<div>{{.TimecodeIn}} - {{.TimecodeOut}}</div><div>{{.Duration}}f</div>
-						</div>
-						<div style="font-size:11px;color:gray;">
-							{{range $i, $v := .Tags -}}
-								{{if ne $i 0}}, {{end}}<a href="?tag={{.}}" style="color:gray;">{{.}}</a>
-							{{- end}}
-						</div>
-					</div>
-				</div>
-				<div style="height:10px;"></div>
-
+{{template "nav.html" $}}
+{{template "search-menu.html" $}}
+<div style="padding:15px 10px 15px 10px;z-index:0;">
+<!--검색 결과-->
+{{range .Shots}}
+<div class="ui inverted segment">
+	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:3px;font-size:15px;">
+		<div style="width:192px;margin-right:20px;">
+			<a class="ui medium grey header" href="/shot/{{$.Project}}/{{.Name}}">{{.Name}}</a>
+			{{if ne .Scene ""}}
+			<span class="ui grey tiny header"> / {{.Scene}}</span>
 			{{end}}
+		</div>
+		<div style="flex:1;font-size:14px;"> {{.CGDescription}}</div>		
+	</div>
+	<div class="shot-main" style="display:flex;">
+		<div style="width:192px;margin-right:20px;">
+			{{if hasThumbnail $.Project .Name}}
+			<img style="width:192px;height:108px;" src="/thumbnail/{{$.Project}}/{{.Name}}.png" />
+			{{else}}
+			<div style="box-sizing:border-box;width:192px;height:108px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;">{{.Description}}</div>
+			{{end}}
+		</div>
+		<table class="ui very compact striped inverted table" style="margin-top:0;">
+			<tbody>
+				<tr>
+					<td class="one wide">01/01</td>
+					<td class="one wide left align">COMP</td>
+					<td class="one wide left align">v01</td>
+					<td class="twelve wide left align">O.K</td>
+				</tr>
+				<tr>
+					<td class="one wide">01/07</td>
+					<td class="one wide left align">FX</td>
+					<td class="one wide left align">v01</td>
+					<td class="twelve wide left align">retake</td>
+				</tr>
+				<tr>
+					<td class="one wide">04/07</td>
+					<td class="one wide left align">MATTE</td>
+					<td class="one wide left align">v01</td>
+					<td class="twelve wide left align">retake</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="shot-footer" style="display:flex;">
+		<div class="shot-timecode" style="width:192px;margin-right:20px;display:flex;justify-content:space-between;font-size:11px;color:gray;">
+			<div>
+				<button class="ui grey mini label">{{.TimecodeIn}}</button>
+				<button class="ui grey mini label">{{.TimecodeOut}}</button>
 			</div>
+			<div class="ui black mini label">{{.Duration}}f</div>
+		</div>
+		<div>
+			<div class="ui blue mini label">{{.Status}} </div>
+			{{range $i, $v := .Tags -}}
+			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="?tag={{.}}">{{.}}</a>
+			{{- end}}
 		</div>
 	</div>
+</div>
+{{end}}
+</div>
+<!--검색 결과 끝-->
 <script>
 function projectChanged() {
 	prj = document.getElementById("project-select").value;
 	document.location.href = prj;
 };
 </script>
-</body>
-</html>
+{{template "footer.html"}}

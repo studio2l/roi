@@ -1,57 +1,48 @@
 {{template "head.html" }}
-<body style="">
-	{{template "nav.html" $}}
+{{template "nav.html" $}}
 	<div id="main">
-		<div style="display:flex;align-items:end;">
-			<div style="font-size:30px;">{{$.Shot.Name}}</div>
-			<div style="width:20px;"></div>
-			<div style="font-size:15px;background-color:#4488AA;margin:5px;padding:1px 4px;border-radius:2px;">{{$.Shot.Status}}</div>
-			<div style="font-size:15px;background-color:#44AA66;margin:5px;padding:1px 4px;border-radius:2px;">2018-01-01 (187일 지남)</div>
-			<div style="flex:1;"></div>
-			<div style="font-size:15px;"><a href="/search/{{$.Project}}" style="color:grey;">{{$.Project}}</a> <span style="color:#444444">/</span> <a href="/search/{{$.Project}}?scene={{$.Shot.Scene}}" style="color:grey;">{{$.Shot.Scene}}</a></div>
+		<h1 class="ui top attached inverted header">
+			{{$.Shot.Name}}
+			<div class="ui blue label">{{$.Shot.Status}}</div>
+			<div class="ui green label">2018-01-01 (187일 지남)</div>
+			<div class="sub header"><a href="/search/{{$.Project}}">{{$.Project}}</a> <span>/</span> <a href="/search/{{$.Project}}?scene={{$.Shot.Scene}}">{{$.Shot.Scene}}</a></div>
+		</h1>
+		<div class="ui attached secondary inverted segment">
+				<div style="display:flex;">
+						<div style="min-width:320px;min-height:180px;background-color:grey;"></div>
+						<div style="min-width:20px;"></div>
+						<div style="flex:1;display:flex;flex-direction:column;">
+							<div style="display:flex;"><div style="min-width:80px;">샷 내용</div><div style="color:grey;min-width:20px;">|</div><div>{{.Shot.Description}}</div></div>
+							<div style="display:flex;"><div style="min-width:80px;">CG내용</div><div style="color:grey;min-width:20px;">|</div><div>{{.Shot.CGDescription}}</div></div>
+							<div style="flex:1;"></div>
+							<div style="display:flex;min-width:150px;"><div style="width:80px;">타임코드</div><div style="color:grey;min-width:20px;">|</div><div style="flex:1;">{{.Shot.TimecodeIn}}-{{.Shot.TimecodeOut}}</div></div>
+							<div style="display:flex;min-width:150px;"><div style="width:80px;">프레임</div><div style="color:grey;min-width:20px;">|</div></div>
+							<div style="display:flex;min-width:150px;"><div style="width:80px;">스캔경로</div><div style="color:grey;min-width:20px;">|</div></div>
+							<div style="display:flex;min-width:150px;"><div style="width:80px;">mov경로</div><div style="color:grey;min-width:20px;">|</div></div>
+						</div>
+					</div>
 		</div>
-		<hr>
-		<div style="display:flex;">
-			<div style="min-width:320px;min-height:180px;background-color:grey;"></div>
-			<div style="min-width:20px;"></div>
-			<!--
-			<div style="flex:2;display:flex;flex-direction:column;">
-			</div>
-			-->
-			<div style="flex:1;display:flex;flex-direction:column;">
-				<div style="display:flex;"><div style="min-width:80px;">샷 내용</div><div style="color:grey;min-width:20px;">|</div><div>{{.Shot.Description}}</div></div>
-				<div style="display:flex;"><div style="min-width:80px;">CG내용</div><div style="color:grey;min-width:20px;">|</div><div>{{.Shot.CGDescription}}</div></div>
-				<div style="flex:1;"></div>
-				<div style="display:flex;min-width:150px;"><div style="width:80px;">타임코드</div><div style="color:grey;min-width:20px;">|</div><div style="flex:1;">{{.Shot.TimecodeIn}}-{{.Shot.TimecodeOut}}</div></div>
-				<div style="display:flex;min-width:150px;"><div style="width:80px;">프레임</div><div style="color:grey;min-width:20px;">|</div></div>
-				<div style="display:flex;min-width:150px;"><div style="width:80px;">스캔경로</div><div style="color:grey;min-width:20px;">|</div></div>
-				<div style="display:flex;min-width:150px;"><div style="width:80px;">mov경로</div><div style="color:grey;min-width:20px;">|</div></div>
-			</div>
-		</div>
-		<div style="height:15px;"></div>
-		<div style="display:flex;flex-direction:column;height:60px;border:solid 1px #DDDDDD;padding:2px;">
-			<div style="flex:1;">
-				컨펌
-			</div>
+		<h5 class="ui attached inverted header">컨펌</h5>
+		<div class="ui attached secondary inverted segment">
 			<div style="display:flex;font-size:12px;">
 				<div>#8 2018-09-11</div>
 				<div style="flex:1;"></div>
 				<div>이전 컨펌 내용</div>
 			</div>
 		</div>
-		<div style="height:15px;"></div>
-		<!-- <div style="display:flex;flex-wrap:wrap;border:solid;border-width:1px;border-color:#888888;"> -->
-		<div style="display:flex;flex-wrap:wrap;border:solid 1px #DDDDDD;background-color:#BBBBBB;">
-			<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Mod</div></div>
-			<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#FFDD66;padding:2px;"></div><div>Rig</div></div>
-			<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#44AA44;padding:2px;"></div><div>Ani</div></div>
-			<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#2266DD;padding:2px;"></div><div>Track</div></div>
-			<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#BB0022;padding:2px;"></div><div>Light</div></div>
-			<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Fx</div></div>
-			<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Matte</div></div>
-			<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Motion</div></div>
-			<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Comp</div></div>
-		</div>
+		<h5 class="ui attached inverted header">Tasks</h5>
+		<div class="ui attached secondary inverted segment">
+				<div style="display:flex;flex-wrap:wrap;border:solid 1px #DDDDDD;background-color:#BBBBBB;">
+						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Mod</div></div>
+						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#FFDD66;padding:2px;"></div><div>Rig</div></div>
+						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#44AA44;padding:2px;"></div><div>Ani</div></div>
+						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#2266DD;padding:2px;"></div><div>Track</div></div>
+						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#BB0022;padding:2px;"></div><div>Light</div></div>
+						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Fx</div></div>
+						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Matte</div></div>
+						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Motion</div></div>
+						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Comp</div></div>
+					</div>
 	</div>
-</body>
-</html>
+</div>
+{{template "footer.html"}}
