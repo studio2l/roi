@@ -2,6 +2,7 @@ package roi
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	_ "image/jpeg"
 	"log"
@@ -182,12 +183,19 @@ func SelectProject(db *sql.DB, prj string) (Project, error) {
 }
 
 // AddProject는 db에 프로젝트를 추가한다.
-func AddProject(db *sql.DB, prj string) error {
-	if _, err := db.Exec("INSERT INTO projects (code) VALUES ($1)", prj); err != nil {
+func AddProject(db *sql.DB, p Project) error {
+	if p.Code == "" {
+		return errors.New("project should have it's code")
+	}
+	m := p.toOrdMap()
+	keys := strings.Join(m.Keys(), ", ")
+	idxs := strings.Join(pgIndices(m.Len()), ", ")
+	stmt := fmt.Sprintf("INSERT INTO projects (%s) VALUES (%s)", keys, idxs)
+	if _, err := db.Exec(stmt, m.Values()...); err != nil {
 		return err
 	}
 	// TODO: add project info, task, tracking table
-	if err := CreateTableIfNotExists(db, prj+"_shots", ShotTableFields); err != nil {
+	if err := CreateTableIfNotExists(db, p.Code+"_shots", ShotTableFields); err != nil {
 		return err
 	}
 	return nil
