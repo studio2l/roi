@@ -22,6 +22,7 @@ type Project struct {
 	Producer      string
 	VFXSupervisor string
 	VFXManager    string
+	CGSupervisor  string
 
 	CrankIn     time.Time
 	CrankUp     time.Time
@@ -44,6 +45,7 @@ var ProjectTableFields = []string{
 	"producer STRING",
 	"vfx_supervisor STRING",
 	"vfx_manager STRING",
+	"cg_supervisor STRING",
 	"crank_in DATE",
 	"crank_up DATE",
 	"start_date DATE",
@@ -63,6 +65,7 @@ func (p Project) toOrdMap() *ordMap {
 	o.Set("producer", p.Producer)
 	o.Set("vfx_supervisor", p.VFXSupervisor)
 	o.Set("vfx_manager", p.VFXManager)
+	o.Set("cg_supervisor", p.CGSupervisor)
 	o.Set("crank_in", p.CrankIn)
 	o.Set("crank_up", p.CrankUp)
 	o.Set("start_date", p.StartDate)
