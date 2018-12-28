@@ -1,18 +1,52 @@
-<div style="position:sticky;top:0;width:100%;height:40px;background-color:#48F; display:flex; color:#999;">
-	<div style="width:150px; background-color:#37F; display:flex; margin:0px 1px;">
-		<div style="color:white; align-self:center; font-size:30px; padding-left:10px;"><a href="/" style="color:white;">ROI</a></div>
-	</div>
-	<div style="background-color:#37F; width:120px; margin:0px 1px; font-size:20px; display:flex; padding:5px; justify-content:center; align-items:flex-end"><div><a href="/search/" style="color:white;">Search</a></div></div>
-	<div style="background-color:#37F; width:120px; margin:0px 1px; font-size:20px; display:flex; padding:5px; justify-content:center; align-items:flex-end"><div><a href="/overview/" style="color:white;">Overview</a></div></div>
-	<div style="background-color:#37F; flex-grow:1;"></div>
-	<div style="background-color:#37F; display:flex;">
-	{{if eq $.LoggedInUser ""}}
-		<div style="color:white; align-self:center; font-size:18px; padding-right:15px;"><a href="/login/" style="color:white;">로그인</a> <span style="color:#BBBBBB;font-size:12px;">또는</span> <a href="/signup/" style="color:white;">가입</a></div>
-	{{else}}
-		<div style="color:white; align-self:center; font-size:18px; padding-right:15px;">
-			<a href="/settings/profile" style="color:white;">{{$.LoggedInUser}}</a> <a href="/logout/"><span style="color:white;font-size:12px;">(로그아웃)</span></a>
-		</div>
-	{{end}}
-	</div>
-</div>
+<nav>
+	<div style="margin-top:3rem;"></div><!--고정메뉴 공간 처리-->
+	<div class="ui inverted top fixed menu">
+		<a class="item" href="/"><h5 class="ui header inverted">ROI</h5></a>
 
+		<a class="item" href="/" title="프로젝트들의 정보를 확인하는 페이지입니다.">Projects</a>
+		<a class="item" href="/" title="리뷰를 위한 페이지입니다.">Review</a>
+		<a class="item" href="/" title="어셋들의 정보를 확인하는 페이지입니다.">Assets</a>
+
+		<a class="item" href="/search/" title="샷을 검색하는 페이지입니다.">Search</a>
+		<a class="item" href="/overview/">Overview</a>
+		<div class="right menu">
+			{{if eq $.LoggedInUser ""}}
+			<a class="item" href="/login/">Log-in</a>
+			<a class="item" href="/signup/">Sign-Up</a>
+		 	{{else}}
+			<a class="item" href="/" title="자신의 Task들을 확인하는 페이지입니다.">My Tasks</a>
+			<a class="item" href="/" title="소속팀에 대한 현황 페이지입니다.">Team</a>
+			<a class="item" href="/" title="알림 정보 페이지입니다."><i class="icon red inbox"></i></a>
+			<div id="add-menu" class="ui dropdown item" title="정보 등록을 위한 메뉴입니다.">
+				<i class="plus circle icon"></i>
+				<div class="menu">
+					<div class="item">Shot</div>
+					<div class="item">Asset</div>
+					<div class="item">Task</div>
+					<div class="item">Project</div>
+				</div>
+			</div>
+			<div id="user-menu" class="ui dropdown item" title="개인계정과 설정을 위한 페이지입니다.">
+				<i class="user circle icon"> </i>  
+				<div class="menu">
+					<div class="ui header">{{$.LoggedInUser}}</div>
+						<a class="item" href="/settings/profile">Profile</a>
+						<a class="item" href="/">Settings</a>
+						<a class="item" href="/">Help</a>
+					<!--매니저-->
+					<div class="ui divider"></div>
+					<div class="ui gray header">Manager</div>
+						<a class="item" href="/">Accounts</a>
+					<!--관리자-->
+					<div class="ui divider"></div>
+					<div class="ui header">Admin</div>
+						<a class="item" href="/">Settings</a>
+					<!--로그아웃-->
+					<div class="ui divider"></div>
+					<a class="item" href="/logout/">Log-Out</a>
+				</div>
+			</div>
+			{{end}}
+		</div>
+	</div>
+</nav>

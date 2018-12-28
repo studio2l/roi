@@ -1,0 +1,20 @@
+<div style="z-index:1;position:sticky;top:40px;width:100%;height:48px;background-color:rgb(48, 48, 48);padding:5px;">
+    <div class="ui action mini input">
+        <select class="ui compact selection dropdown" style="background-color: transparent;" id="project-select" onchange="projectChanged()">
+            {{range $.Projects}}
+            <option value={{.}} {{if eq . $.Project}}selected{{end}}>{{.}}</option>
+            {{end}}
+        </select>
+        <form class="ui mini input">
+            <input type="text" style="background-color: transparent;" name="scene" placeholder="씬" value="{{$.FilterScene}}">
+            <input type="text" style="background-color: transparent;" name="shot" placeholder="샷" value="{{$.FilterShot}}">
+            <input type="text" style="background-color: transparent;" name="tag" placeholder="태그" value="{{$.FilterTag}}">
+            <select class="ui compact selection dropdown" style="background-color: transparent;" id="status-select" name="status">
+                <option value="" {{if eq $.FilterStatus ""}}selected{{end}}>모든 상태</option>
+                <option value="in-progress" {{if eq $.FilterStatus "in-progress"}}selected{{end}}>진행중</option>
+                <option value="done" {{if eq $.FilterStatus "done"}}selected{{end}}>완료</option>
+            </select>
+            <input class="ui grey button" type="submit" value="검색">
+        </form>
+        </div>
+</div>
