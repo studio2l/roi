@@ -508,18 +508,6 @@ func main() {
 	flag.Parse()
 
 	if init {
-		err := bakego.Extract()
-		if err != nil {
-			log.Fatal("bakego extract: ", err)
-		}
-	} else {
-		err := bakego.Ensure()
-		if err != nil {
-			log.Fatal("bakego ensure: ", err)
-		}
-	}
-
-	if init {
 		db, err := sql.Open("postgres", "postgresql://root@localhost:26257/roi?sslmode=disable")
 		if err != nil {
 			log.Fatal("error connecting to the database: ", err)
