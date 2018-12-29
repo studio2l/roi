@@ -55,7 +55,8 @@ var ProjectTableFields = []string{
 	"lut_file STRING NOT NULL",
 }
 
-func (p Project) toOrdMap() *ordMap {
+// ordMapFromProject는 프로젝트 정보를 OrdMap에 담는다.
+func ordMapFromProject(p Project) *ordMap {
 	o := newOrdMap()
 	o.Set("code", p.Code)
 	o.Set("name", p.Name)

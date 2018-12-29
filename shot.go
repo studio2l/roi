@@ -54,7 +54,8 @@ var ShotTableFields = []string{
 	// "other_sources STRING[]",
 }
 
-func (s Shot) toOrdMap() *ordMap {
+// ordMapFromShot은 샷 정보를 OrdMap에 담는다.
+func ordMapFromShot(s Shot) *ordMap {
 	o := newOrdMap()
 	o.Set("scene", s.Scene)
 	o.Set("shot", s.Name)

@@ -125,7 +125,7 @@ func UserHasPassword(db *sql.DB, id, pw string) (bool, error) {
 
 // SetUser는 db에 비밀번호를 제외한 사용자 필드를 업데이트 한다.
 func SetUser(db *sql.DB, id string, u User) error {
-	m := u.toOrdMap()
+	m := ordMapFromUser(u)
 	setstr := ""
 	i := 0
 	for _, k := range m.Keys() {
@@ -187,7 +187,7 @@ func AddProject(db *sql.DB, p Project) error {
 	if p.Code == "" {
 		return errors.New("project should have it's code")
 	}
-	m := p.toOrdMap()
+	m := ordMapFromProject(p)
 	keys := strings.Join(m.Keys(), ", ")
 	idxs := strings.Join(pgIndices(m.Len()), ", ")
 	stmt := fmt.Sprintf("INSERT INTO projects (%s) VALUES (%s)", keys, idxs)
@@ -297,7 +297,7 @@ func AddShot(db *sql.DB, prj string, s Shot) error {
 	if prj == "" {
 		return fmt.Errorf("project code not specified")
 	}
-	m := s.toOrdMap()
+	m := ordMapFromShot(s)
 	keys := strings.Join(m.Keys(), ", ")
 	idxs := strings.Join(pgIndices(m.Len()), ", ")
 	stmt := fmt.Sprintf("INSERT INTO %s_shots (%s) VALUES (%s)", prj, keys, idxs)
