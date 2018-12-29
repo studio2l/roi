@@ -59,7 +59,12 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(resp)
 		return
 	}
-	// 할일: 유효한 샷 이름인지 검사
+	if !roi.IsValidShotName(name) {
+		w.WriteHeader(http.StatusBadRequest)
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("shot name is not valid: %s", name)})
+		w.Write(resp)
+		return
+	}
 	exist, err = roi.ShotExist(db, prj, name)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
