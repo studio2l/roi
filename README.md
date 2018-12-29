@@ -14,12 +14,12 @@ roi는 아직 디자인이 끝나지 않았으며, 구현의 초기 단계입니
 
 ## 설치
 
-설치는 일반적인 go 프로그램의 설치와 같은 방법으로 합니다.
+roi는 go1.11의 모듈 시스템을 사용합니다. go1.11 이상을 설치해 주세요.
+
+.bashrc에 다음 줄을 추가해 모듈 사용을 켜주세요.
 
 ```
-go get github.com/studio2l/roi
-cd $GOPATH/src/github.com/studio2l/roi
-go install ./...
+export GO111MODULE=on
 ```
 
 ### DB
@@ -49,7 +49,9 @@ cd ~ # 또는 원하는 실행 장소에서
 cockroach start --insecure &
 
 # 서버 실행
-cd $GOPATH/src/github.com/studio2l/roi/cmd/roi
+export GO111MODULE=on # 혹시 빠뜨렸을 때에 대비해
+git clone https://github.com/studio2l/roi
+cd roi/cmd/roi
 go build
 ./roi -init
 sudo ./roi
