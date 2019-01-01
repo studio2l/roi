@@ -52,20 +52,20 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name := r.PostFormValue("name")
-	if name == "" {
+	id := r.PostFormValue("id")
+	if id == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		resp, _ := json.Marshal(response{Err: fmt.Sprintf("'name' not specified")})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("'id' not specified")})
 		w.Write(resp)
 		return
 	}
-	if !roi.IsValidShotName(name) {
+	if !roi.IsValidShotID(id) {
 		w.WriteHeader(http.StatusBadRequest)
-		resp, _ := json.Marshal(response{Err: fmt.Sprintf("shot name is not valid: %s", name)})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("shot id is not valid: %s", id)})
 		w.Write(resp)
 		return
 	}
-	exist, err = roi.ShotExist(db, prj, name)
+	exist, err = roi.ShotExist(db, prj, id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		resp, _ := json.Marshal(response{Err: fmt.Sprintf("internal error during shot check, sorry!")})
@@ -74,7 +74,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if exist {
 		w.WriteHeader(http.StatusBadRequest)
-		resp, _ := json.Marshal(response{Err: fmt.Sprintf("shot '%s' already exists", name)})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("shot '%s' already exists", id)})
 		w.Write(resp)
 		return
 	}
@@ -109,7 +109,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		duration = d
 	}
 	s := roi.Shot{
-		Name:          name,
+		ID:            id,
 		Scene:         r.PostFormValue("scene"),
 		Status:        status,
 		EditOrder:     editOrder,
@@ -128,6 +128,6 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	resp, _ := json.Marshal(response{Msg: fmt.Sprintf("successfully add a shot: '%s'", name)})
+	resp, _ := json.Marshal(response{Msg: fmt.Sprintf("successfully add a shot: '%s'", id)})
 	w.Write(resp)
 }

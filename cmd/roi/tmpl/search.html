@@ -7,7 +7,7 @@
 <div class="ui inverted segment">
 	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:3px;font-size:15px;">
 		<div style="width:192px;margin-right:20px;">
-			<a class="ui medium grey header" href="/shot/{{$.Project}}/{{.Name}}">{{.Name}}</a>
+			<a class="ui medium grey header" href="/shot/{{$.Project}}/{{.ID}}">{{.ID}}</a>
 			{{if ne .Scene ""}}
 			<span class="ui grey tiny header"> / {{.Scene}}</span>
 			{{end}}
@@ -16,8 +16,8 @@
 	</div>
 	<div class="shot-main" style="display:flex;">
 		<div style="width:192px;margin-right:20px;">
-			{{if hasThumbnail $.Project .Name}}
-			<img style="width:192px;height:108px;" src="/thumbnail/{{$.Project}}/{{.Name}}.png" />
+			{{if hasThumbnail $.Project .ID}}
+			<img style="width:192px;height:108px;" src="/thumbnail/{{$.Project}}/{{.ID}}.png" />
 			{{else}}
 			<div style="box-sizing:border-box;width:192px;height:108px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;">{{.Description}}</div>
 			{{end}}

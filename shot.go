@@ -6,11 +6,11 @@ import (
 	"github.com/lib/pq"
 )
 
-var reValidShotName = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]+$`)
+var reValidShotID = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]+$`)
 
-// IsValidShotName은 해당 이름이 샷 이름으로 적절한지 여부를 반환한다.
-func IsValidShotName(name string) bool {
-	return reValidShotName.MatchString(name)
+// IsValidShotID은 해당 이름이 샷 이름으로 적절한지 여부를 반환한다.
+func IsValidShotID(id string) bool {
+	return reValidShotID.MatchString(id)
 }
 
 type ShotStatus int
@@ -24,8 +24,8 @@ const (
 )
 
 type Shot struct {
+	ID            string
 	Scene         string
-	Name          string
 	Status        string
 	EditOrder     int
 	Description   string
@@ -37,10 +37,10 @@ type Shot struct {
 }
 
 var ShotTableFields = []string{
-	// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
-	"id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+	// uniqid는 어느 테이블에나 꼭 들어가야 하는 항목이다.
+	"uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+	"id STRING UNIQUE NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %')",
 	"scene STRING NOT NULL CHECK (scene NOT LIKE '% %')",
-	"shot STRING UNIQUE NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %')",
 	"status STRING NOT NULL CHECK (length(status) > 0)  CHECK (status NOT LIKE '% %')",
 	"edit_order INT NOT NULL",
 	"description STRING NOT NULL",
@@ -57,8 +57,8 @@ var ShotTableFields = []string{
 // ordMapFromShot은 샷 정보를 OrdMap에 담는다.
 func ordMapFromShot(s Shot) *ordMap {
 	o := newOrdMap()
+	o.Set("id", s.ID)
 	o.Set("scene", s.Scene)
-	o.Set("shot", s.Name)
 	o.Set("status", s.Status)
 	o.Set("edit_order", s.EditOrder)
 	o.Set("description", s.Description)

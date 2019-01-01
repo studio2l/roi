@@ -2,7 +2,7 @@
 {{template "nav.html" $}}
 	<div id="main">
 		<h1 class="ui top attached inverted header">
-			{{$.Shot.Name}}
+			{{$.Shot.ID}}
 			<div class="ui blue label">{{$.Shot.Status}}</div>
 			<div class="ui green label">2018-01-01 (187일 지남)</div>
 			<div class="sub header"><a href="/search/{{$.Project}}">{{$.Project}}</a> <span>/</span> <a href="/search/{{$.Project}}?scene={{$.Shot.Scene}}">{{$.Shot.Scene}}</a></div>

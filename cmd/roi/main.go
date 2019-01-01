@@ -353,7 +353,7 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 
 // searchHandler는 /search/ 하위 페이지로 사용자가 접속했을때 페이지를 반환한다.
 func searchHandler(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Path[len("/search/"):]
+	id := r.URL.Path[len("/search/"):]
 
 	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {
@@ -362,7 +362,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prjRows, err := db.Query("SELECT code FROM projects")
+	prjRows, err := db.Query("SELECT id FROM projects")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "project selection error: ", err)
 		return
@@ -379,24 +379,24 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		prjs = append(prjs, prj)
 	}
 
-	if code == "" && len(prjs) != 0 {
+	if id == "" && len(prjs) != 0 {
 		// 할일: 추후 사용자가 마지막으로 선택했던 프로젝트로 이동
 		http.Redirect(w, r, "/search/"+prjs[0], http.StatusSeeOther)
 		return
 	}
 	found := false
 	for _, p := range prjs {
-		if p == code {
+		if p == id {
 			found = true
 		}
 	}
 	if !found {
-		fmt.Fprintf(os.Stderr, "not found project %s\n", code)
+		fmt.Fprintf(os.Stderr, "not found project %s\n", id)
 		return
-		// http.Error(w, fmt.Sprintf("not found project: %s", code), http.StatusNotFound)
+		// http.Error(w, fmt.Sprintf("not found project: %s", id), http.StatusNotFound)
 	}
 
-	scenes, err := roi.SelectScenes(db, code)
+	scenes, err := roi.SelectScenes(db, id)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -408,7 +408,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	shotFilter := r.Form.Get("shot")
 	tagFilter := r.Form.Get("tag")
 	statusFilter := r.Form.Get("status")
-	shots, err := roi.SearchShots(db, code, sceneFilter, shotFilter, tagFilter, statusFilter)
+	shots, err := roi.SearchShots(db, id, sceneFilter, shotFilter, tagFilter, statusFilter)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -432,7 +432,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		LoggedInUser: session["userid"],
 		Projects:     prjs,
-		Project:      code,
+		Project:      id,
 		Scenes:       scenes,
 		Shots:        shots,
 		FilterScene:  sceneFilter,
@@ -466,7 +466,7 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if shot.Name == "" {
+	if shot.ID == "" {
 		http.NotFound(w, r)
 		return
 	}
