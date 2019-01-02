@@ -396,19 +396,13 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		// http.Error(w, fmt.Sprintf("not found project: %s", id), http.StatusNotFound)
 	}
 
-	scenes, err := roi.SearchAllSceneNames(db, id)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	if err := r.ParseForm(); err != nil {
 		log.Fatal(err)
 	}
-	sceneFilter := r.Form.Get("scene")
 	shotFilter := r.Form.Get("shot")
 	tagFilter := r.Form.Get("tag")
 	statusFilter := r.Form.Get("status")
-	shots, err := roi.SearchShots(db, id, sceneFilter, shotFilter, tagFilter, statusFilter)
+	shots, err := roi.SearchShots(db, id, shotFilter, tagFilter, statusFilter)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -423,9 +417,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedInUser string
 		Projects     []string
 		Project      string
-		Scenes       []string
 		Shots        []roi.Shot
-		FilterScene  string
 		FilterShot   string
 		FilterTag    string
 		FilterStatus string
@@ -433,9 +425,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedInUser: session["userid"],
 		Projects:     prjs,
 		Project:      id,
-		Scenes:       scenes,
 		Shots:        shots,
-		FilterScene:  sceneFilter,
 		FilterShot:   shotFilter,
 		FilterTag:    tagFilter,
 		FilterStatus: statusFilter,

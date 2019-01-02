@@ -8,11 +8,8 @@
 	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:3px;font-size:15px;">
 		<div style="width:192px;margin-right:20px;">
 			<a class="ui medium grey header" href="/shot/{{$.Project}}/{{.ID}}">{{.ID}}</a>
-			{{if ne .Scene ""}}
-			<span class="ui grey tiny header"> / {{.Scene}}</span>
-			{{end}}
 		</div>
-		<div style="flex:1;font-size:14px;"> {{.CGDescription}}</div>		
+		<div style="flex:1;font-size:14px;"> {{.CGDescription}}</div>
 	</div>
 	<div class="shot-main" style="display:flex;">
 		<div style="width:192px;margin-right:20px;">
