@@ -123,8 +123,8 @@ func UserHasPassword(db *sql.DB, id, pw string) (bool, error) {
 	return true, nil
 }
 
-// SetUser는 db에 비밀번호를 제외한 사용자 필드를 업데이트 한다.
-func SetUser(db *sql.DB, id string, u User) error {
+// UpdateUser는 db에 비밀번호를 제외한 사용자 필드를 업데이트 한다.
+func UpdateUser(db *sql.DB, id string, u User) error {
 	m := ordMapFromUser(u)
 	setstr := ""
 	i := 0
@@ -143,8 +143,8 @@ func SetUser(db *sql.DB, id string, u User) error {
 	return nil
 }
 
-// SetUserPassword는 db에 저장된 사용자 패스워드를 수정한다.
-func SetUserPassword(db *sql.DB, id, pw string) error {
+// UpdateUserPassword는 db에 저장된 사용자 패스워드를 수정한다.
+func UpdateUserPassword(db *sql.DB, id, pw string) error {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -158,9 +158,9 @@ func SetUserPassword(db *sql.DB, id, pw string) error {
 	return nil
 }
 
-// SelectProject는 db에서 특정 프로젝트 정보를 부른다.
+// GetProject는 db에서 특정 프로젝트 정보를 부른다.
 // 반환된 Project에 Code 값이 없다면 해당 프로젝트가 없다는 뜻이다.
-func SelectProject(db *sql.DB, prj string) (Project, error) {
+func GetProject(db *sql.DB, prj string) (Project, error) {
 	rows, err := SelectAll(db, "projects", map[string]string{"id": prj})
 	if err != nil {
 		return Project{}, err
@@ -210,8 +210,8 @@ func ProjectExist(db *sql.DB, prj string) (bool, error) {
 	return rows.Next(), nil
 }
 
-// SelectScenes는 특정 프로젝트의 모든 씬이름을 반환한다.
-func SelectScenes(db *sql.DB, prj string) ([]string, error) {
+// SearchAllSceneNames는 특정 프로젝트의 모든 씬이름을 반환한다.
+func SearchAllSceneNames(db *sql.DB, prj string) ([]string, error) {
 	stmt := fmt.Sprintf("SELECT DISTINCT scene FROM %s_shots", prj)
 	rows, err := db.Query(stmt)
 	if err != nil {
@@ -317,10 +317,9 @@ func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
 	return rows.Next(), nil
 }
 
-// FindShot은 db의 특정 프로젝트에서 샷 이름으로 해당 샷을 찾는다.
+// GetShot은 db의 특정 프로젝트에서 샷 이름으로 해당 샷을 찾는다.
 // 반환된 Shot의 Name이 비어있다면 그 이름의 샷이 없었다는 뜻이다.
-// 할일 FindShot과 SelectShot은 중복의 느낌이다.
-func FindShot(db *sql.DB, prj string, shot string) (Shot, error) {
+func GetShot(db *sql.DB, prj string, shot string) (Shot, error) {
 	stmt := fmt.Sprintf("SELECT * FROM %s_shots WHERE id='%s' LIMIT 1", prj, shot)
 	fmt.Println(stmt)
 	rows, err := db.Query(stmt)
