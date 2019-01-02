@@ -5,14 +5,14 @@ import (
 	"time"
 )
 
-var reValidProjectName = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+var reValidProjectID = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 
-func IsValidProjectName(name string) bool {
-	return reValidProjectName.MatchString(name)
+func IsValidProjectID(id string) bool {
+	return reValidProjectID.MatchString(id)
 }
 
 type Project struct {
-	Code string
+	ID   string
 	Name string
 
 	Status string
@@ -35,9 +35,8 @@ type Project struct {
 }
 
 var ProjectTableFields = []string{
-	// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
-	"id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
-	"code STRING NOT NULL UNIQUE CHECK (LENGTH(code) > 0) CHECK (code NOT LIKE '% %')",
+	"uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+	"id STRING NOT NULL UNIQUE CHECK (LENGTH(id) > 0) CHECK (id NOT LIKE '% %')",
 	"name STRING NOT NULL",
 	"status STRING NOT NULL",
 	"client STRING NOT NULL",
@@ -58,7 +57,7 @@ var ProjectTableFields = []string{
 // ordMapFromProject는 프로젝트 정보를 OrdMap에 담는다.
 func ordMapFromProject(p Project) *ordMap {
 	o := newOrdMap()
-	o.Set("code", p.Code)
+	o.Set("id", p.ID)
 	o.Set("name", p.Name)
 	o.Set("status", p.Status)
 	o.Set("client", p.Client)

@@ -56,7 +56,7 @@ func pgIndices(n int) []string {
 // AddUser는 db에 한 명의 사용자를 추가한다.
 func AddUser(db *sql.DB, id, pw string) error {
 	// 이 이름을 가진 사용자가 이미 있는지 검사한다.
-	rows, err := SelectAll(db, "users", map[string]string{"userid": id})
+	rows, err := SelectAll(db, "users", map[string]string{"id": id})
 	if err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func AddUser(db *sql.DB, id, pw string) error {
 // GetUser는 db에서 사용자를 검색한다.
 // 반환된 User의 ID가 비어있다면 해당 유저를 찾지 못한것이다.
 func GetUser(db *sql.DB, id string) (User, error) {
-	stmt := "SELECT userid, kor_name, name, team, position, email, phone_number, entry_date FROM users WHERE userid=$1"
+	stmt := "SELECT id, kor_name, name, team, position, email, phone_number, entry_date FROM users WHERE id=$1"
 	fmt.Println(stmt)
 	rows, err := db.Query(stmt, id)
 	if err != nil {
@@ -104,7 +104,7 @@ func GetUser(db *sql.DB, id string) (User, error) {
 // UserHasPassword는 db에 저장된 사용자의 비밀번호와 입력된 비밀번호가 같은지를 비교한다.
 // 해당 사용자가 없거나, 불러오는데 에러가 나면 false와 에러를 반환한다.
 func UserHasPassword(db *sql.DB, id, pw string) (bool, error) {
-	stmt := "SELECT hashed_password FROM users WHERE userid=$1"
+	stmt := "SELECT hashed_password FROM users WHERE id=$1"
 	fmt.Println(stmt)
 	rows, err := db.Query(stmt, id)
 	if err != nil {
@@ -135,7 +135,7 @@ func SetUser(db *sql.DB, id string, u User) error {
 		setstr += fmt.Sprintf("%s=$%d", k, i+1)
 		i++
 	}
-	stmt := fmt.Sprintf("UPDATE users SET %s WHERE userid='%s'", setstr, id)
+	stmt := fmt.Sprintf("UPDATE users SET %s WHERE id='%s'", setstr, id)
 	fmt.Println(stmt)
 	if _, err := db.Exec(stmt, m.Values()...); err != nil {
 		return err
@@ -150,7 +150,7 @@ func SetUserPassword(db *sql.DB, id, pw string) error {
 		return err
 	}
 	hashed_password := string(hashed)
-	stmt := "UPDATE users SET hashed_password=$1 WHERE userid=$2"
+	stmt := "UPDATE users SET hashed_password=$1 WHERE id=$2"
 	fmt.Println(stmt)
 	if _, err := db.Exec(stmt, hashed_password, id); err != nil {
 		return err
@@ -161,7 +161,7 @@ func SetUserPassword(db *sql.DB, id, pw string) error {
 // SelectProject는 db에서 특정 프로젝트 정보를 부른다.
 // 반환된 Project에 Code 값이 없다면 해당 프로젝트가 없다는 뜻이다.
 func SelectProject(db *sql.DB, prj string) (Project, error) {
-	rows, err := SelectAll(db, "projects", map[string]string{"code": prj})
+	rows, err := SelectAll(db, "projects", map[string]string{"id": prj})
 	if err != nil {
 		return Project{}, err
 	}
@@ -171,7 +171,7 @@ func SelectProject(db *sql.DB, prj string) (Project, error) {
 	var id string
 	p := Project{}
 	err = rows.Scan(
-		&id, &p.Code, &p.Name, &p.Status, &p.Client,
+		&id, &p.ID, &p.Name, &p.Status, &p.Client,
 		&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CGSupervisor,
 		&p.CrankIn, &p.CrankUp, &p.StartDate, &p.ReleaseDate, &p.VFXDueDate, &p.OutputSize,
 		&p.LutFile,
@@ -184,8 +184,8 @@ func SelectProject(db *sql.DB, prj string) (Project, error) {
 
 // AddProject는 db에 프로젝트를 추가한다.
 func AddProject(db *sql.DB, p Project) error {
-	if p.Code == "" {
-		return errors.New("project should have it's code")
+	if p.ID == "" {
+		return errors.New("project should have it's ID")
 	}
 	m := ordMapFromProject(p)
 	keys := strings.Join(m.Keys(), ", ")
@@ -195,7 +195,7 @@ func AddProject(db *sql.DB, p Project) error {
 		return err
 	}
 	// TODO: add project info, task, tracking table
-	if err := CreateTableIfNotExists(db, p.Code+"_shots", ShotTableFields); err != nil {
+	if err := CreateTableIfNotExists(db, p.ID+"_shots", ShotTableFields); err != nil {
 		return err
 	}
 	return nil
@@ -203,7 +203,7 @@ func AddProject(db *sql.DB, p Project) error {
 
 // ProjectExist는 db에 해당 프로젝트가 존재하는지를 검사한다.
 func ProjectExist(db *sql.DB, prj string) (bool, error) {
-	rows, err := db.Query("SELECT code FROM projects WHERE code=$1 LIMIT 1", prj)
+	rows, err := db.Query("SELECT id FROM projects WHERE id=$1 LIMIT 1", prj)
 	if err != nil {
 		return false, err
 	}
@@ -240,7 +240,7 @@ func SearchShots(db *sql.DB, prj, scene, shot, tag, status string) ([]Shot, erro
 	stmt := fmt.Sprintf("SELECT * FROM %s_shots", prj)
 	m := newOrdMap()
 	m.Set("scene=$%d", scene)
-	m.Set("shot=$%d", shot)
+	m.Set("id=$%d", shot)
 	m.Set("$%d::string = ANY(tags)", tag)
 	m.Set("status=$%d", status)
 	wherestr := ""
@@ -272,7 +272,7 @@ func SearchShots(db *sql.DB, prj, scene, shot, tag, status string) ([]Shot, erro
 		var id string
 		var s Shot
 		if err := rows.Scan(
-			&id, &s.Scene, &s.Name, &s.Status,
+			&id, &s.ID, &s.Scene, &s.Status,
 			&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
 			&s.Duration, pq.Array(&s.Tags),
 		); err != nil {
@@ -287,7 +287,7 @@ func SearchShots(db *sql.DB, prj, scene, shot, tag, status string) ([]Shot, erro
 		if shots[i].Scene > shots[j].Scene {
 			return false
 		}
-		return shots[i].Name <= shots[j].Name
+		return shots[i].ID <= shots[j].ID
 	})
 	return shots, nil
 }
@@ -309,7 +309,7 @@ func AddShot(db *sql.DB, prj string, s Shot) error {
 
 // ShotExist는 db에 해당 샷이 존재하는지를 검사한다.
 func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
-	stmt := fmt.Sprintf("SELECT shot FROM %s_shots WHERE shot=$1 LIMIT 1", prj)
+	stmt := fmt.Sprintf("SELECT id FROM %s_shots WHERE id=$1 LIMIT 1", prj)
 	rows, err := db.Query(stmt, shot)
 	if err != nil {
 		return false, err
@@ -321,7 +321,7 @@ func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
 // 반환된 Shot의 Name이 비어있다면 그 이름의 샷이 없었다는 뜻이다.
 // 할일 FindShot과 SelectShot은 중복의 느낌이다.
 func FindShot(db *sql.DB, prj string, shot string) (Shot, error) {
-	stmt := fmt.Sprintf("SELECT * FROM %s_shots WHERE shot='%s' LIMIT 1", prj, shot)
+	stmt := fmt.Sprintf("SELECT * FROM %s_shots WHERE id='%s' LIMIT 1", prj, shot)
 	fmt.Println(stmt)
 	rows, err := db.Query(stmt)
 	if err != nil {
@@ -334,7 +334,7 @@ func FindShot(db *sql.DB, prj string, shot string) (Shot, error) {
 	var s Shot
 	var id string
 	if err := rows.Scan(
-		&id, &s.Scene, &s.Name, &s.Status,
+		&id, &s.ID, &s.Scene, &s.Status,
 		&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
 		&s.Duration, pq.Array(&s.Tags),
 	); err != nil {

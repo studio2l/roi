@@ -18,7 +18,7 @@ import (
 func shotFromMap(m map[string]string) roi.Shot {
 	return roi.Shot{
 		Scene:         m["scene"],
-		Name:          m["shot"],
+		ID:            m["shot"],
 		Status:        m["status"],
 		EditOrder:     toInt(m["edit_order"]),
 		Description:   m["description"],
@@ -71,8 +71,8 @@ func main() {
 		fname := filepath.Base(f)
 		prj = strings.TrimSuffix(fname, filepath.Ext(fname))
 	}
-	if !roi.IsValidProjectName(prj) {
-		fmt.Fprintln(os.Stderr, prj, "이 프로젝트 이름으로 적절치 않습니다.")
+	if !roi.IsValidProjectID(prj) {
+		fmt.Fprintln(os.Stderr, prj, "이 프로젝트 아이디로 적절치 않습니다.")
 		os.Exit(1)
 	}
 
@@ -125,13 +125,13 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	if _, err := db.Exec(fmt.Sprintf("DELETE FROM projects WHERE code='%s'", prj)); err != nil {
+	if _, err := db.Exec(fmt.Sprintf("DELETE FROM projects WHERE id='%s'", prj)); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
 	var p roi.Project
-	p.Code = prj
+	p.ID = prj
 	if err := roi.AddProject(db, p); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -141,9 +141,9 @@ func main() {
 		if err := roi.AddShot(db, prj, shot); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
-		thumb := thumbs[shot.Name]
+		thumb := thumbs[shot.ID]
 		if thumb != "" {
-			if err := roi.AddThumbnail(prj, shot.Name, thumb); err != nil {
+			if err := roi.AddThumbnail(prj, shot.ID, thumb); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 			}
 		}

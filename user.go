@@ -13,9 +13,8 @@ type User struct {
 }
 
 var UserTableFields = []string{
-	// id는 어느 테이블에나 꼭 들어가야 하는 항목이다.
-	"id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
-	"userid STRING UNIQUE NOT NULL CHECK (length(userid) > 0) CHECK (userid NOT LIKE '% %')",
+	"uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+	"id STRING UNIQUE NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %')",
 	"kor_name STRING NOT NULL",
 	"name STRING NOT NULL",
 	"team STRING NOT NULL",
@@ -30,7 +29,7 @@ var UserTableFields = []string{
 // NewUserMap은 새로운 사용자를 생성할 때 쓰는 맵이다.
 func NewUserMap(id, hashed_password string) *ordMap {
 	o := newOrdMap()
-	o.Set("userid", id)
+	o.Set("id", id)
 	o.Set("kor_name", "")
 	o.Set("name", "")
 	o.Set("team", "")
@@ -45,7 +44,7 @@ func NewUserMap(id, hashed_password string) *ordMap {
 // ordMapFromUser는 유저 정보를 OrdMap에 담는다.
 func ordMapFromUser(u User) *ordMap {
 	o := newOrdMap()
-	o.Set("userid", u.ID)
+	o.Set("id", u.ID)
 	o.Set("kor_name", u.KorName)
 	o.Set("name", u.Name)
 	o.Set("team", u.Team)

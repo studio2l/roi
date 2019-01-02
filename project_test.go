@@ -8,7 +8,7 @@ import (
 
 func TestOrdMapFromProject(t *testing.T) {
 	p := Project{
-		Code:          "TEST",
+		ID:            "TEST",
 		Name:          "테스트 프로젝트",
 		Status:        "waiting",
 		Client:        "레이지 픽처스",
@@ -28,7 +28,7 @@ func TestOrdMapFromProject(t *testing.T) {
 	got := ordMapFromProject(p)
 
 	want := newOrdMap()
-	want.Set("code", "TEST")
+	want.Set("id", "TEST")
 	want.Set("name", "테스트 프로젝트")
 	want.Set("status", "waiting")
 	want.Set("client", "레이지 픽처스")

@@ -19,7 +19,7 @@ func TestOrdMapFromUser(t *testing.T) {
 	got := ordMapFromUser(u)
 
 	want := newOrdMap()
-	want.Set("userid", "kybin")
+	want.Set("id", "kybin")
 	want.Set("kor_name", "김용빈")
 	want.Set("name", "kim yongbin")
 	want.Set("team", "rnd")
