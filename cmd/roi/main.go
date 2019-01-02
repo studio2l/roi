@@ -270,7 +270,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 			PhoneNumber: r.Form.Get("phone-number"),
 			EntryDate:   r.Form.Get("entry-date"),
 		}
-		err = roi.SetUser(db, session["userid"], u)
+		err = roi.UpdateUser(db, session["userid"], u)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not set user: %s", err), http.StatusInternalServerError)
 			return
@@ -343,7 +343,7 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "entered password is not correct", http.StatusBadRequest)
 		return
 	}
-	err = roi.SetUserPassword(db, id, newpw)
+	err = roi.UpdateUserPassword(db, id, newpw)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("could not change user password: %s", err), http.StatusInternalServerError)
 		return
@@ -396,7 +396,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		// http.Error(w, fmt.Sprintf("not found project: %s", id), http.StatusNotFound)
 	}
 
-	scenes, err := roi.SelectScenes(db, id)
+	scenes, err := roi.SearchAllSceneNames(db, id)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -462,7 +462,7 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	shot, err := roi.FindShot(db, prj, s)
+	shot, err := roi.GetShot(db, prj, s)
 	if err != nil {
 		log.Fatal(err)
 	}
