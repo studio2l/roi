@@ -174,7 +174,7 @@ func GetProject(db *sql.DB, prj string) (Project, error) {
 		&id, &p.ID, &p.Name, &p.Status, &p.Client,
 		&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CGSupervisor,
 		&p.CrankIn, &p.CrankUp, &p.StartDate, &p.ReleaseDate, &p.VFXDueDate, &p.OutputSize,
-		&p.LutFile,
+		&p.ViewLUT,
 	)
 	if err != nil {
 		return Project{}, err

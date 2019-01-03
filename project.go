@@ -31,7 +31,7 @@ type Project struct {
 	VFXDueDate  time.Time
 
 	OutputSize string
-	LutFile    string
+	ViewLUT    string
 }
 
 var ProjectTableFields = []string{
@@ -72,6 +72,6 @@ func ordMapFromProject(p Project) *ordMap {
 	o.Set("release_date", p.ReleaseDate)
 	o.Set("vfx_due_date", p.VFXDueDate)
 	o.Set("output_size", p.OutputSize)
-	o.Set("lut_file", p.LutFile)
+	o.Set("view_lut", p.ViewLUT)
 	return o
 }
