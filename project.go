@@ -51,7 +51,7 @@ var ProjectTableFields = []string{
 	"release_date DATE NOT NULL",
 	"vfx_due_date DATE NOT NULL",
 	"output_size STRING NOT NULL",
-	"lut_file STRING NOT NULL",
+	"view_lut STRING NOT NULL",
 }
 
 // ordMapFromProject는 프로젝트 정보를 OrdMap에 담는다.
