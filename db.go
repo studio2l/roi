@@ -210,36 +210,10 @@ func ProjectExist(db *sql.DB, prj string) (bool, error) {
 	return rows.Next(), nil
 }
 
-// SearchAllSceneNames는 특정 프로젝트의 모든 씬이름을 반환한다.
-func SearchAllSceneNames(db *sql.DB, prj string) ([]string, error) {
-	stmt := fmt.Sprintf("SELECT DISTINCT scene FROM %s_shots", prj)
-	rows, err := db.Query(stmt)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	scenes := make([]string, 0)
-	for rows.Next() {
-		var sc string
-		if err := rows.Scan(&sc); err != nil {
-			return nil, err
-		}
-		scenes = append(scenes, sc)
-	}
-	sort.Slice(scenes, func(i int, j int) bool {
-		if strings.Compare(scenes[i], scenes[j]) < 0 {
-			return true
-		}
-		return false
-	})
-	return scenes, nil
-}
-
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
-func SearchShots(db *sql.DB, prj, scene, shot, tag, status string) ([]Shot, error) {
+func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]Shot, error) {
 	stmt := fmt.Sprintf("SELECT * FROM %s_shots", prj)
 	m := newOrdMap()
-	m.Set("scene=$%d", scene)
 	m.Set("id=$%d", shot)
 	m.Set("$%d::string = ANY(tags)", tag)
 	m.Set("status=$%d", status)
@@ -272,7 +246,7 @@ func SearchShots(db *sql.DB, prj, scene, shot, tag, status string) ([]Shot, erro
 		var id string
 		var s Shot
 		if err := rows.Scan(
-			&id, &s.ID, &s.Scene, &s.Status,
+			&id, &s.ID, &s.Status,
 			&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
 			&s.Duration, pq.Array(&s.Tags),
 		); err != nil {
@@ -281,12 +255,6 @@ func SearchShots(db *sql.DB, prj, scene, shot, tag, status string) ([]Shot, erro
 		shots = append(shots, s)
 	}
 	sort.Slice(shots, func(i int, j int) bool {
-		if shots[i].Scene < shots[j].Scene {
-			return true
-		}
-		if shots[i].Scene > shots[j].Scene {
-			return false
-		}
 		return shots[i].ID <= shots[j].ID
 	})
 	return shots, nil
@@ -333,7 +301,7 @@ func GetShot(db *sql.DB, prj string, shot string) (Shot, error) {
 	var s Shot
 	var id string
 	if err := rows.Scan(
-		&id, &s.ID, &s.Scene, &s.Status,
+		&id, &s.ID, &s.Status,
 		&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
 		&s.Duration, pq.Array(&s.Tags),
 	); err != nil {

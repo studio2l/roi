@@ -25,7 +25,6 @@ const (
 
 type Shot struct {
 	ID            string
-	Scene         string
 	Status        string
 	EditOrder     int
 	Description   string
@@ -40,7 +39,6 @@ var ShotTableFields = []string{
 	// uniqid는 어느 테이블에나 꼭 들어가야 하는 항목이다.
 	"uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid()",
 	"id STRING UNIQUE NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %')",
-	"scene STRING NOT NULL CHECK (scene NOT LIKE '% %')",
 	"status STRING NOT NULL CHECK (length(status) > 0)  CHECK (status NOT LIKE '% %')",
 	"edit_order INT NOT NULL",
 	"description STRING NOT NULL",
@@ -58,7 +56,6 @@ var ShotTableFields = []string{
 func ordMapFromShot(s Shot) *ordMap {
 	o := newOrdMap()
 	o.Set("id", s.ID)
-	o.Set("scene", s.Scene)
 	o.Set("status", s.Status)
 	o.Set("edit_order", s.EditOrder)
 	o.Set("description", s.Description)

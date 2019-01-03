@@ -9,8 +9,7 @@ import (
 
 func TestOrdMapFromShot(t *testing.T) {
 	s := Shot{
-		ID:            "0010",
-		Scene:         "CG",
+		ID:            "CG_0010",
 		Status:        "waiting",
 		EditOrder:     10,
 		Description:   "the first shot",
@@ -23,8 +22,7 @@ func TestOrdMapFromShot(t *testing.T) {
 	got := ordMapFromShot(s)
 
 	want := newOrdMap()
-	want.Set("id", "0010")
-	want.Set("scene", "CG")
+	want.Set("id", "CG_0010")
 	want.Set("status", "waiting")
 	want.Set("edit_order", 10)
 	want.Set("description", "the first shot")
