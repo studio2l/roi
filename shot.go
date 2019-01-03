@@ -24,7 +24,15 @@ const (
 )
 
 type Shot struct {
-	ID            string
+	// 샷 아이디. 프로젝트 내에서 고유해야 한다.
+	// 영문자와 숫자, 언더바(_) 만 사용할 것.
+	// 예) CG_0010, EP01_SC01_0010
+	ID string
+
+	// 관련 아이디
+	ProjectID string
+
+	// 샷 정보
 	Status        string
 	EditOrder     int
 	Description   string
@@ -39,6 +47,7 @@ var ShotTableFields = []string{
 	// uniqid는 어느 테이블에나 꼭 들어가야 하는 항목이다.
 	"uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid()",
 	"id STRING UNIQUE NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %')",
+	"project_id STRING NOT NULL CHECK (length(id) > 0) CHECK (project_id NOT LIKE '% %')",
 	"status STRING NOT NULL CHECK (length(status) > 0)  CHECK (status NOT LIKE '% %')",
 	"edit_order INT NOT NULL",
 	"description STRING NOT NULL",
@@ -56,6 +65,7 @@ var ShotTableFields = []string{
 func ordMapFromShot(s Shot) *ordMap {
 	o := newOrdMap()
 	o.Set("id", s.ID)
+	o.Set("project_id", s.ProjectID)
 	o.Set("status", s.Status)
 	o.Set("edit_order", s.EditOrder)
 	o.Set("description", s.Description)

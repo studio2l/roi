@@ -12,9 +12,10 @@ func IsValidProjectID(id string) bool {
 }
 
 type Project struct {
-	ID   string
-	Name string
+	// 프로젝트 아이디. 로이 내에서 고유해야 한다.
+	ID string
 
+	Name   string
 	Status string
 
 	Client        string

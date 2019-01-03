@@ -18,6 +18,7 @@ import (
 func shotFromMap(m map[string]string) roi.Shot {
 	return roi.Shot{
 		ID:            m["shot"],
+		ProjectID:     m["project_id"],
 		Status:        m["status"],
 		EditOrder:     toInt(m["edit_order"]),
 		Description:   m["description"],
@@ -99,6 +100,7 @@ func main() {
 			v := row[j]
 			xlrow[k] = v
 		}
+		xlrow["project_id"] = prj
 		if xlrow["shot"] == "" {
 			break
 		}

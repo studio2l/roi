@@ -246,7 +246,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]Shot, error) {
 		var id string
 		var s Shot
 		if err := rows.Scan(
-			&id, &s.ID, &s.Status,
+			&id, &s.ID, &s.ProjectID, &s.Status,
 			&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
 			&s.Duration, pq.Array(&s.Tags),
 		); err != nil {
@@ -301,7 +301,7 @@ func GetShot(db *sql.DB, prj string, shot string) (Shot, error) {
 	var s Shot
 	var id string
 	if err := rows.Scan(
-		&id, &s.ID, &s.Status,
+		&id, &s.ID, &s.ProjectID, &s.Status,
 		&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
 		&s.Duration, pq.Array(&s.Tags),
 	); err != nil {
