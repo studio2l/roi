@@ -23,7 +23,7 @@ func TestOrdMapFromProject(t *testing.T) {
 		ReleaseDate:   time.Date(2018, 10, 1, 0, 0, 0, 0, time.Local),
 		VFXDueDate:    time.Date(2018, 9, 31, 0, 0, 0, 0, time.Local),
 		OutputSize:    "1920x1080",
-		LutFile:       "some/place/aces.lut",
+		ViewLUT:       "some/place/aces.lut",
 	}
 	got := ordMapFromProject(p)
 
@@ -43,7 +43,7 @@ func TestOrdMapFromProject(t *testing.T) {
 	want.Set("release_date", time.Date(2018, 10, 1, 0, 0, 0, 0, time.Local))
 	want.Set("vfx_due_date", time.Date(2018, 9, 31, 0, 0, 0, 0, time.Local))
 	want.Set("output_size", "1920x1080")
-	want.Set("lut_file", "some/place/aces.lut")
+	want.Set("view_lut", "some/place/aces.lut")
 
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got: %v, want: %v", got, want)
