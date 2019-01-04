@@ -182,6 +182,40 @@ func GetProject(db *sql.DB, prj string) (Project, error) {
 	return p, nil
 }
 
+// SearchAllProjects는 db에서 모든 프로젝트 정보를 가져온다.
+// 검색 중 문제가 있으면 nil, error를 반환한다.
+func SearchAllProjects(db *sql.DB) ([]Project, error) {
+	fields := strings.Join([]string{
+		"id", "name", "status",
+		"client", "director", "producer", "vfx_supervisor", "vfx_manager", "cg_supervisor",
+		"crank_in", "crank_up", "start_date", "release_date", "vfx_due_date",
+		"output_size", "view_lut",
+	}, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM projects", fields)
+	rows, err := db.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	prjs := make([]Project, 0)
+	for rows.Next() {
+		p := Project{}
+		err = rows.Scan(
+			&p.ID, &p.Name, &p.Status, &p.Client,
+			&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CGSupervisor,
+			&p.CrankIn, &p.CrankUp, &p.StartDate, &p.ReleaseDate, &p.VFXDueDate, &p.OutputSize,
+			&p.ViewLUT,
+		)
+		if err != nil {
+			return nil, err
+		}
+		prjs = append(prjs, p)
+	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return prjs, nil
+}
+
 // AddProject는 db에 프로젝트를 추가한다.
 func AddProject(db *sql.DB, p Project) error {
 	if p.ID == "" {

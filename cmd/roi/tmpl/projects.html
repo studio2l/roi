@@ -1,0 +1,14 @@
+{{template "head.html" }}
+{{template "nav.html" $}}
+<div style="padding:15px 10px 15px 10px;z-index:0;">
+<!--검색 결과-->
+{{range .Projects}}
+<div class="ui inverted segment">
+	<div>ID:{{.ID}}, 상태:{{if ne .Status ""}}{{.Status}}{{else}}없음{{end}}</div>
+	<div>시작일:{{dateTime .StartDate}} 종료일:{{dateTime .ReleaseDate}}</div>
+</div>
+{{end}}
+</div>
+<!--검색 결과 끝-->
+<script>
+{{template "footer.html"}}

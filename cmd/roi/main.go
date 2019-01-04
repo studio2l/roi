@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/gorilla/securecookie"
 
@@ -38,10 +39,16 @@ func hasThumbnail(prj, shot string) bool {
 	return true
 }
 
+// dateTime은 Go의 시간 포맷을 연, 월, 일, 시로 표현한다.
+func dateTime(t *time.Time) string {
+	return fmt.Sprintf("%d년 %d월 %d일 %d시", t.Year(), t.Month(), t.Day(), t.Hour())
+}
+
 // parseTemplate은 tmpl 디렉토리 안의 html파일들을 파싱하여 http 응답에 사용될 수 있도록 한다.
 func parseTemplate() {
 	templates = template.Must(template.New("").Funcs(template.FuncMap{
 		"hasThumbnail": hasThumbnail,
+		"dateTime":     dateTime,
 	}).ParseGlob("tmpl/*.html"))
 }
 
@@ -351,6 +358,40 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/settings/profile", http.StatusSeeOther)
 }
 
+// projectsHandler는 /project 페이지로 사용자가 접속했을때 페이지를 반환한다.
+func projectsHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	prjs, err := roi.SearchAllProjects(db)
+	if err != nil {
+		log.Print(fmt.Sprintf("error while getting projects: %s", err))
+		return
+	}
+
+	session, err := getSession(r)
+	if err != nil {
+		log.Print(fmt.Sprintf("could not get session: %s", err))
+		clearSession(w)
+	}
+
+	recipt := struct {
+		LoggedInUser string
+		Projects     []roi.Project
+	}{
+		LoggedInUser: session["userid"],
+		Projects:     prjs,
+	}
+	err = executeTemplate(w, "projects.html", recipt)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 // searchHandler는 /search/ 하위 페이지로 사용자가 접속했을때 페이지를 반환한다.
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Path[len("/search/"):]
@@ -551,6 +592,7 @@ func main() {
 	mux.HandleFunc("/settings/profile", profileHandler)
 	mux.HandleFunc("/update-password", updatePasswordHandler)
 	mux.HandleFunc("/signup/", signupHandler)
+	mux.HandleFunc("/projects", projectsHandler)
 	mux.HandleFunc("/search/", searchHandler)
 	mux.HandleFunc("/shot/", shotHandler)
 	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
