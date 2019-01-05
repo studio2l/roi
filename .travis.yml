@@ -6,6 +6,11 @@ go:
 env:
  - GO111MODULE=on
 
+before_script:
+ - wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.2.linux-amd64.tgz | tar  xvz
+ - mv cockroach-v2.1.2.linux-amd64/cockroach .
+ - export PATH=$PWD:$PATH
+
 script:
  - go test -race -coverprofile=coverage.txt -covermode=atomic ./...
  - go vet ./...
