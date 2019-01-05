@@ -11,6 +11,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	// DB 시작
 	tempDir, err := ioutil.TempDir("", "cockroach-test-")
 	if err != nil {
 		log.Fatal(err)
@@ -26,11 +27,15 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// DB가 시작되기까지 시간 필요
 	time.Sleep(time.Second)
 
+	// 테스트
 	code := m.Run()
 
+	// DB 종료, 삭제
 	cmd.Process.Kill()
 	os.RemoveAll(tempDir)
+
 	os.Exit(code)
 }
