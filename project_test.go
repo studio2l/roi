@@ -28,6 +28,7 @@ func TestProject(t *testing.T) {
 		ViewLUT:       "some/place/aces.lut",
 	}
 
+	// 테스트 서버에 접속
 	db, err := sql.Open("postgres", "postgresql://root@localhost:54545/roi?sslmode=disable")
 	if err != nil {
 		t.Fatalf("error connecting to the database: %s", err)
