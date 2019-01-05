@@ -72,11 +72,26 @@ func TestProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add project to projects table: %s", err)
 	}
+	exist, err := ProjectExist(db, want.ID)
+	if err != nil {
+		t.Fatalf("could not check project existence from projects table: %s", err)
+	}
+	if !exist {
+		t.Fatalf("project not found from projects table: %s", want.ID)
+	}
 	got, err := GetProject(db, want.ID)
 	if err != nil {
-		t.Fatalf("could not get project to projects table: %s", err)
+		t.Fatalf("could not get project from projects table: %s", err)
 	}
 	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("got: %v, want: %v", got, want)
+	}
+	gotAll, err := SearchAllProjects(db)
+	if err != nil {
+		t.Fatalf("could not get all projects from projects table: %s", err)
+	}
+	wantAll := []*Project{want}
+	if !reflect.DeepEqual(gotAll, wantAll) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
 }
