@@ -7,7 +7,7 @@ import (
 )
 
 func TestOrdMapFromProject(t *testing.T) {
-	p := Project{
+	p := &Project{
 		ID:            "TEST",
 		Name:          "테스트 프로젝트",
 		Status:        "waiting",

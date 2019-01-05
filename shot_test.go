@@ -8,7 +8,7 @@ import (
 )
 
 func TestOrdMapFromShot(t *testing.T) {
-	s := Shot{
+	s := &Shot{
 		ID:            "CG_0010",
 		ProjectID:     "test",
 		Status:        "waiting",
