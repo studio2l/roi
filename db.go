@@ -82,21 +82,21 @@ func AddUser(db *sql.DB, id, pw string) error {
 }
 
 // GetUser는 db에서 사용자를 검색한다.
-// 반환된 User의 ID가 비어있다면 해당 유저를 찾지 못한것이다.
-func GetUser(db *sql.DB, id string) (User, error) {
+// 해당 유저를 찾지 못하면 nil이 반환된다.
+func GetUser(db *sql.DB, id string) (*User, error) {
 	stmt := "SELECT id, kor_name, name, team, position, email, phone_number, entry_date FROM users WHERE id=$1"
 	fmt.Println(stmt)
 	rows, err := db.Query(stmt, id)
 	if err != nil {
-		return User{}, err
+		return nil, err
 	}
 	ok := rows.Next()
 	if !ok {
-		return User{}, nil
+		return nil, nil
 	}
-	var u User
+	u := &User{}
 	if err := rows.Scan(&u.ID, &u.KorName, &u.Name, &u.Team, &u.Position, &u.Email, &u.PhoneNumber, &u.EntryDate); err != nil {
-		return User{}, err
+		return nil, err
 	}
 	return u, nil
 }
@@ -124,7 +124,10 @@ func UserHasPassword(db *sql.DB, id, pw string) (bool, error) {
 }
 
 // UpdateUser는 db에 비밀번호를 제외한 사용자 필드를 업데이트 한다.
-func UpdateUser(db *sql.DB, id string, u User) error {
+func UpdateUser(db *sql.DB, id string, u *User) error {
+	if u == nil {
+		return errors.New("nil User is invalid")
+	}
 	m := ordMapFromUser(u)
 	setstr := ""
 	i := 0
@@ -159,17 +162,17 @@ func UpdateUserPassword(db *sql.DB, id, pw string) error {
 }
 
 // GetProject는 db에서 특정 프로젝트 정보를 부른다.
-// 반환된 Project에 Code 값이 없다면 해당 프로젝트가 없다는 뜻이다.
-func GetProject(db *sql.DB, prj string) (Project, error) {
+// 해당 프로젝트가 없다면 nil이 반환된다.
+func GetProject(db *sql.DB, prj string) (*Project, error) {
 	rows, err := SelectAll(db, "projects", map[string]string{"id": prj})
 	if err != nil {
-		return Project{}, err
+		return nil, err
 	}
 	if !rows.Next() {
-		return Project{}, nil
+		return nil, nil
 	}
 	var id string
-	p := Project{}
+	p := &Project{}
 	err = rows.Scan(
 		&id, &p.ID, &p.Name, &p.Status, &p.Client,
 		&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CGSupervisor,
@@ -177,14 +180,14 @@ func GetProject(db *sql.DB, prj string) (Project, error) {
 		&p.ViewLUT,
 	)
 	if err != nil {
-		return Project{}, err
+		return nil, err
 	}
 	return p, nil
 }
 
 // SearchAllProjects는 db에서 모든 프로젝트 정보를 가져온다.
 // 검색 중 문제가 있으면 nil, error를 반환한다.
-func SearchAllProjects(db *sql.DB) ([]Project, error) {
+func SearchAllProjects(db *sql.DB) ([]*Project, error) {
 	fields := strings.Join([]string{
 		"id", "name", "status",
 		"client", "director", "producer", "vfx_supervisor", "vfx_manager", "cg_supervisor",
@@ -196,9 +199,9 @@ func SearchAllProjects(db *sql.DB) ([]Project, error) {
 	if err != nil {
 		return nil, err
 	}
-	prjs := make([]Project, 0)
+	prjs := make([]*Project, 0)
 	for rows.Next() {
-		p := Project{}
+		p := &Project{}
 		err = rows.Scan(
 			&p.ID, &p.Name, &p.Status, &p.Client,
 			&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CGSupervisor,
@@ -217,9 +220,9 @@ func SearchAllProjects(db *sql.DB) ([]Project, error) {
 }
 
 // AddProject는 db에 프로젝트를 추가한다.
-func AddProject(db *sql.DB, p Project) error {
-	if p.ID == "" {
-		return errors.New("project should have it's ID")
+func AddProject(db *sql.DB, p *Project) error {
+	if p == nil {
+		return errors.New("nil Project is invalid")
 	}
 	m := ordMapFromProject(p)
 	keys := strings.Join(m.Keys(), ", ")
@@ -245,7 +248,7 @@ func ProjectExist(db *sql.DB, prj string) (bool, error) {
 }
 
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
-func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]Shot, error) {
+func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]*Shot, error) {
 	stmt := fmt.Sprintf("SELECT * FROM %s_shots", prj)
 	m := newOrdMap()
 	m.Set("id=$%d", shot)
@@ -275,10 +278,10 @@ func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]Shot, error) {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-	shots := make([]Shot, 0)
+	shots := make([]*Shot, 0)
 	for rows.Next() {
 		var id string
-		var s Shot
+		s := &Shot{}
 		if err := rows.Scan(
 			&id, &s.ID, &s.ProjectID, &s.Status,
 			&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
@@ -295,9 +298,12 @@ func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]Shot, error) {
 }
 
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
-func AddShot(db *sql.DB, prj string, s Shot) error {
+func AddShot(db *sql.DB, prj string, s *Shot) error {
 	if prj == "" {
 		return fmt.Errorf("project code not specified")
+	}
+	if s == nil {
+		return errors.New("nil Shot is invalid")
 	}
 	m := ordMapFromShot(s)
 	keys := strings.Join(m.Keys(), ", ")
@@ -320,26 +326,26 @@ func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
 }
 
 // GetShot은 db의 특정 프로젝트에서 샷 이름으로 해당 샷을 찾는다.
-// 반환된 Shot의 Name이 비어있다면 그 이름의 샷이 없었다는 뜻이다.
-func GetShot(db *sql.DB, prj string, shot string) (Shot, error) {
+// 만일 그 이름의 샷이 없다면 nil이 반환된다.
+func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 	stmt := fmt.Sprintf("SELECT * FROM %s_shots WHERE id='%s' LIMIT 1", prj, shot)
 	fmt.Println(stmt)
 	rows, err := db.Query(stmt)
 	if err != nil {
-		return Shot{}, err
+		return nil, err
 	}
 	ok := rows.Next()
 	if !ok {
-		return Shot{}, nil
+		return nil, nil
 	}
-	var s Shot
+	s := &Shot{}
 	var id string
 	if err := rows.Scan(
 		&id, &s.ID, &s.ProjectID, &s.Status,
 		&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
 		&s.Duration, pq.Array(&s.Tags),
 	); err != nil {
-		return Shot{}, err
+		return nil, err
 	}
 	return s, nil
 }
