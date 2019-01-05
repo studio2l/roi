@@ -113,6 +113,9 @@ func AddProject(db *sql.DB, p *Project) error {
 	if p == nil {
 		return errors.New("nil Project is invalid")
 	}
+	if !IsValidProjectID(p.ID) {
+		return fmt.Errorf("Project id is invalid: %s", p.ID)
+	}
 	keystr := strings.Join(ProjectTableKeys, ", ")
 	idxstr := strings.Join(ProjectTableIndices, ", ")
 	stmt := fmt.Sprintf("INSERT INTO projects (%s) VALUES (%s)", keystr, idxstr)
