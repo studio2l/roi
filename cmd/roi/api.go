@@ -108,7 +108,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		duration = d
 	}
-	s := roi.Shot{
+	s := &roi.Shot{
 		ID:            id,
 		Status:        status,
 		EditOrder:     editOrder,

@@ -56,7 +56,7 @@ var ProjectTableFields = []string{
 }
 
 // ordMapFromProject는 프로젝트 정보를 OrdMap에 담는다.
-func ordMapFromProject(p Project) *ordMap {
+func ordMapFromProject(p *Project) *ordMap {
 	o := newOrdMap()
 	o.Set("id", p.ID)
 	o.Set("name", p.Name)

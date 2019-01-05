@@ -62,7 +62,7 @@ var ShotTableFields = []string{
 }
 
 // ordMapFromShot은 샷 정보를 OrdMap에 담는다.
-func ordMapFromShot(s Shot) *ordMap {
+func ordMapFromShot(s *Shot) *ordMap {
 	o := newOrdMap()
 	o.Set("id", s.ID)
 	o.Set("project_id", s.ProjectID)

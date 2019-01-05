@@ -42,7 +42,7 @@ func NewUserMap(id, hashed_password string) *ordMap {
 }
 
 // ordMapFromUser는 유저 정보를 OrdMap에 담는다.
-func ordMapFromUser(u User) *ordMap {
+func ordMapFromUser(u *User) *ordMap {
 	o := newOrdMap()
 	o.Set("id", u.ID)
 	o.Set("kor_name", u.KorName)

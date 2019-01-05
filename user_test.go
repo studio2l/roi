@@ -6,7 +6,7 @@ import (
 )
 
 func TestOrdMapFromUser(t *testing.T) {
-	u := User{
+	u := &User{
 		ID:          "kybin",
 		KorName:     "김용빈",
 		Name:        "kim yongbin",

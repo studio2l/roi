@@ -15,8 +15,8 @@ import (
 	"github.com/360EntSecGroup-Skylar/excelize"
 )
 
-func shotFromMap(m map[string]string) roi.Shot {
-	return roi.Shot{
+func shotFromMap(m map[string]string) *roi.Shot {
+	return &roi.Shot{
 		ID:            m["shot"],
 		ProjectID:     m["project_id"],
 		Status:        m["status"],
@@ -91,7 +91,7 @@ func main() {
 			title[j] = cell
 		}
 	}
-	shots := make([]roi.Shot, 0)
+	shots := make([]*roi.Shot, 0)
 	thumbs := make(map[string]string)
 	for _, row := range rows[1:] {
 		xlrow := make(map[string]string)
@@ -131,7 +131,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var p roi.Project
+	var p *roi.Project
 	p.ID = prj
 	if err := roi.AddProject(db, p); err != nil {
 		fmt.Fprintln(os.Stderr, err)

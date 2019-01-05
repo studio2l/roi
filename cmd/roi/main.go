@@ -267,7 +267,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "POST" {
 		r.ParseForm()
-		u := roi.User{
+		u := &roi.User{
 			ID:          session["userid"],
 			KorName:     r.Form.Get("kor-name"),
 			Name:        r.Form.Get("name"),
@@ -293,7 +293,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(u)
 	recipt := struct {
 		LoggedInUser string
-		User         roi.User
+		User         *roi.User
 	}{
 		LoggedInUser: session["userid"],
 		User:         u,
@@ -381,7 +381,7 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 
 	recipt := struct {
 		LoggedInUser string
-		Projects     []roi.Project
+		Projects     []*roi.Project
 	}{
 		LoggedInUser: session["userid"],
 		Projects:     prjs,
@@ -458,7 +458,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedInUser string
 		Projects     []string
 		Project      string
-		Shots        []roi.Shot
+		Shots        []*roi.Shot
 		FilterShot   string
 		FilterTag    string
 		FilterStatus string
@@ -511,7 +511,7 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 	recipt := struct {
 		LoggedInUser string
 		Project      string
-		Shot         roi.Shot
+		Shot         *roi.Shot
 	}{
 		LoggedInUser: session["userid"],
 		Project:      prj,
