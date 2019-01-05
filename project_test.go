@@ -54,6 +54,11 @@ func TestProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get project from projects table: %s", err)
 	}
+	if !IsValidProjectID(got.ID) {
+		if err != nil {
+			t.Fatalf("find project with invalid id from projects table: %s", err)
+		}
+	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
