@@ -161,142 +161,6 @@ func UpdateUserPassword(db *sql.DB, id, pw string) error {
 	return nil
 }
 
-// GetProject는 db에서 특정 프로젝트 정보를 부른다.
-// 해당 프로젝트가 없다면 nil이 반환된다.
-func GetProject(db *sql.DB, prj string) (*Project, error) {
-	rows, err := SelectAll(db, "projects", map[string]string{"id": prj})
-	if err != nil {
-		return nil, err
-	}
-	if !rows.Next() {
-		return nil, nil
-	}
-	var id string
-	p := &Project{}
-	err = rows.Scan(
-		&id, &p.ID, &p.Name, &p.Status, &p.Client,
-		&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CGSupervisor,
-		&p.CrankIn, &p.CrankUp, &p.StartDate, &p.ReleaseDate, &p.VFXDueDate, &p.OutputSize,
-		&p.ViewLUT,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
-}
-
-// SearchAllProjects는 db에서 모든 프로젝트 정보를 가져온다.
-// 검색 중 문제가 있으면 nil, error를 반환한다.
-func SearchAllProjects(db *sql.DB) ([]*Project, error) {
-	fields := strings.Join([]string{
-		"id", "name", "status",
-		"client", "director", "producer", "vfx_supervisor", "vfx_manager", "cg_supervisor",
-		"crank_in", "crank_up", "start_date", "release_date", "vfx_due_date",
-		"output_size", "view_lut",
-	}, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM projects", fields)
-	rows, err := db.Query(stmt)
-	if err != nil {
-		return nil, err
-	}
-	prjs := make([]*Project, 0)
-	for rows.Next() {
-		p := &Project{}
-		err = rows.Scan(
-			&p.ID, &p.Name, &p.Status, &p.Client,
-			&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CGSupervisor,
-			&p.CrankIn, &p.CrankUp, &p.StartDate, &p.ReleaseDate, &p.VFXDueDate, &p.OutputSize,
-			&p.ViewLUT,
-		)
-		if err != nil {
-			return nil, err
-		}
-		prjs = append(prjs, p)
-	}
-	if rows.Err() != nil {
-		return nil, rows.Err()
-	}
-	return prjs, nil
-}
-
-// AddProject는 db에 프로젝트를 추가한다.
-func AddProject(db *sql.DB, p *Project) error {
-	if p == nil {
-		return errors.New("nil Project is invalid")
-	}
-	m := ordMapFromProject(p)
-	keys := strings.Join(m.Keys(), ", ")
-	idxs := strings.Join(pgIndices(m.Len()), ", ")
-	stmt := fmt.Sprintf("INSERT INTO projects (%s) VALUES (%s)", keys, idxs)
-	if _, err := db.Exec(stmt, m.Values()...); err != nil {
-		return err
-	}
-	// TODO: add project info, task, tracking table
-	if err := CreateTableIfNotExists(db, p.ID+"_shots", ShotTableFields); err != nil {
-		return err
-	}
-	return nil
-}
-
-// ProjectExist는 db에 해당 프로젝트가 존재하는지를 검사한다.
-func ProjectExist(db *sql.DB, prj string) (bool, error) {
-	rows, err := db.Query("SELECT id FROM projects WHERE id=$1 LIMIT 1", prj)
-	if err != nil {
-		return false, err
-	}
-	return rows.Next(), nil
-}
-
-// SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
-func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]*Shot, error) {
-	stmt := fmt.Sprintf("SELECT * FROM %s_shots", prj)
-	m := newOrdMap()
-	m.Set("id=$%d", shot)
-	m.Set("$%d::string = ANY(tags)", tag)
-	m.Set("status=$%d", status)
-	wherestr := ""
-	i := 0
-	vals := make([]interface{}, 0)
-	for _, k := range m.Keys() {
-		v := m.Get(k)
-		if v.(string) == "" {
-			continue
-		}
-		if i != 0 {
-			wherestr += " AND "
-		}
-		wherestr += fmt.Sprintf(k, i+1)
-		vals = append(vals, v)
-		i++
-	}
-	if wherestr != "" {
-		stmt += " WHERE " + wherestr
-	}
-	fmt.Println(stmt)
-	rows, err := db.Query(stmt, vals...)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-	shots := make([]*Shot, 0)
-	for rows.Next() {
-		var id string
-		s := &Shot{}
-		if err := rows.Scan(
-			&id, &s.ID, &s.ProjectID, &s.Status,
-			&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
-			&s.Duration, pq.Array(&s.Tags),
-		); err != nil {
-			return nil, fmt.Errorf("shot scan: %s", err)
-		}
-		shots = append(shots, s)
-	}
-	sort.Slice(shots, func(i int, j int) bool {
-		return shots[i].ID <= shots[j].ID
-	})
-	return shots, nil
-}
-
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
 func AddShot(db *sql.DB, prj string, s *Shot) error {
 	if prj == "" {
@@ -348,4 +212,50 @@ func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 		return nil, err
 	}
 	return s, nil
+}
+
+// SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
+func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]*Shot, error) {
+	stmt := fmt.Sprintf("SELECT * FROM %s_shots", prj)
+	where := make([]string, 0)
+	vals := make([]interface{}, 0)
+	if shot != "" {
+		where = append(where, "id=$%d")
+		vals = append(vals, shot)
+	}
+	if tag != "" {
+		where = append(where, "$%d::string = ANY(tags)")
+		vals = append(vals, tag)
+	}
+	if status != "" {
+		where = append(where, "status=$%d")
+		vals = append(vals, status)
+	}
+	wherestr := strings.Join(where, " AND ")
+	if wherestr != "" {
+		stmt += " WHERE " + wherestr
+	}
+	fmt.Println(stmt)
+	rows, err := db.Query(stmt, vals...)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	shots := make([]*Shot, 0)
+	for rows.Next() {
+		var id string
+		s := &Shot{}
+		if err := rows.Scan(
+			&id, &s.ID, &s.ProjectID, &s.Status,
+			&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
+			&s.Duration, pq.Array(&s.Tags),
+		); err != nil {
+			return nil, fmt.Errorf("shot scan: %s", err)
+		}
+		shots = append(shots, s)
+	}
+	sort.Slice(shots, func(i int, j int) bool {
+		return shots[i].ID <= shots[j].ID
+	})
+	return shots, nil
 }

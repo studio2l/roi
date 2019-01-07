@@ -1,13 +1,15 @@
 package roi
 
 import (
+	"database/sql"
+	"log"
 	"reflect"
 	"testing"
 	"time"
 )
 
-func TestOrdMapFromProject(t *testing.T) {
-	p := &Project{
+func TestProject(t *testing.T) {
+	want := &Project{
 		ID:            "TEST",
 		Name:          "테스트 프로젝트",
 		Status:        "waiting",
@@ -17,35 +19,56 @@ func TestOrdMapFromProject(t *testing.T) {
 		VFXSupervisor: "김성환",
 		VFXManager:    "조경식",
 		CGSupervisor:  "김용빈",
-		CrankIn:       time.Date(2018, 12, 31, 7, 30, 0, 0, time.Local),
-		CrankUp:       time.Date(2019, 8, 31, 19, 0, 0, 0, time.Local),
-		StartDate:     time.Date(2018, 12, 29, 0, 0, 0, 0, time.Local),
-		ReleaseDate:   time.Date(2018, 10, 1, 0, 0, 0, 0, time.Local),
-		VFXDueDate:    time.Date(2018, 9, 31, 0, 0, 0, 0, time.Local),
+		CrankIn:       time.Date(2018, 12, 31, 7, 30, 0, 0, time.Local).UTC(),
+		CrankUp:       time.Date(2019, 8, 31, 19, 0, 0, 0, time.Local).UTC(),
+		StartDate:     time.Date(2018, 12, 29, 0, 0, 0, 0, time.Local).UTC(),
+		ReleaseDate:   time.Date(2018, 10, 1, 0, 0, 0, 0, time.Local).UTC(),
+		VFXDueDate:    time.Date(2018, 9, 31, 0, 0, 0, 0, time.Local).UTC(),
 		OutputSize:    "1920x1080",
 		ViewLUT:       "some/place/aces.lut",
 	}
-	got := ordMapFromProject(p)
 
-	want := newOrdMap()
-	want.Set("id", "TEST")
-	want.Set("name", "테스트 프로젝트")
-	want.Set("status", "waiting")
-	want.Set("client", "레이지 픽처스")
-	want.Set("director", "윤지은")
-	want.Set("producer", "김한웅")
-	want.Set("vfx_supervisor", "김성환")
-	want.Set("vfx_manager", "조경식")
-	want.Set("cg_supervisor", "김용빈")
-	want.Set("crank_in", time.Date(2018, 12, 31, 7, 30, 0, 0, time.Local))
-	want.Set("crank_up", time.Date(2019, 8, 31, 19, 0, 0, 0, time.Local))
-	want.Set("start_date", time.Date(2018, 12, 29, 0, 0, 0, 0, time.Local))
-	want.Set("release_date", time.Date(2018, 10, 1, 0, 0, 0, 0, time.Local))
-	want.Set("vfx_due_date", time.Date(2018, 9, 31, 0, 0, 0, 0, time.Local))
-	want.Set("output_size", "1920x1080")
-	want.Set("view_lut", "some/place/aces.lut")
-
+	// 테스트 서버에 접속
+	db, err := sql.Open("postgres", "postgresql://root@localhost:54545/roi?sslmode=disable")
+	if err != nil {
+		t.Fatalf("error connecting to the database: %s", err)
+	}
+	if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
+		log.Fatal("error creating db 'roi': ", err)
+	}
+	err = CreateTableIfNotExists(db, "projects", ProjectTableFields)
+	if err != nil {
+		t.Fatalf("could not create projects table: %s", err)
+	}
+	err = AddProject(db, want)
+	if err != nil {
+		t.Fatalf("could not add project to projects table: %s", err)
+	}
+	exist, err := ProjectExist(db, want.ID)
+	if err != nil {
+		t.Fatalf("could not check project existence from projects table: %s", err)
+	}
+	if !exist {
+		t.Fatalf("project not found from projects table: %s", want.ID)
+	}
+	got, err := GetProject(db, want.ID)
+	if err != nil {
+		t.Fatalf("could not get project from projects table: %s", err)
+	}
+	if !IsValidProjectID(got.ID) {
+		if err != nil {
+			t.Fatalf("find project with invalid id from projects table: %s", err)
+		}
+	}
 	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("got: %v, want: %v", got, want)
+	}
+	gotAll, err := SearchAllProjects(db)
+	if err != nil {
+		t.Fatalf("could not get all projects from projects table: %s", err)
+	}
+	wantAll := []*Project{want}
+	if !reflect.DeepEqual(gotAll, wantAll) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
 }
