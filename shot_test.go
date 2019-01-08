@@ -124,4 +124,9 @@ func TestShot(t *testing.T) {
 			t.Fatalf("could not delete shot from shots table: %s", err)
 		}
 	}
+
+	err = DeleteProject(db, testProject.ID)
+	if err != nil {
+		t.Fatalf("could not delete project: %s", err)
+	}
 }
