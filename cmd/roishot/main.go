@@ -19,7 +19,7 @@ func shotFromMap(m map[string]string) *roi.Shot {
 	return &roi.Shot{
 		ID:            m["shot"],
 		ProjectID:     m["project_id"],
-		Status:        m["status"],
+		Status:        roi.ShotStatus(m["status"]),
 		EditOrder:     toInt(m["edit_order"]),
 		Description:   m["description"],
 		CGDescription: m["cg_description"],

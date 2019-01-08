@@ -1,7 +1,13 @@
 package roi
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
+	"log"
 	"regexp"
+	"sort"
+	"strings"
 
 	"github.com/lib/pq"
 )
@@ -13,14 +19,14 @@ func IsValidShotID(id string) bool {
 	return reValidShotID.MatchString(id)
 }
 
-type ShotStatus int
+type ShotStatus string
 
 const (
-	ShotWaiting = ShotStatus(iota)
-	ShotInProgress
-	ShotDone
-	ShotHold
-	ShotOmit
+	ShotWaiting    ShotStatus = "waiting"
+	ShotInProgress            = "in-progress"
+	ShotDone                  = "done"
+	ShotHold                  = "hold"
+	ShotOmit                  = "omit"
 )
 
 type Shot struct {
@@ -33,7 +39,7 @@ type Shot struct {
 	ProjectID string
 
 	// 샷 정보
-	Status        string
+	Status        ShotStatus
 	EditOrder     int
 	Description   string
 	CGDescription string
@@ -41,6 +47,24 @@ type Shot struct {
 	TimecodeOut   string
 	Duration      int
 	Tags          []string
+}
+
+func (s *Shot) dbValues() []interface{} {
+	if s == nil {
+		s = &Shot{}
+	}
+	return []interface{}{
+		s.ID,
+		s.ProjectID,
+		s.Status,
+		s.EditOrder,
+		s.Description,
+		s.CGDescription,
+		s.TimecodeIn,
+		s.TimecodeOut,
+		s.Duration,
+		pq.Array(s.Tags),
+	}
 }
 
 var ShotTableFields = []string{
@@ -61,18 +85,122 @@ var ShotTableFields = []string{
 	// "other_sources STRING[]",
 }
 
-// ordMapFromShot은 샷 정보를 OrdMap에 담는다.
-func ordMapFromShot(s *Shot) *ordMap {
-	o := newOrdMap()
-	o.Set("id", s.ID)
-	o.Set("project_id", s.ProjectID)
-	o.Set("status", s.Status)
-	o.Set("edit_order", s.EditOrder)
-	o.Set("description", s.Description)
-	o.Set("cg_description", s.CGDescription)
-	o.Set("timecode_in", s.TimecodeIn)
-	o.Set("timecode_out", s.TimecodeOut)
-	o.Set("duration", s.Duration)
-	o.Set("tags", pq.Array(s.Tags))
-	return o
+var ShotTableKeys = []string{
+	"id",
+	"project_id",
+	"status",
+	"edit_order",
+	"description",
+	"cg_description",
+	"timecode_in",
+	"timecode_out",
+	"duration",
+	"tags",
+}
+
+var ShotTableIndices = []string{
+	"$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9", "$10",
+}
+
+// AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
+func AddShot(db *sql.DB, prj string, s *Shot) error {
+	if prj == "" {
+		return fmt.Errorf("project code not specified")
+	}
+	if s == nil {
+		return errors.New("nil Shot is invalid")
+	}
+	keys := strings.Join(ShotTableKeys, ", ")
+	idxs := strings.Join(ShotTableIndices, ", ")
+	stmt := fmt.Sprintf("INSERT INTO %s_shots (%s) VALUES (%s)", prj, keys, idxs)
+	if _, err := db.Exec(stmt, s.dbValues()...); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ShotExist는 db에 해당 샷이 존재하는지를 검사한다.
+func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
+	stmt := fmt.Sprintf("SELECT id FROM %s_shots WHERE id=$1 LIMIT 1", prj)
+	rows, err := db.Query(stmt, shot)
+	if err != nil {
+		return false, err
+	}
+	return rows.Next(), nil
+}
+
+// shotFromRows는 테이블의 한 열에서 샷을 받아온다.
+func shotFromRows(rows *sql.Rows) (*Shot, error) {
+	s := &Shot{}
+	err := rows.Scan(
+		&s.ID, &s.ProjectID, &s.Status,
+		&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
+		&s.Duration, pq.Array(&s.Tags),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
+// GetShot은 db의 특정 프로젝트에서 샷 이름으로 해당 샷을 찾는다.
+// 만일 그 이름의 샷이 없다면 nil이 반환된다.
+func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
+	keystr := strings.Join(ShotTableKeys, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM %s_shots WHERE id='%s' LIMIT 1", keystr, prj, shot)
+	fmt.Println(stmt)
+	rows, err := db.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	ok := rows.Next()
+	if !ok {
+		return nil, nil
+	}
+	return shotFromRows(rows)
+}
+
+// SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
+func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]*Shot, error) {
+	keystr := strings.Join(ShotTableKeys, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM %s_shots", keystr, prj)
+	where := make([]string, 0)
+	vals := make([]interface{}, 0)
+	i := 1
+	if shot != "" {
+		where = append(where, fmt.Sprintf("id=$%d", i))
+		vals = append(vals, shot)
+		i++
+	}
+	if tag != "" {
+		where = append(where, fmt.Sprintf("$%d::string = ANY(tags)", i))
+		vals = append(vals, tag)
+		i++
+	}
+	if status != "" {
+		where = append(where, fmt.Sprintf("status=$%d", i))
+		vals = append(vals, status)
+	}
+	wherestr := strings.Join(where, " AND ")
+	if wherestr != "" {
+		stmt += " WHERE " + wherestr
+	}
+	fmt.Println(stmt)
+	rows, err := db.Query(stmt, vals...)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	shots := make([]*Shot, 0)
+	for rows.Next() {
+		s, err := shotFromRows(rows)
+		if err != nil {
+			return nil, err
+		}
+		shots = append(shots, s)
+	}
+	sort.Slice(shots, func(i int, j int) bool {
+		return shots[i].ID <= shots[j].ID
+	})
+	return shots, nil
 }
