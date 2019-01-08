@@ -23,10 +23,13 @@ func TestMain(m *testing.M) {
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	err = cmd.Start()
-	if err != nil {
-		log.Fatal(err)
-	}
+	go func() {
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	// DB가 시작되기까지 시간 필요
 	time.Sleep(time.Second)
 
