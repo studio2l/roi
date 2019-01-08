@@ -117,4 +117,11 @@ func TestShot(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
+
+	for _, s := range want {
+		err = DeleteShot(db, testProject.ID, s.ID)
+		if err != nil {
+			t.Fatalf("could not delete shot from shots table: %s", err)
+		}
+	}
 }

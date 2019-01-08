@@ -204,3 +204,12 @@ func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]*Shot, error) {
 	})
 	return shots, nil
 }
+
+// DeleteShot은 db의 특정 프로젝트에서 샷을 하나 지운다.
+func DeleteShot(db *sql.DB, prj string, shot string) error {
+	stmt := fmt.Sprintf("DELETE FROM %s_shots WHERE id=$1", prj)
+	if _, err := db.Exec(stmt, shot); err != nil {
+		return err
+	}
+	return nil
+}
