@@ -581,7 +581,7 @@ func main() {
 		log.Fatal("error connecting to the database: ", err)
 	}
 	if _, err := db.Exec(roi.CreateProjectsTableStmt); err != nil {
-		log.Fatal("error creating project table: ", err)
+		log.Fatal("could not create projects table: ", err)
 	}
 	roi.CreateTableIfNotExists(db, "users", roi.UserTableFields)
 
