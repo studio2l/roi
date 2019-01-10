@@ -194,3 +194,15 @@ func SearchAllProjects(db *sql.DB) ([]*Project, error) {
 	}
 	return prjs, nil
 }
+
+func DeleteProject(db *sql.DB, prj string) error {
+	stmt := fmt.Sprintf("DROP TABLE %s_shots", prj)
+	if _, err := db.Exec(stmt); err != nil {
+		return err
+	}
+	stmt = "DELETE FROM projects WHERE id=$1"
+	if _, err := db.Exec(stmt, prj); err != nil {
+		return err
+	}
+	return nil
+}

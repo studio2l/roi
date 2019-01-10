@@ -8,25 +8,27 @@ import (
 	"time"
 )
 
+var testProject = &Project{
+	ID:            "TEST",
+	Name:          "테스트 프로젝트",
+	Status:        "waiting",
+	Client:        "레이지 픽처스",
+	Director:      "윤지은",
+	Producer:      "김한웅",
+	VFXSupervisor: "김성환",
+	VFXManager:    "조경식",
+	CGSupervisor:  "김용빈",
+	CrankIn:       time.Date(2018, 12, 31, 7, 30, 0, 0, time.Local).UTC(),
+	CrankUp:       time.Date(2019, 8, 31, 19, 0, 0, 0, time.Local).UTC(),
+	StartDate:     time.Date(2018, 12, 29, 0, 0, 0, 0, time.Local).UTC(),
+	ReleaseDate:   time.Date(2018, 10, 1, 0, 0, 0, 0, time.Local).UTC(),
+	VFXDueDate:    time.Date(2018, 9, 31, 0, 0, 0, 0, time.Local).UTC(),
+	OutputSize:    "1920x1080",
+	ViewLUT:       "some/place/aces.lut",
+}
+
 func TestProject(t *testing.T) {
-	want := &Project{
-		ID:            "TEST",
-		Name:          "테스트 프로젝트",
-		Status:        "waiting",
-		Client:        "레이지 픽처스",
-		Director:      "윤지은",
-		Producer:      "김한웅",
-		VFXSupervisor: "김성환",
-		VFXManager:    "조경식",
-		CGSupervisor:  "김용빈",
-		CrankIn:       time.Date(2018, 12, 31, 7, 30, 0, 0, time.Local).UTC(),
-		CrankUp:       time.Date(2019, 8, 31, 19, 0, 0, 0, time.Local).UTC(),
-		StartDate:     time.Date(2018, 12, 29, 0, 0, 0, 0, time.Local).UTC(),
-		ReleaseDate:   time.Date(2018, 10, 1, 0, 0, 0, 0, time.Local).UTC(),
-		VFXDueDate:    time.Date(2018, 9, 31, 0, 0, 0, 0, time.Local).UTC(),
-		OutputSize:    "1920x1080",
-		ViewLUT:       "some/place/aces.lut",
-	}
+	want := testProject
 
 	// 테스트 서버에 접속
 	db, err := sql.Open("postgres", "postgresql://root@localhost:54545/roi?sslmode=disable")
@@ -70,5 +72,10 @@ func TestProject(t *testing.T) {
 	wantAll := []*Project{want}
 	if !reflect.DeepEqual(gotAll, wantAll) {
 		t.Fatalf("got: %v, want: %v", got, want)
+	}
+
+	err = DeleteProject(db, want.ID)
+	if err != nil {
+		t.Fatalf("could not delete project: %s", err)
 	}
 }
