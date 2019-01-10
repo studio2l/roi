@@ -88,25 +88,25 @@ var ProjectTableIndices = []string{
 	"$11", "$12", "$13", "$14", "$15", "$16",
 }
 
-var ProjectTableFields = []string{
-	"uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid()",
-	"id STRING NOT NULL UNIQUE CHECK (LENGTH(id) > 0) CHECK (id NOT LIKE '% %')",
-	"name STRING NOT NULL",
-	"status STRING NOT NULL",
-	"client STRING NOT NULL",
-	"director STRING NOT NULL",
-	"producer STRING NOT NULL",
-	"vfx_supervisor STRING NOT NULL",
-	"vfx_manager STRING NOT NULL",
-	"cg_supervisor STRING NOT NULL",
-	"crank_in TIMESTAMPTZ NOT NULL",
-	"crank_up TIMESTAMPTZ NOT NULL",
-	"start_date TIMESTAMPTZ NOT NULL",
-	"release_date TIMESTAMPTZ NOT NULL",
-	"vfx_due_date TIMESTAMPTZ NOT NULL",
-	"output_size STRING NOT NULL",
-	"view_lut STRING NOT NULL",
-}
+var CreateProjectsTableStmt = `CREATE TABLE projects (
+	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	id STRING NOT NULL UNIQUE CHECK (LENGTH(id) > 0) CHECK (id NOT LIKE '% %'),
+	name STRING NOT NULL,
+	status STRING NOT NULL,
+	client STRING NOT NULL,
+	director STRING NOT NULL,
+	producer STRING NOT NULL,
+	vfx_supervisor STRING NOT NULL,
+	vfx_manager STRING NOT NULL,
+	cg_supervisor STRING NOT NULL,
+	crank_in TIMESTAMPTZ NOT NULL,
+	crank_up TIMESTAMPTZ NOT NULL,
+	start_date TIMESTAMPTZ NOT NULL,
+	release_date TIMESTAMPTZ NOT NULL,
+	vfx_due_date TIMESTAMPTZ NOT NULL,
+	output_size STRING NOT NULL,
+	view_lut STRING NOT NULL
+)`
 
 // AddProject는 db에 프로젝트를 추가한다.
 func AddProject(db *sql.DB, p *Project) error {

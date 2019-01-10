@@ -580,7 +580,9 @@ func main() {
 	if err != nil {
 		log.Fatal("error connecting to the database: ", err)
 	}
-	roi.CreateTableIfNotExists(db, "projects", roi.ProjectTableFields)
+	if _, err := db.Exec(roi.CreateProjectsTableStmt); err != nil {
+		log.Fatal("error creating project table: ", err)
+	}
 	roi.CreateTableIfNotExists(db, "users", roi.UserTableFields)
 
 	parseTemplate()

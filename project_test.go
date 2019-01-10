@@ -36,7 +36,7 @@ func TestProject(t *testing.T) {
 	if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
 		log.Fatal("error creating db 'roi': ", err)
 	}
-	err = CreateTableIfNotExists(db, "projects", ProjectTableFields)
+	_, err = db.Exec(CreateProjectsTableStmt)
 	if err != nil {
 		t.Fatalf("could not create projects table: %s", err)
 	}
