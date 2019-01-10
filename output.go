@@ -13,7 +13,7 @@ type Output struct {
 	TaskID    string
 
 	Version  int       // 결과물 버전
-	File     string    // 결과물 경로
+	Files    []string  // 결과물 경로
 	Mov      string    // 결과물을 영상으로 볼 수 있는 경로
 	WorkFile string    // 이 결과물을 만든 작업 파일
 	Time     time.Time // 결과물이 만들어진 시간
