@@ -1,0 +1,59 @@
+{{template "head.html"}}
+{{template "nav.html" $}}
+<!--상단 고정 메뉴로 인해 위치 조정-->
+<div style="padding-top: 2rem;"></div>
+<div class="ui raised very padded text container grey inverted segment">
+	<h2 class="ui dividing header">프로젝트 추가</h2>
+	<form method="post" class="ui form">
+		<div class="field"><label>아이디</label>
+			<input type="text" name="id" value=""/>
+		</div>
+		<div class="field"><label>영문이름</label>
+			<input type="text" name="name" value=""/>
+		</div>
+		<div class="field"><label>클라이언트</label>
+			<input type="text" name="client" value=""/>
+		</div>
+		<div class="field"><label>감독</label>
+			<input type="text" name="director" value=""/>
+		</div>
+		<div class="field"><label>PD</label>
+			<input type="text" name="producer" value=""/>
+		</div>
+		<div class="field"><label>VFX 수퍼바이저</label>
+			<input type="text" name="vfx_supervisor" value=""/>
+		</div>
+		<div class="field"><label>VFX 매니저</label>
+			<input type="text" name="vfx_manager" value=""/>
+		</div>
+		<div class="field"><label>CG 수퍼바이저</label>
+			<input type="text" name="cg_supervisor" value=""/>
+		</div>
+		<div class="field"><label>CG 매니저</label>
+			<input type="text" name="cg_manager" value=""/>
+		</div>
+		<div class="field"><label>크랭크 인</label>
+			<input type="text" name="crank_in" value=""/>
+		</div>
+		<div class="field"><label>크랭크 업</label>
+			<input type="text" name="crank_up" value=""/>
+		</div>
+		<div class="field"><label>시작일</label>
+			<input type="text" name="start_date" value=""/>
+		</div>
+		<div class="field"><label>종료일</label>
+			<input type="text" name="release_date" value=""/>
+		</div>
+		<div class="field"><label>VFX 종료일</label>
+			<input type="text" name="vfx_due_date" value=""/>
+		</div>
+		<div class="field"><label>아웃풋 사이즈</label>
+			<input type="text" name="output_size" value=""/>
+		</div>
+		<div class="field"><label>View Lut 경로</label>
+			<input type="text" name="view_lut" value=""/>
+		</div>
+		<button class="ui button green" type="submit" value="Submit">추가</button>
+	</form>
+</div>
+{{template "footer.html"}}

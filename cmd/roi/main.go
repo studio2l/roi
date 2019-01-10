@@ -392,6 +392,88 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// addProjectHandler는 /add-project 페이지로 사용자가 접속했을때 페이지를 반환한다.
+func addProjectHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	session, err := getSession(r)
+	if err != nil {
+		http.Error(w, "could not get session", http.StatusUnauthorized)
+		clearSession(w)
+		return
+	}
+	u, err := roi.GetUser(db, session["userid"])
+	if err != nil {
+		http.Error(w, "could not get user information", http.StatusInternalServerError)
+		clearSession(w)
+		return
+	}
+	if u.Position != "admin" {
+		// 할일: admin이 아닌 사람은 프로젝트를 생성할 수 없도록 하기
+	}
+	if r.Method == "POST" {
+		r.ParseForm()
+		id := r.Form.Get("id")
+		if id == "" {
+			http.Error(w, "need project 'id'", http.StatusBadRequest)
+			return
+		}
+		exist, err := roi.ProjectExist(db, id)
+		if err != nil {
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		if exist {
+			http.Error(w, fmt.Sprintf("project '%s' exist", id), http.StatusBadRequest)
+			return
+		}
+		fromStringTime := func(st string) time.Time {
+			t, err := time.Parse("2006-01-02", st)
+			if err != nil {
+				fmt.Println(err)
+			}
+			return t
+		}
+		p := &roi.Project{
+			ID:            id,
+			Name:          r.Form.Get("name"),
+			Status:        "waiting",
+			Client:        r.Form.Get("client"),
+			Director:      r.Form.Get("director"),
+			Producer:      r.Form.Get("producer"),
+			VFXSupervisor: r.Form.Get("vfx_supervisor"),
+			VFXManager:    r.Form.Get("vfx_manager"),
+			CGSupervisor:  r.Form.Get("cg_supervisor"),
+			StartDate:     fromStringTime(r.Form.Get("start_date")),
+			ReleaseDate:   fromStringTime(r.Form.Get("release_date")),
+			CrankIn:       fromStringTime(r.Form.Get("crank_in")),
+			CrankUp:       fromStringTime(r.Form.Get("crank_up")),
+			VFXDueDate:    fromStringTime(r.Form.Get("vfx_due_date")),
+			OutputSize:    r.Form.Get("output_size"),
+			ViewLUT:       r.Form.Get("view_lut"),
+		}
+		err = roi.AddProject(db, p)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("could not add project '%s'", p), http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	recipt := struct {
+		LoggedInUser string
+	}{
+		LoggedInUser: session["userid"],
+	}
+	err = executeTemplate(w, "add-project.html", recipt)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 // searchHandler는 /search/ 하위 페이지로 사용자가 접속했을때 페이지를 반환한다.
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Path[len("/search/"):]
@@ -593,6 +675,7 @@ func main() {
 	mux.HandleFunc("/update-password", updatePasswordHandler)
 	mux.HandleFunc("/signup/", signupHandler)
 	mux.HandleFunc("/projects", projectsHandler)
+	mux.HandleFunc("/add-project", addProjectHandler)
 	mux.HandleFunc("/search/", searchHandler)
 	mux.HandleFunc("/shot/", shotHandler)
 	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
