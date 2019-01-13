@@ -62,6 +62,10 @@ func TestShot(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not create projects table: %s", err)
 	}
+	err = CreateTableIfNotExists(db, "shots", ShotTableFields)
+	if err != nil {
+		t.Fatalf("could not create shots table: %s", err)
+	}
 	err = AddProject(db, testProject)
 	if err != nil {
 		t.Fatalf("could not add project to projects table: %s", err)

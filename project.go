@@ -122,10 +122,6 @@ func AddProject(db *sql.DB, p *Project) error {
 	if _, err := db.Exec(stmt, p.dbValues()...); err != nil {
 		return err
 	}
-	// TODO: add project info, task, tracking table
-	if err := CreateTableIfNotExists(db, p.ID+"_shots", ShotTableFields); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -196,8 +192,8 @@ func SearchAllProjects(db *sql.DB) ([]*Project, error) {
 }
 
 func DeleteProject(db *sql.DB, prj string) error {
-	stmt := fmt.Sprintf("DROP TABLE %s_shots", prj)
-	if _, err := db.Exec(stmt); err != nil {
+	stmt := "DELETE FROM shots WHERE project_id=$1"
+	if _, err := db.Exec(stmt, prj); err != nil {
 		return err
 	}
 	stmt = "DELETE FROM projects WHERE id=$1"
