@@ -131,7 +131,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var p *roi.Project
+	p := &roi.Project{}
 	p.ID = prj
 	if err := roi.AddProject(db, p); err != nil {
 		fmt.Fprintln(os.Stderr, err)

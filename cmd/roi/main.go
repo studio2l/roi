@@ -39,9 +39,9 @@ func hasThumbnail(prj, shot string) bool {
 	return true
 }
 
-// dateTime은 Go의 시간 포맷을 연, 월, 일, 시로 표현한다.
+// dateTime은 Go의 시간 포맷을 YYYY-MM-DD로 표현한다.
 func dateTime(t *time.Time) string {
-	return fmt.Sprintf("%d년 %d월 %d일 %d시", t.Year(), t.Month(), t.Day(), t.Hour())
+	return t.Format("2006-01-02")
 }
 
 // parseTemplate은 tmpl 디렉토리 안의 html파일들을 파싱하여 http 응답에 사용될 수 있도록 한다.
@@ -393,6 +393,7 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // addProjectHandler는 /add-project 페이지로 사용자가 접속했을때 페이지를 반환한다.
+// 만일 POST로 프로젝트 정보가 오면 프로젝트를 생성한다.
 func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {
@@ -469,6 +470,104 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedInUser: session["userid"],
 	}
 	err = executeTemplate(w, "add-project.html", recipt)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+// updateProjectHandler는 /update-project 페이지로 사용자가 접속했을때 페이지를 반환한다.
+// 만일 POST로 프로젝트 정보가 오면 프로젝트 정보를 수정한다.
+func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	session, err := getSession(r)
+	if err != nil {
+		http.Error(w, "could not get session", http.StatusUnauthorized)
+		clearSession(w)
+		return
+	}
+	u, err := roi.GetUser(db, session["userid"])
+	if err != nil {
+		http.Error(w, "could not get user information", http.StatusInternalServerError)
+		clearSession(w)
+		return
+	}
+	if false {
+		// 할일: 오직 어드민, 프로젝트 슈퍼바이저, 프로젝트 매니저, CG 슈퍼바이저만
+		// 이 정보를 수정할 수 있도록 하기.
+		_ = u
+	}
+	r.ParseForm()
+	id := r.Form.Get("id")
+	if id == "" {
+		http.Error(w, "need project 'id'", http.StatusBadRequest)
+		return
+	}
+	exist, err := roi.ProjectExist(db, id)
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if !exist {
+		http.Error(w, fmt.Sprintf("project '%s' not exist", id), http.StatusBadRequest)
+		return
+	}
+	if r.Method == "POST" {
+		fromStringTime := func(st string) time.Time {
+			t, err := time.Parse("2006-01-02", st)
+			if err != nil {
+				fmt.Println(err)
+			}
+			return t
+		}
+		p := &roi.Project{
+			ID:            id,
+			Name:          r.Form.Get("name"),
+			Status:        r.Form.Get("status"),
+			Client:        r.Form.Get("client"),
+			Director:      r.Form.Get("director"),
+			Producer:      r.Form.Get("producer"),
+			VFXSupervisor: r.Form.Get("vfx_supervisor"),
+			VFXManager:    r.Form.Get("vfx_manager"),
+			CGSupervisor:  r.Form.Get("cg_supervisor"),
+			StartDate:     fromStringTime(r.Form.Get("start_date")),
+			ReleaseDate:   fromStringTime(r.Form.Get("release_date")),
+			CrankIn:       fromStringTime(r.Form.Get("crank_in")),
+			CrankUp:       fromStringTime(r.Form.Get("crank_up")),
+			VFXDueDate:    fromStringTime(r.Form.Get("vfx_due_date")),
+			OutputSize:    r.Form.Get("output_size"),
+			ViewLUT:       r.Form.Get("view_lut"),
+		}
+		err = roi.UpdateProject(db, p)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, fmt.Sprintf("could not add project '%s'", p), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, "/projects", http.StatusSeeOther)
+		return
+	}
+	p, err := roi.GetProject(db, id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("could not get project: %s", id), http.StatusInternalServerError)
+		return
+	}
+	if p == nil {
+		http.Error(w, fmt.Sprintf("could not get project: %s", id), http.StatusBadRequest)
+		return
+	}
+	recipt := struct {
+		LoggedInUser string
+		Project      *roi.Project
+	}{
+		LoggedInUser: session["userid"],
+		Project:      p,
+	}
+	err = executeTemplate(w, "update-project.html", recipt)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -676,6 +775,7 @@ func main() {
 	mux.HandleFunc("/signup/", signupHandler)
 	mux.HandleFunc("/projects", projectsHandler)
 	mux.HandleFunc("/add-project", addProjectHandler)
+	mux.HandleFunc("/update-project", updateProjectHandler)
 	mux.HandleFunc("/search/", searchHandler)
 	mux.HandleFunc("/shot/", shotHandler)
 	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
