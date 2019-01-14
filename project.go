@@ -129,6 +129,23 @@ func AddProject(db *sql.DB, p *Project) error {
 	return nil
 }
 
+// UpdateProject는 db의 프로젝트 정보를 수정한다.
+func UpdateProject(db *sql.DB, p *Project) error {
+	if p == nil {
+		return errors.New("nil Project is invalid")
+	}
+	if !IsValidProjectID(p.ID) {
+		return fmt.Errorf("Project id is invalid: %s", p.ID)
+	}
+	keystr := strings.Join(ProjectTableKeys, ", ")
+	idxstr := strings.Join(ProjectTableIndices, ", ")
+	stmt := fmt.Sprintf("UPDATE projects SET (%s) = (%s) WHERE id='%s'", keystr, idxstr, p.ID)
+	if _, err := db.Exec(stmt, p.dbValues()...); err != nil {
+		return err
+	}
+	return nil
+}
+
 // ProjectExist는 db에 해당 프로젝트가 존재하는지를 검사한다.
 func ProjectExist(db *sql.DB, prj string) (bool, error) {
 	rows, err := db.Query("SELECT id FROM projects WHERE id=$1 LIMIT 1", prj)
