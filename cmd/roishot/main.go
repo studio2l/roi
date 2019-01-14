@@ -117,35 +117,35 @@ func main() {
 	}
 
 	if err := roi.CreateTableIfNotExists(db, "projects", roi.ProjectTableFields); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, "could not create projects table: ", err)
 		os.Exit(1)
 	}
 
 	// 기존의 데이터를 일단 지운다. 더 쉽게 테스트하기 위한 임시방편이다.
-	if _, err := db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s_shots", prj)); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	if _, err := db.Exec("DELETE FROM shots WHERE project_id=$1", prj); err != nil {
+		fmt.Fprintln(os.Stderr, "could not delete projects' shots: ", err)
 		os.Exit(1)
 	}
-	if _, err := db.Exec(fmt.Sprintf("DELETE FROM projects WHERE id='%s'", prj)); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	if _, err := db.Exec("DELETE FROM projects WHERE id=$1", prj); err != nil {
+		fmt.Fprintln(os.Stderr, "could not delete project:", err)
 		os.Exit(1)
 	}
 
 	p := &roi.Project{}
 	p.ID = prj
 	if err := roi.AddProject(db, p); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, "could not add project:", err)
 		os.Exit(1)
 	}
 
 	for _, shot := range shots {
 		if err := roi.AddShot(db, prj, shot); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintln(os.Stderr, "could not add shot:", err)
 		}
 		thumb := thumbs[shot.ID]
 		if thumb != "" {
 			if err := roi.AddThumbnail(prj, shot.ID, thumb); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				fmt.Fprintln(os.Stderr, "could not add thumbnail:", err)
 			}
 		}
 	}
