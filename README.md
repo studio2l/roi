@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.com/studio2l/roi.svg?branch=master)](https://travis-ci.com/studio2l/roi)
 [![Code Coverage](https://codecov.io/gh/studio2l/roi/branch/master/graph/badge.svg)](https://codecov.io/gh/studio2l/roi)
+[![Go Report Card](https://goreportcard.com/badge/github.com/studio2l/roi)](https://goreportcard.com/report/github.com/studio2l/roi)
+
 
 roi는 2L의 새 파이프라인 서버이자, 첫번째 오픈소스 프로젝트입니다!
 
