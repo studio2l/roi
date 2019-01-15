@@ -180,7 +180,7 @@ func UpdateUser(db *sql.DB, id string, u *User) error {
 func UpdateUserPassword(db *sql.DB, id, pw string) error {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
 	if err != nil {
-		return fmt.Errorf("could not generate hash from password: %s", err.Error())
+		return fmt.Errorf("could not generate hash from password: %v", err)
 	}
 	hashed_password := string(hashed)
 	stmt := fmt.Sprintf("UPDATE users SET hashed_password=$1 WHERE id='%s'", id)

@@ -38,18 +38,18 @@ func TestUser(t *testing.T) {
 	}
 	exist, err := UserExist(db, u.ID)
 	if err != nil {
-		t.Fatalf("could not check user exist: %s", err)
+		t.Fatalf("could not check user exist: %v", err)
 	}
 	if !exist {
 		t.Fatalf("add user wasn't successful")
 	}
 	err = UpdateUser(db, u.ID, u)
 	if err != nil {
-		t.Fatalf("could not update user: %s", err)
+		t.Fatalf("could not update user: %v", err)
 	}
 	got, err := GetUser(db, u.ID)
 	if err != nil {
-		t.Fatalf("could not get user: %s", err)
+		t.Fatalf("could not get user: %v", err)
 	}
 	if !reflect.DeepEqual(got, u) {
 		t.Fatalf("user not match: got: %v, want: %v", got, u)
@@ -57,22 +57,22 @@ func TestUser(t *testing.T) {
 	new_password := "this is not my password neither"
 	err = UpdateUserPassword(db, u.ID, new_password)
 	if err != nil {
-		t.Fatalf("could not update user password: %s", err)
+		t.Fatalf("could not update user password: %v", err)
 	}
 	ok, err := UserHasPassword(db, u.ID, new_password)
 	if err != nil {
-		t.Fatalf("could not check user password match: %s", err)
+		t.Fatalf("could not check user password match: %v", err)
 	}
 	if !ok {
-		t.Fatalf("user password not match: %s", err)
+		t.Fatalf("user password not match: %v", err)
 	}
 	err = DeleteUser(db, u.ID)
 	if err != nil {
-		t.Fatalf("could not delete user: %s", err)
+		t.Fatalf("could not delete user: %v", err)
 	}
 	exist, err = UserExist(db, u.ID)
 	if err != nil {
-		t.Fatalf("could not check user exist - after delete: %s", err)
+		t.Fatalf("could not check user exist - after delete: %v", err)
 	}
 	if exist {
 		t.Fatalf("delete user wasn't successful")
