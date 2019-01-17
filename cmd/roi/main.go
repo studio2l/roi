@@ -761,14 +761,9 @@ func main() {
 	if err != nil {
 		log.Fatal("error connecting to the database: ", err)
 	}
-	if err := roi.CreateTableIfNotExists(db, "projects", roi.ProjectTableFields); err != nil {
-		fmt.Fprintln(os.Stderr, "error creating projects table:", err)
-	}
-	if err := roi.CreateTableIfNotExists(db, "shots", roi.ShotTableFields); err != nil {
-		fmt.Fprintln(os.Stderr, "error creating shots table:", err)
-	}
-	if err := roi.CreateTableIfNotExists(db, "users", roi.UserTableFields); err != nil {
-		fmt.Fprintln(os.Stderr, "error creating users table:", err)
+	err = roi.InitTables(db)
+	if err != nil {
+		log.Fatalf("could not initialize tables: %v", err)
 	}
 
 	parseTemplate()

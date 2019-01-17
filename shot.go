@@ -66,24 +66,20 @@ func (s *Shot) dbValues() []interface{} {
 	}
 }
 
-var ShotTableFields = []string{
-	// uniqid는 어느 테이블에나 꼭 들어가야 하는 항목이다.
-	"uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid()",
-	"id STRING NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %')",
-	"project_id STRING NOT NULL CHECK (length(project_id) > 0) CHECK (project_id NOT LIKE '% %')",
-	"status STRING NOT NULL CHECK (length(status) > 0)  CHECK (status NOT LIKE '% %')",
-	"edit_order INT NOT NULL",
-	"description STRING NOT NULL",
-	"cg_description STRING NOT NULL",
-	"timecode_in STRING NOT NULL",
-	"timecode_out STRING NOT NULL",
-	"duration INT NOT NULL",
-	"tags STRING[] NOT NULL",
-	// 할일: 샷과 소스에 대해서 서로 어떤 역할을 가지는지 확실히 이해한 뒤 추가.
-	// "base_source STRING",
-	// "other_sources STRING[]",
-	"UNIQUE(id, project_id)",
-}
+var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
+	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	id STRING NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %'),
+	project_id STRING NOT NULL CHECK (length(project_id) > 0) CHECK (project_id NOT LIKE '% %'),
+	status STRING NOT NULL CHECK (length(status) > 0)  CHECK (status NOT LIKE '% %'),
+	edit_order INT NOT NULL,
+	description STRING NOT NULL,
+	cg_description STRING NOT NULL,
+	timecode_in STRING NOT NULL,
+	timecode_out STRING NOT NULL,
+	duration INT NOT NULL,
+	tags STRING[] NOT NULL,
+	UNIQUE(id, project_id)
+)`
 
 var ShotTableKeys = []string{
 	"id",

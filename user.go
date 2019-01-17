@@ -21,6 +21,19 @@ type User struct {
 	EntryDate   string
 }
 
+var CreateTableIfNotExistsUsersStmt = `CREATE TABLE IF NOT EXISTS users (
+	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	id STRING UNIQUE NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %'),
+	kor_name STRING NOT NULL,
+	name STRING NOT NULL,
+	team STRING NOT NULL,
+	position STRING NOT NULL,
+	email STRING NOT NULL,
+	phone_number STRING NOT NULL,
+	entry_date STRING NOT NULL,
+	hashed_password STRING NOT NULL
+)`
+
 func (u *User) dbValues() []interface{} {
 	if u == nil {
 		u = &User{}
@@ -66,20 +79,6 @@ var UserTableIndicesWithHashedPassword = append(
 	UserTableIndices,
 	"$9",
 )
-
-var UserTableFields = []string{
-	"uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid()",
-	"id STRING UNIQUE NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %')",
-	"kor_name STRING NOT NULL",
-	"name STRING NOT NULL",
-	"team STRING NOT NULL",
-	"position STRING NOT NULL",
-	"email STRING NOT NULL",
-	"phone_number STRING NOT NULL",
-	"entry_date STRING NOT NULL",
-	// hashed_password는 DB에서만 관리하고 User에는 들어가지는 않는다.
-	"hashed_password STRING NOT NULL",
-}
 
 // AddUser는 db에 한 명의 사용자를 추가한다.
 func AddUser(db *sql.DB, id, pw string) error {

@@ -58,13 +58,9 @@ func TestShot(t *testing.T) {
 	if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
 		log.Fatal("error creating db 'roi': ", err)
 	}
-	err = CreateTableIfNotExists(db, "projects", ProjectTableFields)
+	err = InitTables(db)
 	if err != nil {
-		t.Fatalf("could not create projects table: %s", err)
-	}
-	err = CreateTableIfNotExists(db, "shots", ShotTableFields)
-	if err != nil {
-		t.Fatalf("could not create shots table: %s", err)
+		t.Fatalf("could not initialize tables: %v", err)
 	}
 	err = AddProject(db, testProject)
 	if err != nil {

@@ -28,9 +28,9 @@ func TestUser(t *testing.T) {
 	if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
 		log.Fatal("error creating db 'roi': ", err)
 	}
-	err = CreateTableIfNotExists(db, "users", UserTableFields)
+	err = InitTables(db)
 	if err != nil {
-		t.Fatalf("could not create projects table: %s", err)
+		t.Fatalf("could not initialze tables: %v", err)
 	}
 	err = AddUser(db, u.ID, password)
 	if err != nil {
