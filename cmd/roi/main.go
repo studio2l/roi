@@ -771,7 +771,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("could not add shot '%s'", shot), http.StatusInternalServerError)
 			return
 		}
-		// 어디로 리디렉션 해야 하나?
+		http.Redirect(w, r, fmt.Sprintf("/shot/%s/%s", prj, shot), http.StatusSeeOther)
 		return
 	}
 	recipt := struct {
