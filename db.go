@@ -10,13 +10,26 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// CreateTableIfNotExists는 db에 해당 테이블이 없을 때 추가한다.
-func CreateTableIfNotExists(db *sql.DB, table string, fields []string) error {
-	field := strings.Join(fields, ", ")
-	stmt := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s)", table, field)
-	fmt.Println(stmt)
-	_, err := db.Exec(stmt)
-	return err
+func InitTables(db *sql.DB) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("could not begin a transaction: %v", err)
+	}
+	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
+	if _, err := tx.Exec(CreateTableIfNotExistsProjectsStmt); err != nil {
+		return fmt.Errorf("could not create 'projects' table: %v", err)
+	}
+	if _, err := tx.Exec(CreateTableIfNotExistsShotsStmt); err != nil {
+		return fmt.Errorf("could not create 'shots' table: %v", err)
+	}
+	if _, err := tx.Exec(CreateTableIfNotExistsUsersStmt); err != nil {
+		return fmt.Errorf("could not create 'users' table: %v", err)
+	}
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("could not commit the transaction: %v", err)
+	}
+	return nil
 }
 
 // SelectAll은 특정 db 테이블의 모든 열을 검색하여 *sql.Rows 형태로 반환한다.
