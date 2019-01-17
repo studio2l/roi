@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	_ "image/jpeg"
-	"strings"
 )
 
 // InitTables는 DB에 로이와 관련된 테이블을 생성한다.
