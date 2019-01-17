@@ -10,6 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// InitTables는 DB에 로이와 관련된 테이블을 생성한다.
 func InitTables(db *sql.DB) error {
 	tx, err := db.Begin()
 	if err != nil {
