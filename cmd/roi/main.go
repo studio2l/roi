@@ -771,6 +771,15 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("could not add shot '%s'", shot), http.StatusInternalServerError)
 			return
 		}
+		tasks := fields(r.Form.Get("tasks"), ",")
+		for _, task := range tasks {
+			t := &roi.Task{
+				ProjectID: prj,
+				ShotID:    shot,
+				Name:      task,
+			}
+			roi.AddTask(db, prj, shot, t)
+		}
 		http.Redirect(w, r, fmt.Sprintf("/shot/%s/%s", prj, shot), http.StatusSeeOther)
 		return
 	}
