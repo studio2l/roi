@@ -59,7 +59,7 @@ func TestUser(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not update user password: %v", err)
 	}
-	ok, err := UserHasPassword(db, u.ID, new_password)
+	ok, err := UserPasswordMatch(db, u.ID, new_password)
 	if err != nil {
 		t.Fatalf("could not check user password match: %v", err)
 	}
