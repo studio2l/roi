@@ -10,6 +10,9 @@
 			<a class="ui medium grey header" href="/shot/{{$.Project}}/{{.ID}}">{{.ID}}</a>
 		</div>
 		<div style="flex:1;font-size:14px;"> {{.CGDescription}}</div>
+		<div style="font-size:10px;">
+			<a href="/update-shot?project_id={{$.Project}}&id={{.ID}}">수정</a>
+		</div>
 	</div>
 	<div class="shot-main" style="display:flex;">
 		<div style="width:192px;margin-right:20px;">

@@ -1,0 +1,41 @@
+{{template "head.html"}}
+{{template "nav.html" $}}
+<!--상단 고정 메뉴로 인해 위치 조정-->
+<div style="padding-top: 2rem;"></div>
+<div class="ui raised very padded text container grey inverted segment">
+	<h2 class="ui dividing header">샷 수정</h2>
+	<form method="post" class="ui form">
+		<div class="field disabled"><label>프로젝트</label>
+			<input type="text" name="project_id" value="{{.Shot.ProjectID}}"/>
+		</div>
+		<div class="field disabled"><label>아이디</label>
+			<input type="text" name="id" value="{{.Shot.ID}}"/>
+		</div>
+		<div class="field"><label>상태</label>
+			<input type="text" name="status" value="{{.Shot.Status}}"/>
+		</div>
+		<div class="field"><label>내용</label>
+			<input type="text" name="description" value="{{.Shot.Description}}"/>
+		</div>
+		<div class="field"><label>편집 순서</label>
+			<input type="text" name="edit_order" value="{{.Shot.EditOrder}}"/>
+		</div>
+		<div class="field"><label>CG 내용</label>
+			<input type="text" name="cg_description" value="{{.Shot.CGDescription}}"/>
+		</div>
+		<div class="field"><label>시작 타임코드</label>
+			<input type="text" name="timecode_in" value="{{.Shot.TimecodeIn}}"/>
+		</div>
+		<div class="field"><label>종료 타임코드</label>
+			<input type="text" name="timecode_out" value="{{.Shot.TimecodeOut}}"/>
+		</div>
+		<div class="field"><label>길이</label>
+			<input type="text" name="duration" value="{{.Shot.Duration}}"/>
+		</div>
+		<div class="field"><label>태그</label>
+			<input type="text" name="tags" value="{{join .Shot.Tags ", "}}"/>
+		</div>
+		<button class="ui button green" type="submit" value="Submit">수정</button>
+	</form>
+</div>
+{{template "footer.html"}}

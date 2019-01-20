@@ -201,6 +201,26 @@ func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]*Shot, error) {
 	return shots, nil
 }
 
+// UpdateShot은 db에서 해당 샷을 수정한다.
+func UpdateShot(db *sql.DB, prj string, s *Shot) error {
+	if prj == "" {
+		return fmt.Errorf("project code not specified")
+	}
+	if s == nil {
+		return errors.New("nil shot is invalid")
+	}
+	if s.ID == "" {
+		return errors.New("shot id empty")
+	}
+	keystr := strings.Join(ShotTableKeys, ", ")
+	idxstr := strings.Join(ShotTableIndices, ", ")
+	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE id='%s'", keystr, idxstr, s.ID)
+	if _, err := db.Exec(stmt, s.dbValues()...); err != nil {
+		return err
+	}
+	return nil
+}
+
 // DeleteShot은 db의 특정 프로젝트에서 샷을 하나 지운다.
 func DeleteShot(db *sql.DB, prj string, shot string) error {
 	stmt := "DELETE FROM shots WHERE project_id=$1 AND id=$2"

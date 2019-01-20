@@ -44,11 +44,17 @@ func dateTime(t *time.Time) string {
 	return t.Format("2006-01-02")
 }
 
+// join은 문자열 리스트를 sep를 이용하여 연결한다.
+func join(strs []string, sep string) string {
+	return strings.Join(strs, sep)
+}
+
 // parseTemplate은 tmpl 디렉토리 안의 html파일들을 파싱하여 http 응답에 사용될 수 있도록 한다.
 func parseTemplate() {
 	templates = template.Must(template.New("").Funcs(template.FuncMap{
 		"hasThumbnail": hasThumbnail,
 		"dateTime":     dateTime,
+		"join":         join,
 	}).ParseGlob("tmpl/*.html"))
 }
 
@@ -794,6 +800,106 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func updateShotHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	session, err := getSession(r)
+	if err != nil {
+		http.Error(w, "could not get session", http.StatusUnauthorized)
+		clearSession(w)
+		return
+	}
+	u, err := roi.GetUser(db, session["userid"])
+	if err != nil {
+		http.Error(w, "could not get user information", http.StatusInternalServerError)
+		clearSession(w)
+		return
+	}
+	if false {
+		// 할일: 오직 어드민, 프로젝트 슈퍼바이저, 프로젝트 매니저, CG 슈퍼바이저만
+		// 이 정보를 수정할 수 있도록 하기.
+		_ = u
+	}
+	r.ParseForm()
+	prj := r.Form.Get("project_id")
+	if prj == "" {
+		http.Error(w, "need 'project_id'", http.StatusBadRequest)
+		return
+	}
+	exist, err := roi.ProjectExist(db, prj)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if !exist {
+		http.Error(w, fmt.Sprintf("project '%s' not exist", prj), http.StatusBadRequest)
+		return
+	}
+	shot := r.Form.Get("id")
+	if shot == "" {
+		http.Error(w, "need 'id'", http.StatusBadRequest)
+		return
+	}
+	if r.Method == "POST" {
+		exist, err = roi.ShotExist(db, prj, shot)
+		if err != nil {
+			log.Print(err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		if !exist {
+			http.Error(w, fmt.Sprintf("shot '%s' not exist", shot), http.StatusBadRequest)
+			return
+		}
+		s := &roi.Shot{
+			ID:            shot,
+			ProjectID:     prj,
+			Status:        roi.ShotStatus(r.Form.Get("status")),
+			EditOrder:     atoi(r.Form.Get("edit_order")),
+			Description:   r.Form.Get("description"),
+			CGDescription: r.Form.Get("cg_description"),
+			TimecodeIn:    r.Form.Get("timecode_in"),
+			TimecodeOut:   r.Form.Get("timecode_out"),
+			Duration:      atoi(r.Form.Get("duration")),
+			Tags:          fields(r.Form.Get("tags"), ","),
+		}
+		err = roi.UpdateShot(db, prj, s)
+		if err != nil {
+			log.Print(err)
+			http.Error(w, fmt.Sprintf("could not update shot '%s'", shot), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, fmt.Sprintf("/shot/%s/%s", prj, shot), http.StatusSeeOther)
+		return
+	}
+	s, err := roi.GetShot(db, prj, shot)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if s == nil {
+		http.Error(w, fmt.Sprintf("shot '%s' not exist", shot), http.StatusBadRequest)
+		return
+	}
+	recipt := struct {
+		LoggedInUser string
+		Shot         *roi.Shot
+	}{
+		LoggedInUser: session["userid"],
+		Shot:         s,
+	}
+	err = executeTemplate(w, "update-shot.html", recipt)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func main() {
 	dev = true
 
@@ -871,6 +977,7 @@ func main() {
 	mux.HandleFunc("/search/", searchHandler)
 	mux.HandleFunc("/shot/", shotHandler)
 	mux.HandleFunc("/add-shot/", addShotHandler)
+	mux.HandleFunc("/update-shot", updateShotHandler)
 	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
