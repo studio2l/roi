@@ -15,7 +15,7 @@ type User struct {
 	KorName     string
 	Name        string
 	Team        string
-	Position    string
+	Role        string
 	Email       string
 	PhoneNumber string
 	EntryDate   string
@@ -43,7 +43,7 @@ func (u *User) dbValues() []interface{} {
 		u.KorName,
 		u.Name,
 		u.Team,
-		u.Position,
+		u.Role,
 		u.Email,
 		u.PhoneNumber,
 		u.EntryDate,
@@ -131,7 +131,7 @@ func GetUser(db *sql.DB, id string) (*User, error) {
 		return nil, nil
 	}
 	u := &User{}
-	if err := rows.Scan(&u.ID, &u.KorName, &u.Name, &u.Team, &u.Position, &u.Email, &u.PhoneNumber, &u.EntryDate); err != nil {
+	if err := rows.Scan(&u.ID, &u.KorName, &u.Name, &u.Team, &u.Role, &u.Email, &u.PhoneNumber, &u.EntryDate); err != nil {
 		return nil, err
 	}
 	return u, nil

@@ -13,7 +13,7 @@ func TestUser(t *testing.T) {
 		KorName:     "김용빈",
 		Name:        "kim yongbin",
 		Team:        "rnd",
-		Position:    "평민",
+		Role:        "평민",
 		Email:       "kybinz@gmail.com",
 		PhoneNumber: "010-0000-0000",
 		EntryDate:   "2018-03-02",

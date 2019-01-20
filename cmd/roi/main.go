@@ -272,7 +272,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 			KorName:     r.Form.Get("kor-name"),
 			Name:        r.Form.Get("name"),
 			Team:        r.Form.Get("team"),
-			Position:    r.Form.Get("position"),
+			Role:        r.Form.Get("position"),
 			Email:       r.Form.Get("email"),
 			PhoneNumber: r.Form.Get("phone-number"),
 			EntryDate:   r.Form.Get("entry-date"),
@@ -413,7 +413,7 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 		clearSession(w)
 		return
 	}
-	if u.Position != "admin" {
+	if u.Role != "admin" {
 		// 할일: admin이 아닌 사람은 프로젝트를 생성할 수 없도록 하기
 	}
 	if r.Method == "POST" {
