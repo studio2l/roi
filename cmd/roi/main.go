@@ -146,7 +146,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		match, err := roi.UserHasPassword(db, id, pw)
+		match, err := roi.UserPasswordMatch(db, id, pw)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -341,7 +341,7 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := session["userid"]
-	match, err := roi.UserHasPassword(db, id, oldpw)
+	match, err := roi.UserPasswordMatch(db, id, oldpw)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

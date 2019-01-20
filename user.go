@@ -137,9 +137,9 @@ func GetUser(db *sql.DB, id string) (*User, error) {
 	return u, nil
 }
 
-// UserHasPassword는 db에 저장된 사용자의 비밀번호와 입력된 비밀번호가 같은지를 비교한다.
+// UserPasswordMatch는 db에 저장된 사용자의 비밀번호와 입력된 비밀번호가 같은지를 비교한다.
 // 해당 사용자가 없거나, 불러오는데 에러가 나면 false와 에러를 반환한다.
-func UserHasPassword(db *sql.DB, id, pw string) (bool, error) {
+func UserPasswordMatch(db *sql.DB, id, pw string) (bool, error) {
 	stmt := fmt.Sprintf("SELECT hashed_password FROM users WHERE id='%s'", id)
 	rows, err := db.Query(stmt)
 	if err != nil {
