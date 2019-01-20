@@ -19,6 +19,9 @@ func InitTables(db *sql.DB) error {
 	if _, err := tx.Exec(CreateTableIfNotExistsShotsStmt); err != nil {
 		return fmt.Errorf("could not create 'shots' table: %v", err)
 	}
+	if _, err := tx.Exec(CreateTableIfNotExistsTasksStmt); err != nil {
+		return fmt.Errorf("could not create 'tasks' table: %v", err)
+	}
 	if _, err := tx.Exec(CreateTableIfNotExistsUsersStmt); err != nil {
 		return fmt.Errorf("could not create 'users' table: %v", err)
 	}
