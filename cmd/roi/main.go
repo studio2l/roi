@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -69,10 +70,7 @@ func executeTemplate(w http.ResponseWriter, name string, data interface{}) error
 }
 
 // cookieHandler는 클라이언트 브라우저 세션에 암호화된 쿠키를 저장을 돕는다.
-var cookieHandler = securecookie.New(
-	securecookie.GenerateRandomKey(64),
-	securecookie.GenerateRandomKey(32),
-)
+var cookieHandler *securecookie.SecureCookie
 
 // setSession은 클라이언트 브라우저에 세션을 저장한다.
 func setSession(w http.ResponseWriter, session map[string]string) error {
@@ -915,6 +913,9 @@ func main() {
 	flag.StringVar(&key, "key", "cert/key.pem", "https key file. default one for testing will created by -init.")
 	flag.Parse()
 
+	hashFile := "cert/session.hash"
+	blockFile := "cert/session.block"
+
 	if init {
 		db, err := sql.Open("postgres", "postgresql://root@localhost:26257/roi?sslmode=disable")
 		if err != nil {
@@ -950,6 +951,17 @@ func main() {
 				log.Fatal("error generating certificate files: ", err)
 			}
 		}
+
+		exist, err = anyFileExist(hashFile, blockFile)
+		if err != nil {
+			log.Fatalf("could not check cookie session key file: %s", err)
+		}
+		if exist {
+			log.Print("already have session cookie file. will not create.")
+		} else {
+			ioutil.WriteFile(hashFile, securecookie.GenerateRandomKey(64), 0600)
+			ioutil.WriteFile(blockFile, securecookie.GenerateRandomKey(32), 0600)
+		}
 		return
 	}
 
@@ -963,6 +975,19 @@ func main() {
 	}
 
 	parseTemplate()
+
+	hashKey, err := ioutil.ReadFile(hashFile)
+	if err != nil {
+		log.Fatalf("could not read session cookie file '%s'", hashFile)
+	}
+	blockKey, err := ioutil.ReadFile(blockFile)
+	if err != nil {
+		log.Fatalf("could not read session cookie file '%s'", blockFile)
+	}
+	cookieHandler = securecookie.New(
+		hashKey,
+		blockKey,
+	)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandler)
