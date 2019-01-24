@@ -185,9 +185,9 @@ func GetProject(db *sql.DB, prj string) (*Project, error) {
 	return p, nil
 }
 
-// SearchAllProjects는 db에서 모든 프로젝트 정보를 가져온다.
+// AllProjects는 db에서 모든 프로젝트 정보를 가져온다.
 // 검색 중 문제가 있으면 nil, error를 반환한다.
-func SearchAllProjects(db *sql.DB) ([]*Project, error) {
+func AllProjects(db *sql.DB) ([]*Project, error) {
 	fields := strings.Join(ProjectTableKeys, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM projects", fields)
 	rows, err := db.Query(stmt)

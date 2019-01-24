@@ -373,7 +373,7 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prjs, err := roi.SearchAllProjects(db)
+	prjs, err := roi.AllProjects(db)
 	if err != nil {
 		log.Print(fmt.Sprintf("error while getting projects: %s", err))
 		return
