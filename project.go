@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 var reValidProjectID = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
@@ -35,13 +37,17 @@ type Project struct {
 	ReleaseDate time.Time
 	VFXDueDate  time.Time
 
-	OutputSize string
-	ViewLUT    string
+	OutputSize   string
+	ViewLUT      string
+	DefaultTasks []string
 }
 
 func (p *Project) dbValues() []interface{} {
 	if p == nil {
 		p = &Project{}
+	}
+	if p.DefaultTasks == nil {
+		p.DefaultTasks = []string{}
 	}
 	vals := []interface{}{
 		p.ID,
@@ -60,6 +66,7 @@ func (p *Project) dbValues() []interface{} {
 		p.VFXDueDate,
 		p.OutputSize,
 		p.ViewLUT,
+		pq.Array(p.DefaultTasks),
 	}
 	return vals
 }
@@ -81,11 +88,12 @@ var ProjectTableKeys = []string{
 	"vfx_due_date",
 	"output_size",
 	"view_lut",
+	"default_tasks",
 }
 
 var ProjectTableIndices = []string{
 	"$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9", "$10",
-	"$11", "$12", "$13", "$14", "$15", "$16",
+	"$11", "$12", "$13", "$14", "$15", "$16", "$17",
 }
 
 var CreateTableIfNotExistsProjectsStmt = `CREATE TABLE IF NOT EXISTS projects (
@@ -105,7 +113,8 @@ var CreateTableIfNotExistsProjectsStmt = `CREATE TABLE IF NOT EXISTS projects (
 	release_date TIMESTAMPTZ NOT NULL,
 	vfx_due_date TIMESTAMPTZ NOT NULL,
 	output_size STRING NOT NULL,
-	view_lut STRING NOT NULL
+	view_lut STRING NOT NULL,
+	default_tasks STRING[] NOT NULL
 )`
 
 // AddProject는 db에 프로젝트를 추가한다.
@@ -158,7 +167,7 @@ func projectFromRows(rows *sql.Rows) (*Project, error) {
 		&p.ID, &p.Name, &p.Status, &p.Client,
 		&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CGSupervisor,
 		&p.CrankIn, &p.CrankUp, &p.StartDate, &p.ReleaseDate, &p.VFXDueDate, &p.OutputSize,
-		&p.ViewLUT,
+		&p.ViewLUT, pq.Array(&p.DefaultTasks),
 	)
 	if err != nil {
 		return nil, err
