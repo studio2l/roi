@@ -913,8 +913,8 @@ func main() {
 	flag.StringVar(&key, "key", "cert/key.pem", "https key file. default one for testing will created by -init.")
 	flag.Parse()
 
-	hashFile := "cert/session.hash"
-	blockFile := "cert/session.block"
+	hashFile := "cert/cookie.hash"
+	blockFile := "cert/cookie.block"
 
 	if init {
 		db, err := sql.Open("postgres", "postgresql://root@localhost:26257/roi?sslmode=disable")
@@ -954,10 +954,10 @@ func main() {
 
 		exist, err = anyFileExist(hashFile, blockFile)
 		if err != nil {
-			log.Fatalf("could not check cookie session key file: %s", err)
+			log.Fatalf("could not check cookie key file: %s", err)
 		}
 		if exist {
-			log.Print("already have session cookie file. will not create.")
+			log.Print("already have cookie file. will not create.")
 		} else {
 			ioutil.WriteFile(hashFile, securecookie.GenerateRandomKey(64), 0600)
 			ioutil.WriteFile(blockFile, securecookie.GenerateRandomKey(32), 0600)
@@ -978,11 +978,11 @@ func main() {
 
 	hashKey, err := ioutil.ReadFile(hashFile)
 	if err != nil {
-		log.Fatalf("could not read session cookie file '%s'", hashFile)
+		log.Fatalf("could not read cookie hash key from file '%s'", hashFile)
 	}
 	blockKey, err := ioutil.ReadFile(blockFile)
 	if err != nil {
-		log.Fatalf("could not read session cookie file '%s'", blockFile)
+		log.Fatalf("could not read cookie block key from file '%s'", blockFile)
 	}
 	cookieHandler = securecookie.New(
 		hashKey,
