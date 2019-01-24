@@ -581,7 +581,7 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 // searchHandler는 /search/ 하위 페이지로 사용자가 접속했을때 페이지를 반환한다.
 func searchHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Path[len("/search/"):]
+	prj := r.URL.Path[len("/search/"):]
 
 	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {
@@ -598,28 +598,28 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	defer prjRows.Close()
 	prjs := make([]string, 0)
 	for prjRows.Next() {
-		prj := ""
-		if err := prjRows.Scan(&prj); err != nil {
+		p := ""
+		if err := prjRows.Scan(&p); err != nil {
 			fmt.Fprintln(os.Stderr, "error getting prject info from database: ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		prjs = append(prjs, prj)
+		prjs = append(prjs, p)
 	}
 
-	if id == "" && len(prjs) != 0 {
+	if prj == "" && len(prjs) != 0 {
 		// 할일: 추후 사용자가 마지막으로 선택했던 프로젝트로 이동
 		http.Redirect(w, r, "/search/"+prjs[0], http.StatusSeeOther)
 		return
 	}
 	found := false
 	for _, p := range prjs {
-		if p == id {
+		if p == prj {
 			found = true
 		}
 	}
 	if !found {
-		fmt.Fprintf(os.Stderr, "not found project %s\n", id)
+		fmt.Fprintf(os.Stderr, "not found project %s\n", prj)
 		return
 		// http.Error(w, fmt.Sprintf("not found project: %s", id), http.StatusNotFound)
 	}
@@ -630,9 +630,18 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	shotFilter := r.Form.Get("shot")
 	tagFilter := r.Form.Get("tag")
 	statusFilter := r.Form.Get("status")
-	shots, err := roi.SearchShots(db, id, shotFilter, tagFilter, statusFilter)
+	shots, err := roi.SearchShots(db, prj, shotFilter, tagFilter, statusFilter)
 	if err != nil {
 		log.Fatal(err)
+	}
+	tasks := make(map[string][]*roi.Task)
+	for _, s := range shots {
+		tasks[s.ID], err = roi.AllTasks(db, prj, s.ID)
+		if err != nil {
+			log.Printf("could not get all tasks of shot '%s'", s.ID)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	session, err := getSession(r)
@@ -646,14 +655,16 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		Projects     []string
 		Project      string
 		Shots        []*roi.Shot
+		Tasks        map[string][]*roi.Task
 		FilterShot   string
 		FilterTag    string
 		FilterStatus string
 	}{
 		LoggedInUser: session["userid"],
 		Projects:     prjs,
-		Project:      id,
+		Project:      prj,
 		Shots:        shots,
+		Tasks:        tasks,
 		FilterShot:   shotFilter,
 		FilterTag:    tagFilter,
 		FilterStatus: statusFilter,

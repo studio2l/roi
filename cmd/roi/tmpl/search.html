@@ -24,24 +24,14 @@
 		</div>
 		<table class="ui very compact striped inverted table" style="margin-top:0;">
 			<tbody>
+				{{range (index $.Tasks .ID)}}
 				<tr>
 					<td class="one wide">01/01</td>
-					<td class="one wide left align">COMP</td>
+					<td class="one wide left align">{{.Name}}</td>
 					<td class="one wide left align">v01</td>
-					<td class="twelve wide left align">O.K</td>
+					<td class="twelve wide left align">{{.Status}}</td>
 				</tr>
-				<tr>
-					<td class="one wide">01/07</td>
-					<td class="one wide left align">FX</td>
-					<td class="one wide left align">v01</td>
-					<td class="twelve wide left align">retake</td>
-				</tr>
-				<tr>
-					<td class="one wide">04/07</td>
-					<td class="one wide left align">MATTE</td>
-					<td class="one wide left align">v01</td>
-					<td class="twelve wide left align">retake</td>
-				</tr>
+				{{end}}
 			</tbody>
 		</table>
 	</div>
