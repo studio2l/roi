@@ -4,6 +4,8 @@ cmd/roishot/roishot
 cmd/roishot/roishot.exe
 roi-userdata
 *.pem
+cookie.hash
+cookie.block
 
 # Ignore Mac DS_Store files
 .DS_Store
