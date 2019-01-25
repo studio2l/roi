@@ -92,6 +92,7 @@ func main() {
 		}
 	}
 	shots := make([]*roi.Shot, 0)
+	tasks := make(map[string][]string)
 	thumbs := make(map[string]string)
 	for _, row := range rows[1:] {
 		xlrow := make(map[string]string)
@@ -104,11 +105,12 @@ func main() {
 		if xlrow["shot"] == "" {
 			break
 		}
-		shot := shotFromMap(xlrow)
-		shots = append(shots, shot)
+		s := shotFromMap(xlrow)
+		shots = append(shots, s)
 		if xlrow["thumbnail"] != "" {
 			thumbs[xlrow["shot"]] = xlrow["thumbnail"]
 		}
+		tasks[s.ID] = strings.FieldsFunc(xlrow["tasks"], func(r rune) bool { return r == ',' })
 	}
 
 	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
@@ -136,15 +138,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	for _, shot := range shots {
-		if err := roi.AddShot(db, prj, shot); err != nil {
+	for _, s := range shots {
+		if err := roi.AddShot(db, prj, s); err != nil {
 			fmt.Fprintln(os.Stderr, "could not add shot:", err)
 		}
-		thumb := thumbs[shot.ID]
+		thumb := thumbs[s.ID]
 		if thumb != "" {
-			if err := roi.AddThumbnail(prj, shot.ID, thumb); err != nil {
+			if err := roi.AddThumbnail(prj, s.ID, thumb); err != nil {
 				fmt.Fprintln(os.Stderr, "could not add thumbnail:", err)
 			}
+		}
+		shotTasks := tasks[s.ID]
+		for _, task := range shotTasks {
+			t := &roi.Task{
+				ProjectID: prj,
+				ShotID:    s.ID,
+				Name:      task,
+			}
+			roi.AddTask(db, prj, s.ID, t)
 		}
 	}
 }

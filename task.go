@@ -127,6 +127,25 @@ func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
 	return taskFromRows(rows)
 }
 
+// AllTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
+func AllTasks(db *sql.DB, prj, shot string) ([]*Task, error) {
+	keystr := strings.Join(TaskTableKeys, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE project_id=$1 AND shot_id=$2", keystr)
+	rows, err := db.Query(stmt, prj, shot)
+	if err != nil {
+		return nil, err
+	}
+	tasks := make([]*Task, 0)
+	for rows.Next() {
+		t, err := taskFromRows(rows)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, t)
+	}
+	return tasks, nil
+}
+
 // DeleteTask는 db의 특정 프로젝트에서 태스크를 하나 지운다.
 func DeleteTask(db *sql.DB, prj, shot, task string) error {
 	stmt := "DELETE FROM tasks WHERE project_id=$1 AND shot_id=$2 AND name=$3"
