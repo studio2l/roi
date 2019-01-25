@@ -65,7 +65,7 @@ func TestProject(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
-	gotAll, err := SearchAllProjects(db)
+	gotAll, err := AllProjects(db)
 	if err != nil {
 		t.Fatalf("could not get all projects from projects table: %s", err)
 	}
