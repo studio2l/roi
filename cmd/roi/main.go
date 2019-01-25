@@ -547,6 +547,7 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			VFXDueDate:    fromStringTime(r.Form.Get("vfx_due_date")),
 			OutputSize:    r.Form.Get("output_size"),
 			ViewLUT:       r.Form.Get("view_lut"),
+			DefaultTasks:  fields(r.Form.Get("default_tasks"), ","),
 		}
 		err = roi.UpdateProject(db, p)
 		if err != nil {
@@ -734,30 +735,57 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		// 이 정보를 수정할 수 있도록 하기.
 		_ = u
 	}
-	if r.Method == "POST" {
-		r.ParseForm()
-		prj := r.Form.Get("project_id")
-		if prj == "" {
-			http.Error(w, "need 'project_id'", http.StatusBadRequest)
-			return
-		}
-		exist, err := roi.ProjectExist(db, prj)
+	r.ParseForm()
+	// 어떤 프로젝트에 샷을 생성해야 하는지 체크.
+	prj := r.Form.Get("project_id")
+	if prj == "" {
+		// 할일: 현재 GUI 디자인으로는 프로젝트를 선택하기 어렵기 때문에
+		// 일단 첫번째 프로젝트로 이동한다. 나중에는 에러가 나야 한다.
+		// 관련 이슈: #143
+		prjRows, err := db.Query("SELECT id FROM projects")
 		if err != nil {
+			log.Print("could not select the first project:", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
-		if !exist {
-			http.Error(w, fmt.Sprintf("project '%s' not exist", prj), http.StatusBadRequest)
+		defer prjRows.Close()
+		if !prjRows.Next() {
+			fmt.Fprintf(w, "no projects in roi yet")
 			return
 		}
+		if err := prjRows.Scan(&prj); err != nil {
+			log.Printf("could not scan a row of project '%s': %v", prj, err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, "/add-shot/?project_id="+prj, http.StatusSeeOther)
+		return
+	}
+	p, err := roi.GetProject(db, prj)
+	if err != nil {
+		log.Printf("could not get project '%s': %v", prj, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if p == nil {
+		msg := fmt.Sprintf("project '%s' not exist", prj)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+	if r.Method == "POST" {
 		shot := r.Form.Get("id")
 		if shot == "" {
-			http.Error(w, "need 'id'", http.StatusBadRequest)
+			http.Error(w, "need shot 'id'", http.StatusBadRequest)
 			return
 		}
-		exist, err = roi.ShotExist(db, prj, shot)
+		exist, err := roi.ShotExist(db, prj, shot)
 		if err != nil {
+			log.Printf("could not check shot '%s' exist", shot)
 			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		if exist {
+			http.Error(w, "shot '%s' already exist", http.StatusBadRequest)
 			return
 		}
 		s := &roi.Shot{
@@ -791,8 +819,10 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	recipt := struct {
 		LoggedInUser string
+		Project      *roi.Project
 	}{
 		LoggedInUser: session["userid"],
+		Project:      p,
 	}
 	err = executeTemplate(w, "add-shot.html", recipt)
 	if err != nil {
