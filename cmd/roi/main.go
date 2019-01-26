@@ -683,36 +683,43 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	prj := pths[0]
-	s := pths[1]
+	shot := pths[1]
 	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	shot, err := roi.GetShot(db, prj, s)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if shot.ID == "" {
-		http.NotFound(w, r)
-		return
-	}
-
 	session, err := getSession(r)
 	if err != nil {
 		log.Print(fmt.Sprintf("could not get session: %s", err))
 		clearSession(w)
+	}
+	s, err := roi.GetShot(db, prj, shot)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if s.ID == "" {
+		http.NotFound(w, r)
+		return
+	}
+	tasks, err := roi.AllTasks(db, prj, s.ID)
+	if err != nil {
+		log.Printf("could not get all tasks of shot '%s'", s.ID)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
 	}
 
 	recipt := struct {
 		LoggedInUser string
 		Project      string
 		Shot         *roi.Shot
+		Tasks        []*roi.Task
 	}{
 		LoggedInUser: session["userid"],
 		Project:      prj,
-		Shot:         shot,
+		Shot:         s,
+		Tasks:        tasks,
 	}
 	err = executeTemplate(w, "shot.html", recipt)
 	if err != nil {
