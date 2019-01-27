@@ -31,18 +31,14 @@
 			</div>
 		</div>
 		<h5 class="ui attached inverted header">Tasks</h5>
-		<div class="ui attached secondary inverted segment">
-				<div style="display:flex;flex-wrap:wrap;border:solid 1px #DDDDDD;background-color:#BBBBBB;">
-						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Mod</div></div>
-						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#FFDD66;padding:2px;"></div><div>Rig</div></div>
-						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#44AA44;padding:2px;"></div><div>Ani</div></div>
-						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#2266DD;padding:2px;"></div><div>Track</div></div>
-						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#BB0022;padding:2px;"></div><div>Light</div></div>
-						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Fx</div></div>
-						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Matte</div></div>
-						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Motion</div></div>
-						<div style="flex:1;min-width:100px;border-right:solid 1px #DDDDDD;padding:2px;"><div style="border-radius:2px;width:6px;background-color:#CCCCCC;padding:2px;"></div><div>Comp</div></div>
-					</div>
+		<div class="ui attached secondary inverted segment" style="display:flex;">
+			<div style="display:flex;flex-wrap:wrap;">
+				{{range $.Tasks}}
+				<div style="width:200px;border-bottom:solid 1px #DDDDDD;border-right:solid 1px #DDDDDD;padding:2px;background-color:#CCCCCC;">{{.Name}}</div>
+				{{end}}
+				<div style="flex:1;"></div>
+			</div>
+		</div>
 	</div>
 </div>
 {{template "footer.html"}}
