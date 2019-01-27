@@ -26,10 +26,11 @@
 			<tbody>
 				{{range (index $.Tasks .ID)}}
 				<tr>
-					<td class="one wide">01/01</td>
 					<td class="one wide left align">{{.Name}}</td>
 					<td class="one wide left align">v01</td>
-					<td class="twelve wide left align">{{.Status}}</td>
+					<td class="one wide left align">{{.Status}}</td>
+					<td class="one wide left align">01/01</td>
+					<td class="eleven wide left align"></td>
 				</tr>
 				{{end}}
 			</tbody>
