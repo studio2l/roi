@@ -460,6 +460,7 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 			VFXDueDate:    fromStringTime(r.Form.Get("vfx_due_date")),
 			OutputSize:    r.Form.Get("output_size"),
 			ViewLUT:       r.Form.Get("view_lut"),
+			DefaultTasks:  fields(r.Form.Get("default_tasks"), ","),
 		}
 		err = roi.AddProject(db, p)
 		if err != nil {
