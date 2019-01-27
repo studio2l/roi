@@ -6,6 +6,7 @@ roi-userdata
 *.pem
 cookie.hash
 cookie.block
+cockroach-data
 
 # Ignore Mac DS_Store files
 .DS_Store
