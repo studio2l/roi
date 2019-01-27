@@ -417,6 +417,11 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 		clearSession(w)
 		return
 	}
+	if u == nil {
+		http.Error(w, "user not exist", http.StatusBadRequest)
+		clearSession(w)
+		return
+	}
 	if u.Role != "admin" {
 		// 할일: admin이 아닌 사람은 프로젝트를 생성할 수 없도록 하기
 	}
@@ -635,14 +640,19 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	tasks := make(map[string][]*roi.Task)
+	tasks := make(map[string]map[string]*roi.Task)
 	for _, s := range shots {
-		tasks[s.ID], err = roi.AllTasks(db, prj, s.ID)
+		ts, err := roi.AllTasks(db, prj, s.ID)
 		if err != nil {
 			log.Printf("could not get all tasks of shot '%s'", s.ID)
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
+		tm := make(map[string]*roi.Task)
+		for _, t := range ts {
+			tm[t.Name] = t
+		}
+		tasks[s.ID] = tm
 	}
 
 	session, err := getSession(r)
@@ -656,7 +666,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		Projects     []string
 		Project      string
 		Shots        []*roi.Shot
-		Tasks        map[string][]*roi.Task
+		Tasks        map[string]map[string]*roi.Task
 		FilterShot   string
 		FilterTag    string
 		FilterStatus string
@@ -748,6 +758,11 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		clearSession(w)
 		return
 	}
+	if u == nil {
+		http.Error(w, "user not exist", http.StatusBadRequest)
+		clearSession(w)
+		return
+	}
 	if false {
 		// 할일: 오직 어드민, 프로젝트 슈퍼바이저, 프로젝트 매니저, CG 슈퍼바이저만
 		// 이 정보를 수정할 수 있도록 하기.
@@ -806,6 +821,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "shot '%s' already exist", http.StatusBadRequest)
 			return
 		}
+		tasks := fields(r.Form.Get("working_tasks"), ",")
 		s := &roi.Shot{
 			ID:            shot,
 			ProjectID:     prj,
@@ -817,13 +833,14 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			TimecodeOut:   r.Form.Get("timecode_out"),
 			Duration:      atoi(r.Form.Get("duration")),
 			Tags:          fields(r.Form.Get("tags"), ","),
+			WorkingTasks:  tasks,
 		}
 		err = roi.AddShot(db, prj, s)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("could not add shot '%s'", shot), http.StatusInternalServerError)
+			log.Printf("could not add shot '%s': %v", prj+"."+shot, err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
-		tasks := fields(r.Form.Get("tasks"), ",")
 		for _, task := range tasks {
 			t := &roi.Task{
 				ProjectID: prj,
@@ -867,6 +884,11 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		clearSession(w)
 		return
 	}
+	if u == nil {
+		http.Error(w, "user not exist", http.StatusBadRequest)
+		clearSession(w)
+		return
+	}
 	if false {
 		// 할일: 오직 어드민, 프로젝트 슈퍼바이저, 프로젝트 매니저, CG 슈퍼바이저만
 		// 이 정보를 수정할 수 있도록 하기.
@@ -904,6 +926,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("shot '%s' not exist", shot), http.StatusBadRequest)
 			return
 		}
+		tasks := fields(r.Form.Get("working_tasks"), ",")
 		s := &roi.Shot{
 			ID:            shot,
 			ProjectID:     prj,
@@ -915,12 +938,30 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			TimecodeOut:   r.Form.Get("timecode_out"),
 			Duration:      atoi(r.Form.Get("duration")),
 			Tags:          fields(r.Form.Get("tags"), ","),
+			WorkingTasks:  tasks,
 		}
 		err = roi.UpdateShot(db, prj, s)
 		if err != nil {
 			log.Print(err)
 			http.Error(w, fmt.Sprintf("could not update shot '%s'", shot), http.StatusInternalServerError)
 			return
+		}
+		// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
+		for _, task := range tasks {
+			t := &roi.Task{
+				ProjectID: prj,
+				ShotID:    shot,
+				Name:      task,
+			}
+			exist, err := roi.TaskExist(db, prj, shot, task)
+			if err != nil {
+				log.Printf("could not check task '%s' exist: %v", prj+"."+shot+"."+task, err)
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
+			}
+			if !exist {
+				roi.AddTask(db, prj, shot, t)
+			}
 		}
 		http.Redirect(w, r, fmt.Sprintf("/shot/%s/%s", prj, shot), http.StatusSeeOther)
 		return
@@ -935,12 +976,24 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("shot '%s' not exist", shot), http.StatusBadRequest)
 		return
 	}
+	ts, err := roi.AllTasks(db, prj, shot)
+	if err != nil {
+		log.Printf("could not get all tasks of shot '%s': %v", prj+"."+shot, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	tm := make(map[string]*roi.Task)
+	for _, t := range ts {
+		tm[t.Name] = t
+	}
 	recipt := struct {
 		LoggedInUser string
 		Shot         *roi.Shot
+		Tasks        map[string]*roi.Task
 	}{
 		LoggedInUser: session["userid"],
 		Shot:         s,
+		Tasks:        tm,
 	}
 	err = executeTemplate(w, "update-shot.html", recipt)
 	if err != nil {

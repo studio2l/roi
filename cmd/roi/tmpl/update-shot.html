@@ -35,6 +35,9 @@
 		<div class="field"><label>태그</label>
 			<input type="text" name="tags" value="{{join .Shot.Tags ", "}}"/>
 		</div>
+		<div class="field"><label>태스크</label>
+			<input type="text" name="working_tasks" value="{{join .Shot.WorkingTasks ", "}}"/>
+		</div>
 		<button class="ui button green" type="submit" value="Submit">수정</button>
 	</form>
 </div>
