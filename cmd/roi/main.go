@@ -467,6 +467,7 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("could not add project '%s'", p), http.StatusInternalServerError)
 			return
 		}
+		http.Redirect(w, r, "/projects", http.StatusSeeOther)
 		return
 	}
 	recipt := struct {
