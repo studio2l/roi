@@ -39,6 +39,54 @@
 			<input type="text" name="working_tasks" value="{{join .Shot.WorkingTasks ", "}}"/>
 		</div>
 		<button class="ui button green" type="submit" value="Submit">수정</button>
+
+		<div style="height:2rem;"></div>
 	</form>
+
+	<div class="ui form">
+		{{range $.Shot.WorkingTasks}}
+		{{with index $.Tasks .}}
+		<div id="task-{{.Name}}" style="border:solid 1px grey;border-radius:8px;padding:15px;background-color:grey;">
+			<div class="field">
+				<label class="ui grey label" style="font-size:1.3rem;">{{.Name}}</label>
+			</div>
+			<div class="field"><label>상태</label>
+				<input id="task-{{.Name}}-status" type="text" value="{{.Status}}" />
+			</div>
+			<div class="field"><label>담당</label>
+				<input id="task-{{.Name}}-assignee"  type="text" value="{{.Assignee}}" />
+			</div>
+			<button id="task-{{.Name}}-btn" class="ui button teal" onclick="updateTask('{{.Name}}')">수정</button>
+			<div id="task-{{.Name}}-update-result" class="ui"></div>
+		</div>
+		<div style="height:2rem;"></div>
+		{{end}}
+		{{end}}
+	</div>
 </div>
+
+<script>
+function updateTask(name) {
+	status = document.getElementById("task-" + name + "-status").value
+	assignee = document.getElementById("task-" + name + "-assignee").value
+	param = new Array(
+		"project_id={{$.Shot.ProjectID}}",
+		"shot_id={{$.Shot.ID}}",
+		"name=" + name,
+		"status=" + status,
+		"assignee=" + assignee,
+	).join("&");
+	resEl = document.getElementById("task-" + name + "-update-result");
+	resEl.innerText = name + " 태스크를 수정중입니다.";
+	f = fetch("/update-task?" + param);
+	f.then((resp) => {
+		console.log(resp); // 추후 삭제
+		if (resp.ok) {
+			resEl.innerText = name + " 태스크가 수정되었습니다.";
+		} else {
+			resEl.innerText = name + " 태스크가 수정되지 않았습니다! (" + resp.status.toString() + ")";
+		}
+	});
+}
+</script>
 {{template "footer.html"}}
