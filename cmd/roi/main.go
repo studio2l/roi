@@ -115,7 +115,7 @@ func clearSession(w http.ResponseWriter) {
 // rootHandler는 루트경로(/)를 포함해 정의되지 않은 페이지로의 사용자 접속을 처리한다.
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		http.Error(w, "", http.StatusNotFound)
+		http.Error(w, "page not found", http.StatusNotFound)
 		return
 	}
 	session, err := getSession(r)
