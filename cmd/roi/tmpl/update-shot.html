@@ -78,13 +78,21 @@ function updateTask(name) {
 	).join("&");
 	resEl = document.getElementById("task-" + name + "-update-result");
 	resEl.innerText = name + " 태스크를 수정중입니다.";
-	f = fetch("/update-task?" + param);
-	f.then((resp) => {
+	f = fetch("/update-task", {
+		method: "post",
+		headers: {
+			"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+		},
+		body: param,
+	});
+	f.then(resp => {
 		console.log(resp); // 추후 삭제
 		if (resp.ok) {
 			resEl.innerText = name + " 태스크가 수정되었습니다.";
 		} else {
-			resEl.innerText = name + " 태스크가 수정되지 않았습니다! (" + resp.status.toString() + ")";
+			body = resp.text().then(body => {
+				resEl.innerText = name + " 태스크가 수정되지 않았습니다! (" + body.trim() + ")";
+			});
 		}
 	});
 }
