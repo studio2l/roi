@@ -1064,7 +1064,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		exist, err = roi.TaskExist(db, prj, shot, task)
 		if err != nil {
-			log.Print("could not check task '%s' exist: %v", taskID, err)
+			log.Printf("could not check task '%s' exist: %v", taskID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
