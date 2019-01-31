@@ -233,7 +233,7 @@ func UpdateShot(db *sql.DB, prj string, s *Shot) error {
 	}
 	keystr := strings.Join(ShotTableKeys, ", ")
 	idxstr := strings.Join(ShotTableIndices, ", ")
-	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE id='%s'", keystr, idxstr, s.ID)
+	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE project_id='%s' AND id='%s'", keystr, idxstr, prj, s.ID)
 	if _, err := db.Exec(stmt, s.dbValues()...); err != nil {
 		return err
 	}
