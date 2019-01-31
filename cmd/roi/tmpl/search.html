@@ -3,7 +3,7 @@
 {{template "search-menu.html" $}}
 <div style="padding:15px 10px 15px 10px;z-index:0;">
 <!--검색 결과-->
-{{range .Shots}}
+{{range $s := .Shots}}
 <div class="ui inverted segment">
 	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:3px;font-size:15px;">
 		<div style="width:192px;margin-right:20px;">
@@ -24,7 +24,8 @@
 		</div>
 		<table class="ui very compact striped inverted table" style="margin-top:0;">
 			<tbody>
-				{{range (index $.Tasks .ID)}}
+				{{range .WorkingTasks}}
+				{{with index (index $.Tasks $s.ID) .}}
 				<tr>
 					<td class="one wide left align">{{.Name}}</td>
 					<td class="one wide left align">v01</td>
@@ -32,6 +33,7 @@
 					<td class="one wide left align">01/01</td>
 					<td class="eleven wide left align"></td>
 				</tr>
+				{{end}}
 				{{end}}
 			</tbody>
 		</table>

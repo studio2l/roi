@@ -46,6 +46,15 @@ type Shot struct {
 	TimecodeOut   string
 	Duration      int
 	Tags          []string
+
+	// WorkingTasks는 샷에 작업중인 어떤 태스크가 있는지를 나타낸다.
+	// 웹 페이지에는 여기에 포함된 태스크만 이 순서대로 보여져야 한다.
+	//
+	// 참고: 여기에 포함되어 있다면 db내에 해당 태스크가 존재해야 한다.
+	// 반대로 여기에 포함되어 있지 않지만 db내에는 존재하는 태스크가 있을 수 있다.
+	// 그 태스크는 (예를 들어 태스크가 Omit 되는 등의 이유로) 숨겨진 태스크이며,
+	// 직접 지우지 않는 한 db에 보관된다.
+	WorkingTasks []string
 }
 
 func (s *Shot) dbValues() []interface{} {
@@ -63,6 +72,7 @@ func (s *Shot) dbValues() []interface{} {
 		s.TimecodeOut,
 		s.Duration,
 		pq.Array(s.Tags),
+		pq.Array(s.WorkingTasks),
 	}
 }
 
@@ -78,6 +88,7 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	timecode_out STRING NOT NULL,
 	duration INT NOT NULL,
 	tags STRING[] NOT NULL,
+	working_tasks STRING[] NOT NULL,
 	UNIQUE(id, project_id)
 )`
 
@@ -92,10 +103,12 @@ var ShotTableKeys = []string{
 	"timecode_out",
 	"duration",
 	"tags",
+	"working_tasks",
 }
 
 var ShotTableIndices = []string{
 	"$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9", "$10",
+	"$11",
 }
 
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
@@ -105,6 +118,12 @@ func AddShot(db *sql.DB, prj string, s *Shot) error {
 	}
 	if s == nil {
 		return errors.New("nil Shot is invalid")
+	}
+	if s.Tags == nil {
+		s.Tags = make([]string, 0)
+	}
+	if s.WorkingTasks == nil {
+		s.WorkingTasks = make([]string, 0)
 	}
 	keys := strings.Join(ShotTableKeys, ", ")
 	idxs := strings.Join(ShotTableIndices, ", ")
@@ -131,7 +150,7 @@ func shotFromRows(rows *sql.Rows) (*Shot, error) {
 	err := rows.Scan(
 		&s.ID, &s.ProjectID, &s.Status,
 		&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
-		&s.Duration, pq.Array(&s.Tags),
+		&s.Duration, pq.Array(&s.Tags), pq.Array(&s.WorkingTasks),
 	)
 	if err != nil {
 		return nil, err

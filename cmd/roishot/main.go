@@ -27,6 +27,7 @@ func shotFromMap(m map[string]string) *roi.Shot {
 		TimecodeOut:   m["timecode_out"],
 		Duration:      toInt(m["duration"]),
 		Tags:          fields(m["tags"]),
+		WorkingTasks:  fields(m["tasks"]),
 	}
 }
 
