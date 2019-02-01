@@ -67,8 +67,8 @@
 
 <script>
 function updateTask(name) {
-	status = document.getElementById("task-" + name + "-status").value
-	assignee = document.getElementById("task-" + name + "-assignee").value
+	status = document.getElementById("task-" + name + "-status").value;
+	assignee = document.getElementById("task-" + name + "-assignee").value;
 	param = new Array(
 		"project_id={{$.Shot.ProjectID}}",
 		"shot_id={{$.Shot.ID}}",
@@ -90,7 +90,7 @@ function updateTask(name) {
 		if (resp.ok) {
 			resEl.innerText = name + " 태스크가 수정되었습니다.";
 		} else {
-			body = resp.text().then(body => {
+			resp.text().then(body => {
 				resEl.innerText = name + " 태스크가 수정되지 않았습니다! (" + body.trim() + ")";
 			});
 		}
