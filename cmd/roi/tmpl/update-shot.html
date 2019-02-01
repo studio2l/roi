@@ -66,32 +66,31 @@
 </div>
 
 <script>
+// updateTask는 페이지를 리디렉션 시키지 않고 하나의 태스크 정보를 수정한다.
 function updateTask(name) {
-	status = document.getElementById("task-" + name + "-status").value;
-	assignee = document.getElementById("task-" + name + "-assignee").value;
-	param = new Array(
+	let status = document.getElementById("task-" + name + "-status").value;
+	let assignee = document.getElementById("task-" + name + "-assignee").value;
+	let param = new Array(
 		"project_id={{$.Shot.ProjectID}}",
 		"shot_id={{$.Shot.ID}}",
 		"name=" + name,
 		"status=" + status,
 		"assignee=" + assignee,
 	).join("&");
-	resEl = document.getElementById("task-" + name + "-update-result");
-	resEl.innerText = name + " 태스크를 수정중입니다.";
-	f = fetch("/update-task", {
+	let resultEl = document.getElementById("task-" + name + "-update-result");
+	resultEl.innerText = name + " 태스크를 수정중입니다.";
+	fetch("/update-task", {
 		method: "post",
 		headers: {
 			"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
 		},
 		body: param,
-	});
-	f.then(resp => {
-		console.log(resp); // 추후 삭제
+	}).then(resp => {
 		if (resp.ok) {
-			resEl.innerText = name + " 태스크가 수정되었습니다.";
+			resultEl.innerText = name + " 태스크가 수정되었습니다.";
 		} else {
 			resp.text().then(body => {
-				resEl.innerText = name + " 태스크가 수정되지 않았습니다! (" + body.trim() + ")";
+				resultEl.innerText = name + " 태스크가 수정되지 않았습니다! (" + body.trim() + ")";
 			});
 		}
 	});
