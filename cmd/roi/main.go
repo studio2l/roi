@@ -45,17 +45,12 @@ func dateTime(t *time.Time) string {
 	return t.Format("2006-01-02")
 }
 
-// join은 문자열 리스트를 sep를 이용하여 연결한다.
-func join(strs []string, sep string) string {
-	return strings.Join(strs, sep)
-}
-
 // parseTemplate은 tmpl 디렉토리 안의 html파일들을 파싱하여 http 응답에 사용될 수 있도록 한다.
 func parseTemplate() {
 	templates = template.Must(template.New("").Funcs(template.FuncMap{
 		"hasThumbnail": hasThumbnail,
 		"dateTime":     dateTime,
-		"join":         join,
+		"join":         strings.Join,
 	}).ParseGlob("tmpl/*.html"))
 }
 
