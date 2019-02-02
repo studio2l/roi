@@ -65,7 +65,7 @@ var TaskTableIndices = []string{
 	"$1", "$2", "$3", "$4", "$5",
 }
 
-// AddTasks는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
+// AddTask는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddTask(db *sql.DB, prj, shot string, t *Task) error {
 	if prj == "" {
 		return fmt.Errorf("project not specified")
@@ -82,6 +82,29 @@ func AddTask(db *sql.DB, prj, shot string, t *Task) error {
 	keystr := strings.Join(TaskTableKeys, ", ")
 	idxstr := strings.Join(TaskTableIndices, ", ")
 	stmt := fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", keystr, idxstr)
+	if _, err := db.Exec(stmt, t.dbValues()...); err != nil {
+		return err
+	}
+	return nil
+}
+
+// UpdateTask는 db의 특정 태스크를 업데이트 한다.
+func UpdateTask(db *sql.DB, prj, shot string, t *Task) error {
+	if prj == "" {
+		return fmt.Errorf("project not specified")
+	}
+	if shot == "" {
+		return fmt.Errorf("shot not specified")
+	}
+	if t == nil {
+		return fmt.Errorf("nil task")
+	}
+	if t.Name == "" {
+		return fmt.Errorf("task name not specified")
+	}
+	keystr := strings.Join(TaskTableKeys, ", ")
+	idxstr := strings.Join(TaskTableIndices, ", ")
+	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE project_id='%s' AND shot_id='%s' AND name='%s'", keystr, idxstr, prj, shot, t.Name)
 	if _, err := db.Exec(stmt, t.dbValues()...); err != nil {
 		return err
 	}

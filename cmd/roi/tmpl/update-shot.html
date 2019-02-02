@@ -39,6 +39,61 @@
 			<input type="text" name="working_tasks" value="{{join .Shot.WorkingTasks ", "}}"/>
 		</div>
 		<button class="ui button green" type="submit" value="Submit">수정</button>
+
+		<div style="height:2rem;"></div>
 	</form>
+
+	<div class="ui form">
+		{{range $.Shot.WorkingTasks}}
+		{{with index $.Tasks .}}
+		<div id="task-{{.Name}}" style="border:solid 1px grey;border-radius:8px;padding:15px;background-color:grey;">
+			<div class="field">
+				<label class="ui grey label" style="font-size:1.3rem;">{{.Name}}</label>
+			</div>
+			<div class="field"><label>상태</label>
+				<input id="task-{{.Name}}-status" type="text" value="{{.Status}}" />
+			</div>
+			<div class="field"><label>담당</label>
+				<input id="task-{{.Name}}-assignee"  type="text" value="{{.Assignee}}" />
+			</div>
+			<button id="task-{{.Name}}-btn" class="ui button teal" onclick="updateTask('{{.Name}}')">수정</button>
+			<div id="task-{{.Name}}-update-result" class="ui"></div>
+		</div>
+		<div style="height:2rem;"></div>
+		{{end}}
+		{{end}}
+	</div>
 </div>
+
+<script>
+// updateTask는 페이지를 리디렉션 시키지 않고 하나의 태스크 정보를 수정한다.
+function updateTask(name) {
+	let status = document.getElementById("task-" + name + "-status").value;
+	let assignee = document.getElementById("task-" + name + "-assignee").value;
+	let param = new Array(
+		"project_id={{$.Shot.ProjectID}}",
+		"shot_id={{$.Shot.ID}}",
+		"name=" + name,
+		"status=" + status,
+		"assignee=" + assignee,
+	).join("&");
+	let resultEl = document.getElementById("task-" + name + "-update-result");
+	resultEl.innerText = name + " 태스크를 수정중입니다.";
+	fetch("/update-task", {
+		method: "post",
+		headers: {
+			"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+		},
+		body: param,
+	}).then(resp => {
+		if (resp.ok) {
+			resultEl.innerText = name + " 태스크가 수정되었습니다.";
+		} else {
+			resp.text().then(body => {
+				resultEl.innerText = name + " 태스크가 수정되지 않았습니다! (" + body.trim() + ")";
+			});
+		}
+	});
+}
+</script>
 {{template "footer.html"}}
