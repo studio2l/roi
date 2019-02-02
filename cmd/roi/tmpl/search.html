@@ -22,22 +22,24 @@
 			<div style="box-sizing:border-box;width:192px;height:108px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;">{{.Description}}</div>
 			{{end}}
 		</div>
-		<table class="ui very compact striped inverted table" style="margin-top:0;">
-			<tbody>
-				{{range .WorkingTasks}}
-				{{with index (index $.Tasks $s.ID) .}}
-				<tr>
-					<td class="one wide left align">{{.Name}}</td>
-					<td class="one wide left align">{{.Assignee}}</td>
-					<td class="one wide left align">v01</td>
-					<td class="one wide left align">{{.Status}}</td>
-					<td class="one wide left align">01/01</td>
-					<td class="ten wide left align"></td>
-				</tr>
-				{{end}}
-				{{end}}
-			</tbody>
-		</table>
+		<div style="flex:1;">
+			<table class="ui very compact striped inverted table">
+				<tbody>
+					{{range .WorkingTasks}}
+					{{with index (index $.Tasks $s.ID) .}}
+					<tr>
+						<td class="one wide left align">{{.Name}}</td>
+						<td class="one wide left align">{{.Assignee}}</td>
+						<td class="one wide left align">v01</td>
+						<td class="one wide left align">{{.Status}}</td>
+						<td class="one wide left align">01/01</td>
+						<td class="ten wide left align"></td>
+					</tr>
+					{{end}}
+					{{end}}
+				</tbody>
+			</table>
+		</div>
 	</div>
 	<div class="shot-footer" style="display:flex;">
 		<div class="shot-timecode" style="width:192px;margin-right:20px;display:flex;justify-content:space-between;font-size:11px;color:gray;">
