@@ -28,10 +28,11 @@
 				{{with index (index $.Tasks $s.ID) .}}
 				<tr>
 					<td class="one wide left align">{{.Name}}</td>
+					<td class="one wide left align">{{.Assignee}}</td>
 					<td class="one wide left align">v01</td>
 					<td class="one wide left align">{{.Status}}</td>
 					<td class="one wide left align">01/01</td>
-					<td class="eleven wide left align"></td>
+					<td class="ten wide left align"></td>
 				</tr>
 				{{end}}
 				{{end}}
