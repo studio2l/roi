@@ -270,8 +270,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "POST" {
 		r.ParseForm()
-		u := &roi.User{
-			ID:          session["userid"],
+		upd := roi.UpdateUserParam{
 			KorName:     r.Form.Get("kor-name"),
 			Name:        r.Form.Get("name"),
 			Team:        r.Form.Get("team"),
@@ -280,7 +279,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 			PhoneNumber: r.Form.Get("phone-number"),
 			EntryDate:   r.Form.Get("entry-date"),
 		}
-		err = roi.UpdateUser(db, session["userid"], u)
+		err = roi.UpdateUser(db, session["userid"], upd)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not set user: %s", err), http.StatusInternalServerError)
 			return

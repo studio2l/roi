@@ -27,7 +27,7 @@ var CreateTableIfNotExistsUsersStmt = `CREATE TABLE IF NOT EXISTS users (
 	kor_name STRING NOT NULL,
 	name STRING NOT NULL,
 	team STRING NOT NULL,
-	position STRING NOT NULL,
+	role STRING NOT NULL,
 	email STRING NOT NULL,
 	phone_number STRING NOT NULL,
 	entry_date STRING NOT NULL,
@@ -60,7 +60,7 @@ var UserTableKeys = []string{
 	"kor_name",
 	"name",
 	"team",
-	"position",
+	"role",
 	"email",
 	"phone_number",
 	"entry_date",
@@ -158,18 +158,55 @@ func UserPasswordMatch(db *sql.DB, id, pw string) (bool, error) {
 	return true, nil
 }
 
+// UpdateUserParam은 User에서 일반적으로 업데이트 되어야 하는 파라미터이다.
+// UpdateUser에서 사용한다.
+type UpdateUserParam struct {
+	KorName     string
+	Name        string
+	Team        string
+	Role        string
+	Email       string
+	PhoneNumber string
+	EntryDate   string
+}
+
+func (u UpdateUserParam) keys() []string {
+	return []string{
+		"kor_name",
+		"name",
+		"team",
+		"role",
+		"email",
+		"phone_number",
+		"entry_date",
+	}
+}
+
+func (u UpdateUserParam) indices() []string {
+	return dbIndices(u.keys())
+}
+
+func (u UpdateUserParam) values() []interface{} {
+	return []interface{}{
+		u.KorName,
+		u.Name,
+		u.Team,
+		u.Role,
+		u.Email,
+		u.PhoneNumber,
+		u.EntryDate,
+	}
+}
+
 // UpdateUser는 db에 비밀번호를 제외한 사용자 필드를 업데이트 한다.
-func UpdateUser(db *sql.DB, id string, u *User) error {
+func UpdateUser(db *sql.DB, id string, u UpdateUserParam) error {
 	if id == "" {
 		return errors.New("empty id")
 	}
-	if u == nil {
-		return errors.New("nil User is invalid")
-	}
-	keystr := strings.Join(UserTableKeys, ", ")
-	idxstr := strings.Join(UserTableIndices, ", ")
+	keystr := strings.Join(u.keys(), ", ")
+	idxstr := strings.Join(u.indices(), ", ")
 	stmt := fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keystr, idxstr, id)
-	if _, err := db.Exec(stmt, u.dbValues()...); err != nil {
+	if _, err := db.Exec(stmt, u.values()...); err != nil {
 		return err
 	}
 	return nil
