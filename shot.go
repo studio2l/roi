@@ -265,17 +265,17 @@ func (u UpdateShotParam) values() []interface{} {
 }
 
 // UpdateShot은 db에서 해당 샷을 수정한다.
-func UpdateShot(db *sql.DB, prj, shot string, u UpdateShotParam) error {
+func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 	if prj == "" {
 		return fmt.Errorf("project code not specified")
 	}
 	if shot == "" {
 		return errors.New("shot id empty")
 	}
-	keystr := strings.Join(u.keys(), ", ")
-	idxstr := strings.Join(u.indices(), ", ")
+	keystr := strings.Join(upd.keys(), ", ")
+	idxstr := strings.Join(upd.indices(), ", ")
 	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE project_id='%s' AND id='%s'", keystr, idxstr, prj, shot)
-	if _, err := db.Exec(stmt, u.values()...); err != nil {
+	if _, err := db.Exec(stmt, upd.values()...); err != nil {
 		return err
 	}
 	return nil

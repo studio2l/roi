@@ -200,14 +200,14 @@ func (u UpdateProjectParam) values() []interface{} {
 }
 
 // UpdateProject는 db의 프로젝트 정보를 수정한다.
-func UpdateProject(db *sql.DB, prj string, u UpdateProjectParam) error {
+func UpdateProject(db *sql.DB, prj string, upd UpdateProjectParam) error {
 	if !IsValidProjectID(prj) {
 		return fmt.Errorf("Project id is invalid: %s", prj)
 	}
-	keystr := strings.Join(u.keys(), ", ")
-	idxstr := strings.Join(u.indices(), ", ")
+	keystr := strings.Join(upd.keys(), ", ")
+	idxstr := strings.Join(upd.indices(), ", ")
 	stmt := fmt.Sprintf("UPDATE projects SET (%s) = (%s) WHERE id='%s'", keystr, idxstr, prj)
-	if _, err := db.Exec(stmt, u.values()...); err != nil {
+	if _, err := db.Exec(stmt, upd.values()...); err != nil {
 		return err
 	}
 	return nil

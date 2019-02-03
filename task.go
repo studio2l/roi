@@ -114,7 +114,7 @@ func (u UpdateTaskParam) values() []interface{} {
 }
 
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
-func UpdateTask(db *sql.DB, prj, shot, task string, u UpdateTaskParam) error {
+func UpdateTask(db *sql.DB, prj, shot, task string, upd UpdateTaskParam) error {
 	if prj == "" {
 		return fmt.Errorf("project not specified")
 	}
@@ -124,10 +124,10 @@ func UpdateTask(db *sql.DB, prj, shot, task string, u UpdateTaskParam) error {
 	if task == "" {
 		return fmt.Errorf("task name not specified")
 	}
-	keystr := strings.Join(u.keys(), ", ")
-	idxstr := strings.Join(u.indices(), ", ")
+	keystr := strings.Join(upd.keys(), ", ")
+	idxstr := strings.Join(upd.indices(), ", ")
 	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE project_id='%s' AND shot_id='%s' AND name='%s'", keystr, idxstr, prj, shot, task)
-	if _, err := db.Exec(stmt, u.values()...); err != nil {
+	if _, err := db.Exec(stmt, upd.values()...); err != nil {
 		return err
 	}
 	return nil

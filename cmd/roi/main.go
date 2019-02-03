@@ -533,7 +533,7 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			return t
 		}
-		u := roi.UpdateProjectParam{
+		upd := roi.UpdateProjectParam{
 			Name:          r.Form.Get("name"),
 			Status:        r.Form.Get("status"),
 			Client:        r.Form.Get("client"),
@@ -551,7 +551,7 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			ViewLUT:       r.Form.Get("view_lut"),
 			DefaultTasks:  fields(r.Form.Get("default_tasks"), ","),
 		}
-		err = roi.UpdateProject(db, id, u)
+		err = roi.UpdateProject(db, id, upd)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, fmt.Sprintf("could not add project '%s'", id), http.StatusInternalServerError)
@@ -924,7 +924,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		tasks := fields(r.Form.Get("working_tasks"), ",")
-		u := roi.UpdateShotParam{
+		upd := roi.UpdateShotParam{
 			Status:        roi.ShotStatus(r.Form.Get("status")),
 			EditOrder:     atoi(r.Form.Get("edit_order")),
 			Description:   r.Form.Get("description"),
@@ -935,7 +935,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			Tags:          fields(r.Form.Get("tags"), ","),
 			WorkingTasks:  tasks,
 		}
-		err = roi.UpdateShot(db, prj, shot, u)
+		err = roi.UpdateShot(db, prj, shot, upd)
 		if err != nil {
 			log.Print(err)
 			http.Error(w, fmt.Sprintf("could not update shot '%s'", shot), http.StatusInternalServerError)
@@ -1063,11 +1063,11 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
 			return
 		}
-		u := roi.UpdateTaskParam{
+		upd := roi.UpdateTaskParam{
 			Status:   roi.TaskStatus(r.Form.Get("status")),
 			Assignee: r.Form.Get("assignee"),
 		}
-		err = roi.UpdateTask(db, prj, shot, task, u)
+		err = roi.UpdateTask(db, prj, shot, task, upd)
 		if err != nil {
 			log.Printf("could not update task '%s': %v", taskID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
