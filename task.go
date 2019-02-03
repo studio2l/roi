@@ -88,8 +88,8 @@ func AddTask(db *sql.DB, prj, shot string, t *Task) error {
 	return nil
 }
 
-// UpdateTaskParam은 Task의 파라미터 중 일반적으로 업데이트 되어야 하는 값으로,
-// UpdateTask의 인수로 쓰인다.
+// UpdateTaskParam은 Task에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
+// UpdateTask에서 사용한다.
 type UpdateTaskParam struct {
 	Status   TaskStatus
 	Assignee string

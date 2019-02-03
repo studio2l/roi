@@ -220,6 +220,8 @@ func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]*Shot, error) {
 	return shots, nil
 }
 
+// UpdateShotParam은 Shot에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
+// UpdateShot에서 사용한다.
 type UpdateShotParam struct {
 	Status        ShotStatus
 	EditOrder     int

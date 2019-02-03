@@ -158,7 +158,7 @@ func UserPasswordMatch(db *sql.DB, id, pw string) (bool, error) {
 	return true, nil
 }
 
-// UpdateUserParam은 User에서 일반적으로 업데이트 되어야 하는 파라미터이다.
+// UpdateUserParam은 User에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
 // UpdateUser에서 사용한다.
 type UpdateUserParam struct {
 	KorName     string

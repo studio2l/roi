@@ -134,6 +134,8 @@ func AddProject(db *sql.DB, p *Project) error {
 	return nil
 }
 
+// UpdateProjectParam은 Project에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
+// UpdateProject에서 사용한다.
 type UpdateProjectParam struct {
 	Name          string
 	Status        string
