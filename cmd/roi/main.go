@@ -925,9 +925,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		tasks := fields(r.Form.Get("working_tasks"), ",")
-		s := &roi.Shot{
-			ID:            shot,
-			ProjectID:     prj,
+		u := roi.UpdateShotParam{
 			Status:        roi.ShotStatus(r.Form.Get("status")),
 			EditOrder:     atoi(r.Form.Get("edit_order")),
 			Description:   r.Form.Get("description"),
@@ -938,7 +936,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			Tags:          fields(r.Form.Get("tags"), ","),
 			WorkingTasks:  tasks,
 		}
-		err = roi.UpdateShot(db, prj, s)
+		err = roi.UpdateShot(db, prj, shot, u)
 		if err != nil {
 			log.Print(err)
 			http.Error(w, fmt.Sprintf("could not update shot '%s'", shot), http.StatusInternalServerError)
