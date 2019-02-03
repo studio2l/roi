@@ -88,24 +88,46 @@ func AddTask(db *sql.DB, prj, shot string, t *Task) error {
 	return nil
 }
 
+// UpdateTaskParam은 Task의 파라미터 중 일반적으로 업데이트 되어야 하는 값으로,
+// UpdateTask의 인수로 쓰인다.
+type UpdateTaskParam struct {
+	Status   TaskStatus
+	Assignee string
+}
+
+func (u UpdateTaskParam) keys() []string {
+	return []string{
+		"status",
+		"assignee",
+	}
+}
+
+func (u UpdateTaskParam) indices() []string {
+	return dbIndices(u.keys())
+}
+
+func (u UpdateTaskParam) values() []interface{} {
+	return []interface{}{
+		u.Status,
+		u.Assignee,
+	}
+}
+
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
-func UpdateTask(db *sql.DB, prj, shot string, t *Task) error {
+func UpdateTask(db *sql.DB, prj, shot, task string, u UpdateTaskParam) error {
 	if prj == "" {
 		return fmt.Errorf("project not specified")
 	}
 	if shot == "" {
 		return fmt.Errorf("shot not specified")
 	}
-	if t == nil {
-		return fmt.Errorf("nil task")
-	}
-	if t.Name == "" {
+	if task == "" {
 		return fmt.Errorf("task name not specified")
 	}
-	keystr := strings.Join(TaskTableKeys, ", ")
-	idxstr := strings.Join(TaskTableIndices, ", ")
-	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE project_id='%s' AND shot_id='%s' AND name='%s'", keystr, idxstr, prj, shot, t.Name)
-	if _, err := db.Exec(stmt, t.dbValues()...); err != nil {
+	keystr := strings.Join(u.keys(), ", ")
+	idxstr := strings.Join(u.indices(), ", ")
+	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE project_id='%s' AND shot_id='%s' AND name='%s'", keystr, idxstr, prj, shot, task)
+	if _, err := db.Exec(stmt, u.values()...); err != nil {
 		return err
 	}
 	return nil

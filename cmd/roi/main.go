@@ -1067,14 +1067,11 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
 			return
 		}
-		t := &roi.Task{
-			ProjectID: prj,
-			ShotID:    shot,
-			Name:      task,
-			Status:    roi.TaskStatus(r.Form.Get("status")),
-			Assignee:  r.Form.Get("assignee"),
+		u := roi.UpdateTaskParam{
+			Status:   roi.TaskStatus(r.Form.Get("status")),
+			Assignee: r.Form.Get("assignee"),
 		}
-		err = roi.UpdateTask(db, prj, shot, t)
+		err = roi.UpdateTask(db, prj, shot, task, u)
 		if err != nil {
 			log.Printf("could not update task '%s': %v", taskID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
