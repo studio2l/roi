@@ -134,18 +134,80 @@ func AddProject(db *sql.DB, p *Project) error {
 	return nil
 }
 
+type UpdateProjectParam struct {
+	Name          string
+	Status        string
+	Client        string
+	Director      string
+	Producer      string
+	VFXSupervisor string
+	VFXManager    string
+	CGSupervisor  string
+	CrankIn       time.Time
+	CrankUp       time.Time
+	StartDate     time.Time
+	ReleaseDate   time.Time
+	VFXDueDate    time.Time
+	OutputSize    string
+	ViewLUT       string
+	DefaultTasks  []string
+}
+
+func (u UpdateProjectParam) keys() []string {
+	return []string{
+		"name",
+		"status",
+		"client",
+		"director",
+		"producer",
+		"vfx_supervisor",
+		"vfx_manager",
+		"cg_supervisor",
+		"crank_in",
+		"crank_up",
+		"start_date",
+		"release_date",
+		"vfx_due_date",
+		"output_size",
+		"view_lut",
+		"default_tasks",
+	}
+}
+
+func (u UpdateProjectParam) indices() []string {
+	return dbIndices(u.keys())
+}
+
+func (u UpdateProjectParam) values() []interface{} {
+	return []interface{}{
+		u.Name,
+		u.Status,
+		u.Client,
+		u.Director,
+		u.Producer,
+		u.VFXSupervisor,
+		u.VFXManager,
+		u.CGSupervisor,
+		u.CrankIn,
+		u.CrankUp,
+		u.StartDate,
+		u.ReleaseDate,
+		u.VFXDueDate,
+		u.OutputSize,
+		u.ViewLUT,
+		u.DefaultTasks,
+	}
+}
+
 // UpdateProject는 db의 프로젝트 정보를 수정한다.
-func UpdateProject(db *sql.DB, p *Project) error {
-	if p == nil {
-		return errors.New("nil Project is invalid")
+func UpdateProject(db *sql.DB, prj string, u UpdateProjectParam) error {
+	if !IsValidProjectID(prj) {
+		return fmt.Errorf("Project id is invalid: %s", prj)
 	}
-	if !IsValidProjectID(p.ID) {
-		return fmt.Errorf("Project id is invalid: %s", p.ID)
-	}
-	keystr := strings.Join(ProjectTableKeys, ", ")
-	idxstr := strings.Join(ProjectTableIndices, ", ")
-	stmt := fmt.Sprintf("UPDATE projects SET (%s) = (%s) WHERE id='%s'", keystr, idxstr, p.ID)
-	if _, err := db.Exec(stmt, p.dbValues()...); err != nil {
+	keystr := strings.Join(u.keys(), ", ")
+	idxstr := strings.Join(u.indices(), ", ")
+	stmt := fmt.Sprintf("UPDATE projects SET (%s) = (%s) WHERE id='%s'", keystr, idxstr, prj)
+	if _, err := db.Exec(stmt, u.values()...); err != nil {
 		return err
 	}
 	return nil

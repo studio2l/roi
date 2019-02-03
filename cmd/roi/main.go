@@ -534,8 +534,7 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			return t
 		}
-		p := &roi.Project{
-			ID:            id,
+		u := roi.UpdateProjectParam{
 			Name:          r.Form.Get("name"),
 			Status:        r.Form.Get("status"),
 			Client:        r.Form.Get("client"),
@@ -553,10 +552,10 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			ViewLUT:       r.Form.Get("view_lut"),
 			DefaultTasks:  fields(r.Form.Get("default_tasks"), ","),
 		}
-		err = roi.UpdateProject(db, p)
+		err = roi.UpdateProject(db, id, u)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, fmt.Sprintf("could not add project '%s'", p), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("could not add project '%s'", id), http.StatusInternalServerError)
 			return
 		}
 		http.Redirect(w, r, "/projects", http.StatusSeeOther)
