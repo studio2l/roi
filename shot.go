@@ -220,21 +220,64 @@ func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]*Shot, error) {
 	return shots, nil
 }
 
+// UpdateShotParam은 Shot에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
+// UpdateShot에서 사용한다.
+type UpdateShotParam struct {
+	Status        ShotStatus
+	EditOrder     int
+	Description   string
+	CGDescription string
+	TimecodeIn    string
+	TimecodeOut   string
+	Duration      int
+	Tags          []string
+	WorkingTasks  []string
+}
+
+func (u UpdateShotParam) keys() []string {
+	return []string{
+		"status",
+		"edit_order",
+		"decsription",
+		"cg_description",
+		"timecode_in",
+		"timecode_out",
+		"duration",
+		"tags",
+		"working_tasks",
+	}
+}
+
+func (u UpdateShotParam) indices() []string {
+	return dbIndices(u.keys())
+}
+
+func (u UpdateShotParam) values() []interface{} {
+	return []interface{}{
+		u.Status,
+		u.EditOrder,
+		u.Description,
+		u.CGDescription,
+		u.TimecodeIn,
+		u.TimecodeOut,
+		u.Duration,
+		u.Tags,
+		u.WorkingTasks,
+	}
+}
+
 // UpdateShot은 db에서 해당 샷을 수정한다.
-func UpdateShot(db *sql.DB, prj string, s *Shot) error {
+func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 	if prj == "" {
 		return fmt.Errorf("project code not specified")
 	}
-	if s == nil {
-		return errors.New("nil shot is invalid")
-	}
-	if s.ID == "" {
+	if shot == "" {
 		return errors.New("shot id empty")
 	}
-	keystr := strings.Join(ShotTableKeys, ", ")
-	idxstr := strings.Join(ShotTableIndices, ", ")
-	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE project_id='%s' AND id='%s'", keystr, idxstr, prj, s.ID)
-	if _, err := db.Exec(stmt, s.dbValues()...); err != nil {
+	keystr := strings.Join(upd.keys(), ", ")
+	idxstr := strings.Join(upd.indices(), ", ")
+	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE project_id='%s' AND id='%s'", keystr, idxstr, prj, shot)
+	if _, err := db.Exec(stmt, upd.values()...); err != nil {
 		return err
 	}
 	return nil

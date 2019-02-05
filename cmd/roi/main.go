@@ -270,8 +270,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "POST" {
 		r.ParseForm()
-		u := &roi.User{
-			ID:          session["userid"],
+		upd := roi.UpdateUserParam{
 			KorName:     r.Form.Get("kor-name"),
 			Name:        r.Form.Get("name"),
 			Team:        r.Form.Get("team"),
@@ -280,7 +279,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 			PhoneNumber: r.Form.Get("phone-number"),
 			EntryDate:   r.Form.Get("entry-date"),
 		}
-		err = roi.UpdateUser(db, session["userid"], u)
+		err = roi.UpdateUser(db, session["userid"], upd)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not set user: %s", err), http.StatusInternalServerError)
 			return
@@ -534,8 +533,7 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			return t
 		}
-		p := &roi.Project{
-			ID:            id,
+		upd := roi.UpdateProjectParam{
 			Name:          r.Form.Get("name"),
 			Status:        r.Form.Get("status"),
 			Client:        r.Form.Get("client"),
@@ -553,10 +551,10 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			ViewLUT:       r.Form.Get("view_lut"),
 			DefaultTasks:  fields(r.Form.Get("default_tasks"), ","),
 		}
-		err = roi.UpdateProject(db, p)
+		err = roi.UpdateProject(db, id, upd)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, fmt.Sprintf("could not add project '%s'", p), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("could not add project '%s'", id), http.StatusInternalServerError)
 			return
 		}
 		http.Redirect(w, r, "/projects", http.StatusSeeOther)
@@ -926,9 +924,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		tasks := fields(r.Form.Get("working_tasks"), ",")
-		s := &roi.Shot{
-			ID:            shot,
-			ProjectID:     prj,
+		upd := roi.UpdateShotParam{
 			Status:        roi.ShotStatus(r.Form.Get("status")),
 			EditOrder:     atoi(r.Form.Get("edit_order")),
 			Description:   r.Form.Get("description"),
@@ -939,7 +935,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			Tags:          fields(r.Form.Get("tags"), ","),
 			WorkingTasks:  tasks,
 		}
-		err = roi.UpdateShot(db, prj, s)
+		err = roi.UpdateShot(db, prj, shot, upd)
 		if err != nil {
 			log.Print(err)
 			http.Error(w, fmt.Sprintf("could not update shot '%s'", shot), http.StatusInternalServerError)
@@ -1067,14 +1063,11 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
 			return
 		}
-		t := &roi.Task{
-			ProjectID: prj,
-			ShotID:    shot,
-			Name:      task,
-			Status:    roi.TaskStatus(r.Form.Get("status")),
-			Assignee:  r.Form.Get("assignee"),
+		upd := roi.UpdateTaskParam{
+			Status:   roi.TaskStatus(r.Form.Get("status")),
+			Assignee: r.Form.Get("assignee"),
 		}
-		err = roi.UpdateTask(db, prj, shot, t)
+		err = roi.UpdateTask(db, prj, shot, task, upd)
 		if err != nil {
 			log.Printf("could not update task '%s': %v", taskID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
