@@ -1076,6 +1076,92 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func addOutputHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	session, err := getSession(r)
+	if err != nil {
+		http.Error(w, "could not get session", http.StatusUnauthorized)
+		clearSession(w)
+		return
+	}
+	u, err := roi.GetUser(db, session["userid"])
+	if err != nil {
+		http.Error(w, "could not get user information", http.StatusInternalServerError)
+		clearSession(w)
+		return
+	}
+	if u == nil {
+		http.Error(w, "user not exist", http.StatusBadRequest)
+		clearSession(w)
+		return
+	}
+	if false {
+		// 할일: 오직 어드민, 프로젝트 슈퍼바이저, 프로젝트 매니저, CG 슈퍼바이저만
+		// 이 정보를 수정할 수 있도록 하기.
+		_ = u
+	}
+	r.ParseForm()
+	prj := r.Form.Get("project_id")
+	if prj == "" {
+		http.Error(w, "need 'project_id'", http.StatusBadRequest)
+		return
+	}
+	exist, err := roi.ProjectExist(db, prj)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if !exist {
+		http.Error(w, fmt.Sprintf("project '%s' not exist", prj), http.StatusBadRequest)
+		return
+	}
+	shot := r.Form.Get("shot_id")
+	if shot == "" {
+		http.Error(w, "need 'shot_id'", http.StatusBadRequest)
+		return
+	}
+	task := r.Form.Get("task_name")
+	if task == "" {
+		http.Error(w, "need 'task_name'", http.StatusBadRequest)
+		return
+	}
+	version := r.Form.Get("version")
+	if version != "" {
+		http.Error(w, "output 'version' should not be specified", http.StatusBadRequest)
+	}
+	/*
+		taskID := fmt.Sprintf("%s.%s.%s", prj, shot, task)
+		if r.Method == "POST" {
+			exist, err = roi.OutputExist(db, prj, shot, task)
+			if err != nil {
+				log.Printf("could not check task '%s' exist: %v", taskID, err)
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
+			}
+			if !exist {
+				http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
+				return
+			}
+			upd := roi.UpdateTaskParam{
+				Status:   roi.TaskStatus(r.Form.Get("status")),
+				Assignee: r.Form.Get("assignee"),
+			}
+			err = roi.UpdateTask(db, prj, shot, task, upd)
+			if err != nil {
+				log.Printf("could not update task '%s': %v", taskID, err)
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
+			}
+		}
+	*/
+}
+
 func main() {
 	dev = true
 
@@ -1182,6 +1268,7 @@ func main() {
 	mux.HandleFunc("/add-shot/", addShotHandler)
 	mux.HandleFunc("/update-shot", updateShotHandler)
 	mux.HandleFunc("/update-task", updateTaskHandler)
+	mux.HandleFunc("/add-output", addOutputHandler)
 	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))

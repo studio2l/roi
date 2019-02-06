@@ -21,7 +21,7 @@ var testOutputA = &Output{
 	},
 	Mov:      "/project/test/FOO_0010/render/test.v001.mov",
 	WorkFile: "/project/test/FOO_0010/scene/test.v001.hip",
-	Time:     time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
+	Created:  time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
 }
 
 func TestOutput(t *testing.T) {

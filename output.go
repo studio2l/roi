@@ -20,7 +20,7 @@ type Output struct {
 	Images   []string  // 결과물을 확인할 수 있는 이미지
 	Mov      string    // 결과물을 영상으로 볼 수 있는 경로
 	WorkFile string    // 이 결과물을 만든 작업 파일
-	Time     time.Time // 결과물이 만들어진 시간
+	Created  time.Time // 결과물이 만들어진 시간
 }
 
 var CreateTableIfNotExistsOutputsStmt = `CREATE TABLE IF NOT EXISTS outputs (
@@ -33,7 +33,7 @@ var CreateTableIfNotExistsOutputsStmt = `CREATE TABLE IF NOT EXISTS outputs (
 	images STRING[] NOT NULL,
 	mov STRING NOT NULL,
 	work_file STRING NOT NULL,
-	time TIMESTAMPTZ NOT NULL,
+	created TIMESTAMPTZ NOT NULL,
 	UNIQUE(project_id, shot_id, task_name, version)
 )`
 
@@ -46,7 +46,7 @@ var OutputTableKeys = []string{
 	"images",
 	"mov",
 	"work_file",
-	"time",
+	"created",
 }
 
 var OutputTableIndices = dbIndices(OutputTableKeys)
@@ -64,7 +64,7 @@ func (o *Output) dbValues() []interface{} {
 		pq.Array(o.Images),
 		o.Mov,
 		o.WorkFile,
-		o.Time,
+		o.Created,
 	}
 }
 
@@ -130,7 +130,7 @@ type UpdateOutputParam struct {
 	Images   []string
 	Mov      string
 	WorkFile string
-	Time     time.Time
+	Created  time.Time
 }
 
 func (u UpdateOutputParam) keys() []string {
@@ -139,7 +139,7 @@ func (u UpdateOutputParam) keys() []string {
 		"images",
 		"mov",
 		"work_file",
-		"time",
+		"created",
 	}
 }
 
@@ -153,7 +153,7 @@ func (u UpdateOutputParam) values() []interface{} {
 		u.Images,
 		u.Mov,
 		u.WorkFile,
-		u.Time,
+		u.Created,
 	}
 }
 
@@ -200,7 +200,7 @@ func outputFromRows(rows *sql.Rows) (*Output, error) {
 	o := &Output{}
 	err := rows.Scan(
 		&o.ProjectID, &o.ShotID, &o.TaskName,
-		&o.Version, pq.Array(&o.Files), pq.Array(&o.Images), &o.Mov, &o.WorkFile, &o.Time,
+		&o.Version, pq.Array(&o.Files), pq.Array(&o.Images), &o.Mov, &o.WorkFile, &o.Created,
 	)
 	if err != nil {
 		return nil, err

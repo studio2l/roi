@@ -33,7 +33,8 @@
 						<td class="one wide left align">v01</td>
 						<td class="one wide left align">{{.Status}}</td>
 						<td class="one wide left align">01/01</td>
-						<td class="ten wide left align"></td>
+						<td class="one wide left align">{{if eq $.LoggedInUser .Assignee}}<a href="/add-output?project_id={{.ProjectID}}&shot_id={{.ShotID}}&task_name={{.TaskName}}">추가</a>{{end}}</td>
+						<td class="nine wide left align"></td>
 					</tr>
 					{{end}}
 					{{end}}
