@@ -25,9 +25,10 @@ type Task struct {
 	ShotID    string
 
 	// 태스크 정보
-	Name     string // 이름은 타입 또는 타입_요소로 구성된다. 예) fx, fx_fire
-	Status   TaskStatus
-	Assignee string
+	Name              string // 이름은 타입 또는 타입_요소로 구성된다. 예) fx, fx_fire
+	Status            TaskStatus
+	Assignee          string
+	LastOutputVersion int
 }
 
 func (t *Task) dbValues() []interface{} {
@@ -40,6 +41,7 @@ func (t *Task) dbValues() []interface{} {
 		t.Name,
 		t.Status,
 		t.Assignee,
+		t.LastOutputVersion,
 	}
 }
 
@@ -50,6 +52,7 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	name STRING NOT NULL CHECK (length(name) > 0) CHECK (name NOT LIKE '% %'),
 	status STRING NOT NULL,
 	assignee STRING NOT NULL,
+	last_output_version INT NOT NULL,
 	UNIQUE(project_id, shot_id, name)
 )`
 
@@ -59,10 +62,11 @@ var TaskTableKeys = []string{
 	"name",
 	"status",
 	"assignee",
+	"last_output_version",
 }
 
 var TaskTableIndices = []string{
-	"$1", "$2", "$3", "$4", "$5",
+	"$1", "$2", "$3", "$4", "$5", "$6",
 }
 
 // AddTask는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
@@ -148,7 +152,7 @@ func taskFromRows(rows *sql.Rows) (*Task, error) {
 	t := &Task{}
 	err := rows.Scan(
 		&t.ProjectID, &t.ShotID,
-		&t.Name, &t.Status, &t.Assignee,
+		&t.Name, &t.Status, &t.Assignee, &t.LastOutputVersion,
 	)
 	if err != nil {
 		return nil, err
