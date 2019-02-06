@@ -55,6 +55,12 @@ func (o *Output) dbValues() []interface{} {
 	if o == nil {
 		o = &Output{}
 	}
+	if o.Files == nil {
+		o.Files = make([]string, 0)
+	}
+	if o.Images == nil {
+		o.Images = make([]string, 0)
+	}
 	return []interface{}{
 		o.ProjectID,
 		o.ShotID,
@@ -148,9 +154,15 @@ func (u UpdateOutputParam) indices() []string {
 }
 
 func (u UpdateOutputParam) values() []interface{} {
+	if u.Files == nil {
+		u.Files = make([]string, 0)
+	}
+	if u.Images == nil {
+		u.Images = make([]string, 0)
+	}
 	return []interface{}{
-		u.Files,
-		u.Images,
+		pq.Array(u.Files),
+		pq.Array(u.Images),
 		u.Mov,
 		u.WorkFile,
 		u.Created,

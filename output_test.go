@@ -70,6 +70,10 @@ func TestOutput(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("added output is not expected: got %v, want %v", got, want)
 	}
+	err = UpdateOutput(db, testProject.ID, testShotA.ID, testTaskA.Name, testOutputA.Version, UpdateOutputParam{})
+	if err != nil {
+		t.Fatalf("could not clear(update) output: %v", err)
+	}
 	err = DeleteOutput(db, testProject.ID, testShotA.ID, testTaskA.Name, testOutputA.Version)
 	if err != nil {
 		t.Fatalf("could not delete output: %v", err)
