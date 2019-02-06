@@ -62,9 +62,6 @@ func TestProject(t *testing.T) {
 			t.Fatalf("find project with invalid id from projects table: %s", err)
 		}
 	}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("got: %v, want: %v", got, want)
-	}
 	gotAll, err := AllProjects(db)
 	if err != nil {
 		t.Fatalf("could not get all projects from projects table: %s", err)
@@ -73,7 +70,10 @@ func TestProject(t *testing.T) {
 	if !reflect.DeepEqual(gotAll, wantAll) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
-
+	err = UpdateProject(db, want.ID, UpdateProjectParam{})
+	if err != nil {
+		t.Fatalf("could not clear(update) project: %s", err)
+	}
 	err = DeleteProject(db, want.ID)
 	if err != nil {
 		t.Fatalf("could not delete project: %s", err)

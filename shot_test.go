@@ -119,6 +119,10 @@ func TestShot(t *testing.T) {
 	}
 
 	for _, s := range want {
+		err = UpdateShot(db, testProject.ID, s.ID, UpdateShotParam{})
+		if err != nil {
+			t.Fatalf("could not clear(update) shot: %s", err)
+		}
 		err = DeleteShot(db, testProject.ID, s.ID)
 		if err != nil {
 			t.Fatalf("could not delete shot from shots table: %s", err)
