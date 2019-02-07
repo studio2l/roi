@@ -30,10 +30,12 @@
 					<tr>
 						<td class="one wide left align">{{.Name}}</td>
 						<td class="one wide left align">{{.Assignee}}</td>
-						<td class="one wide left align">v01</td>
+						<td class="one wide left align">{{if .LastOutputVersion}}{{printf "v%03d" .LastOutputVersion}}{{end}}</td>
 						<td class="one wide left align">{{.Status}}</td>
 						<td class="one wide left align">01/01</td>
-						<td class="ten wide left align"></td>
+						<td class="eight wide left align"></td>
+						<td class="one wide left align">{{if eq $.LoggedInUser .Assignee}}<a href="/update-output?project_id={{.ProjectID}}&shot_id={{.ShotID}}&task_name={{.Name}}&version={{.LastOutputVersion}}" style="font-size:10px">수정</a>{{end}}</td>
+						<td class="one wide left align">{{if eq $.LoggedInUser .Assignee}}<a href="/add-output?project_id={{.ProjectID}}&shot_id={{.ShotID}}&task_name={{.Name}}" style="font-size:10px">추가</a>{{end}}</td>
 					</tr>
 					{{end}}
 					{{end}}

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -1076,6 +1077,240 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func addOutputHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	session, err := getSession(r)
+	if err != nil {
+		http.Error(w, "could not get session", http.StatusUnauthorized)
+		clearSession(w)
+		return
+	}
+	u, err := roi.GetUser(db, session["userid"])
+	if err != nil {
+		http.Error(w, "could not get user information", http.StatusInternalServerError)
+		clearSession(w)
+		return
+	}
+	if u == nil {
+		http.Error(w, "user not exist", http.StatusBadRequest)
+		clearSession(w)
+		return
+	}
+	if false {
+		// 할일: 오직 어드민, 프로젝트 슈퍼바이저, 프로젝트 매니저, CG 슈퍼바이저만
+		// 이 정보를 수정할 수 있도록 하기.
+		_ = u
+	}
+	r.ParseForm()
+	prj := r.Form.Get("project_id")
+	if prj == "" {
+		http.Error(w, "need 'project_id'", http.StatusBadRequest)
+		return
+	}
+	exist, err := roi.ProjectExist(db, prj)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if !exist {
+		http.Error(w, fmt.Sprintf("project '%s' not exist", prj), http.StatusBadRequest)
+		return
+	}
+	shot := r.Form.Get("shot_id")
+	if shot == "" {
+		http.Error(w, "need 'shot_id'", http.StatusBadRequest)
+		return
+	}
+	task := r.Form.Get("task_name")
+	if task == "" {
+		http.Error(w, "need 'task_name'", http.StatusBadRequest)
+		return
+	}
+	// addOutput은 새 버전을 추가하는 역할만 하고 값을 넣는 역할은 하지 않는다.
+	// 만일 인수를 받았다면 에러를 낼 것.
+	version := r.Form.Get("version")
+	if version != "" {
+		// 버전은 db에 기록된 마지막 버전을 기준으로 하지 여기서 받아들이지 않는다.
+		http.Error(w, "'version' should not be specified", http.StatusBadRequest)
+		return
+	}
+	if r.Form.Get("files") != "" {
+		http.Error(w, "does not accept 'files'", http.StatusBadRequest)
+		return
+	}
+	if r.Form.Get("mov") != "" {
+		http.Error(w, "does not accept 'mov'", http.StatusBadRequest)
+		return
+	}
+	if r.Form.Get("work_file") != "" {
+		http.Error(w, "does not accept 'work_file'", http.StatusBadRequest)
+		return
+	}
+	if r.Form.Get("created") != "" {
+		http.Error(w, "does not accept 'created'", http.StatusBadRequest)
+		return
+	}
+	taskID := fmt.Sprintf("%s.%s.%s", prj, shot, task)
+	t, err := roi.GetTask(db, prj, shot, task)
+	if err != nil {
+		log.Printf("could not get task '%s': %v", taskID, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if t == nil {
+		http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
+		return
+	}
+	o := &roi.Output{
+		ProjectID: prj,
+		ShotID:    shot,
+		TaskName:  task,
+	}
+	err = roi.AddOutput(db, prj, shot, task, o)
+	if err != nil {
+		log.Printf("could not add output to task '%s': %v", taskID, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/search/"+prj, http.StatusSeeOther)
+	return
+}
+
+func updateOutputHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	session, err := getSession(r)
+	if err != nil {
+		http.Error(w, "could not get session", http.StatusUnauthorized)
+		clearSession(w)
+		return
+	}
+	u, err := roi.GetUser(db, session["userid"])
+	if err != nil {
+		http.Error(w, "could not get user information", http.StatusInternalServerError)
+		clearSession(w)
+		return
+	}
+	if u == nil {
+		http.Error(w, "user not exist", http.StatusBadRequest)
+		clearSession(w)
+		return
+	}
+	if false {
+		// 할일: 오직 어드민, 프로젝트 슈퍼바이저, 프로젝트 매니저, CG 슈퍼바이저만
+		// 이 정보를 수정할 수 있도록 하기.
+		_ = u
+	}
+	r.ParseForm()
+	prj := r.Form.Get("project_id")
+	if prj == "" {
+		http.Error(w, "need 'project_id'", http.StatusBadRequest)
+		return
+	}
+	exist, err := roi.ProjectExist(db, prj)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if !exist {
+		http.Error(w, fmt.Sprintf("project '%s' not exist", prj), http.StatusBadRequest)
+		return
+	}
+	shot := r.Form.Get("shot_id")
+	if shot == "" {
+		http.Error(w, "need 'shot_id'", http.StatusBadRequest)
+		return
+	}
+	task := r.Form.Get("task_name")
+	if task == "" {
+		http.Error(w, "need 'task_name'", http.StatusBadRequest)
+		return
+	}
+	v := r.Form.Get("version")
+	if v == "" {
+		http.Error(w, "need 'version'", http.StatusBadRequest)
+		return
+	}
+	version, err := strconv.Atoi(v)
+	if err != nil {
+		http.Error(w, "'version' is not a number", http.StatusBadRequest)
+		return
+	}
+	taskID := fmt.Sprintf("%s.%s.%s", prj, shot, task)
+	t, err := roi.GetTask(db, prj, shot, task)
+	if err != nil {
+		log.Printf("could not get task '%s': %v", taskID, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if t == nil {
+		http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
+		return
+	}
+	outputID := fmt.Sprintf("%s.%s.%s.v%v03d", prj, shot, task, version)
+	if r.Method == "POST" {
+		exist, err := roi.OutputExist(db, prj, shot, task, version)
+		if err != nil {
+			log.Printf("could not check output '%s' exist: %v", outputID, err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		if !exist {
+			http.Error(w, "output '%s' not exist", http.StatusBadRequest)
+			return
+		}
+		fromStringTime := func(st string) time.Time {
+			t, err := time.Parse("2006-01-02", st)
+			if err != nil {
+				fmt.Println(err)
+			}
+			return t
+		}
+		u := roi.UpdateOutputParam{
+			Files:    fields(r.Form.Get("files"), ","),
+			Images:   fields(r.Form.Get("images"), ","),
+			Mov:      r.Form.Get("mov"),
+			WorkFile: r.Form.Get("work_file"),
+			Created:  fromStringTime(r.Form.Get("created")),
+		}
+		roi.UpdateOutput(db, prj, shot, task, version, u)
+		http.Redirect(w, r, "/search/"+prj, http.StatusSeeOther)
+		return
+	}
+	o, err := roi.GetOutput(db, prj, shot, task, version)
+	if err != nil {
+		log.Printf("could not get output '%s': %v", outputID, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if o == nil {
+		http.Error(w, fmt.Sprintf("output '%s' not exist", outputID), http.StatusBadRequest)
+	}
+	recipt := struct {
+		LoggedInUser string
+		Output       *roi.Output
+	}{
+		LoggedInUser: session["userid"],
+		Output:       o,
+	}
+	err = executeTemplate(w, "update-output.html", recipt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return
+}
+
 func main() {
 	dev = true
 
@@ -1182,6 +1417,8 @@ func main() {
 	mux.HandleFunc("/add-shot/", addShotHandler)
 	mux.HandleFunc("/update-shot", updateShotHandler)
 	mux.HandleFunc("/update-task", updateTaskHandler)
+	mux.HandleFunc("/add-output", addOutputHandler)
+	mux.HandleFunc("/update-output", updateOutputHandler)
 	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))

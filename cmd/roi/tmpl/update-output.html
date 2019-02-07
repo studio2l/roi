@@ -1,0 +1,43 @@
+{{template "head.html"}}
+{{template "nav.html" $}}
+<!--상단 고정 메뉴로 인해 위치 조정-->
+<div style="padding-top: 2rem;"></div>
+<div class="ui raised very padded text container grey inverted segment">
+	<h2 class="ui dividing header">아웃풋 수정</h2>
+	<form method="post" class="ui form">
+		<div class="field disabled"><label>프로젝트</label>
+			<input type="text" name="project_id" value="{{.Output.ProjectID}}"/>
+		</div>
+		<div class="field disabled"><label>아이디</label>
+			<input type="text" name="shot_id" value="{{.Output.ShotID}}"/>
+		</div>
+		<div class="field disabled"><label>태스크</label>
+			<input type="text" name="task_name" value="{{.Output.TaskName}}"/>
+		</div>
+		<div class="field disabled"><label>아웃풋</label>
+			<input type="text" name="version" value="{{.Output.Version}}"/>
+		</div>
+		<div class="field"><label>파일</label>
+			<input type="text" name="files" value="{{join .Output.Files ", "}}"/>
+		</div>
+		<div class="field"><label>프리뷰 이미지</label>
+			<input type="text" name="images" value="{{join .Output.Images ", "}}"/>
+		</div>
+		<div class="field"><label>프리뷰 Mov</label>
+			<input type="text" name="mov" value="{{.Output.Mov}}"/>
+		</div>
+		<div class="field"><label>작업 파일</label>
+			<input type="text" name="work_file" value="{{.Output.WorkFile}}"/>
+		</div>
+		<div class="field"><label>생성일</label>
+			<input type="text" name="created" value="{{.Output.Created}}"/>
+		</div>
+		<button class="ui button green" type="submit" value="Submit">수정</button>
+
+		<div style="height:2rem;"></div>
+	</form>
+</div>
+
+<script>
+</script>
+{{template "footer.html"}}
