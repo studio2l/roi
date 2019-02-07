@@ -1296,6 +1296,7 @@ func updateOutputHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if o == nil {
 		http.Error(w, fmt.Sprintf("output '%s' not exist", outputID), http.StatusBadRequest)
+		return
 	}
 	recipt := struct {
 		LoggedInUser string
