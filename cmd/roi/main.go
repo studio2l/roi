@@ -1131,35 +1131,54 @@ func addOutputHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "need 'task_name'", http.StatusBadRequest)
 		return
 	}
+	// addOutput은 새 버전을 추가하는 역할만 하고 값을 넣는 역할은 하지 않는다.
+	// 만일 인수를 받았다면 에러를 낼 것.
 	version := r.Form.Get("version")
 	if version != "" {
-		http.Error(w, "output 'version' should not be specified", http.StatusBadRequest)
+		// 버전은 db에 기록된 마지막 버전을 기준으로 하지 여기서 받아들이지 않는다.
+		http.Error(w, "'version' should not be specified", http.StatusBadRequest)
+		return
 	}
-	/*
-		taskID := fmt.Sprintf("%s.%s.%s", prj, shot, task)
-		if r.Method == "POST" {
-			exist, err = roi.OutputExist(db, prj, shot, task)
-			if err != nil {
-				log.Printf("could not check task '%s' exist: %v", taskID, err)
-				http.Error(w, "internal error", http.StatusInternalServerError)
-				return
-			}
-			if !exist {
-				http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
-				return
-			}
-			upd := roi.UpdateTaskParam{
-				Status:   roi.TaskStatus(r.Form.Get("status")),
-				Assignee: r.Form.Get("assignee"),
-			}
-			err = roi.UpdateTask(db, prj, shot, task, upd)
-			if err != nil {
-				log.Printf("could not update task '%s': %v", taskID, err)
-				http.Error(w, "internal error", http.StatusInternalServerError)
-				return
-			}
-		}
-	*/
+	if r.Form.Get("files") != "" {
+		http.Error(w, "does not accept 'files'", http.StatusBadRequest)
+		return
+	}
+	if r.Form.Get("mov") != "" {
+		http.Error(w, "does not accept 'mov'", http.StatusBadRequest)
+		return
+	}
+	if r.Form.Get("work_file") != "" {
+		http.Error(w, "does not accept 'work_file'", http.StatusBadRequest)
+		return
+	}
+	if r.Form.Get("created") != "" {
+		http.Error(w, "does not accept 'created'", http.StatusBadRequest)
+		return
+	}
+	taskID := fmt.Sprintf("%s.%s.%s", prj, shot, task)
+	t, err := roi.GetTask(db, prj, shot, task)
+	if err != nil {
+		log.Printf("could not get task '%s': %v", taskID, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if t == nil {
+		http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
+		return
+	}
+	o := &roi.Output{
+		ProjectID: prj,
+		ShotID:    shot,
+		TaskName:  task,
+	}
+	err = roi.AddOutput(db, prj, shot, task, o)
+	if err != nil {
+		log.Printf("could not add output to task '%s': %v", taskID, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/search/"+prj, http.StatusSeeOther)
+	return
 }
 
 func main() {

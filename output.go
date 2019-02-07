@@ -97,7 +97,8 @@ func AddOutput(db *sql.DB, prj, shot, task string, o *Output) error {
 		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	rows, err := tx.Query("SELECT last_output_version FROM tasks WHERE project_id='%s' AND shot_id='%s' AND name='%s'")
+	stmt := fmt.Sprintf("SELECT last_output_version FROM tasks WHERE project_id='%s' AND shot_id='%s' AND name='%s'", prj, shot, task)
+	rows, err := tx.Query(stmt)
 	if err != nil {
 		return fmt.Errorf("could not get last output version of task: %v", err)
 	}
@@ -112,10 +113,11 @@ func AddOutput(db *sql.DB, prj, shot, task string, o *Output) error {
 			return fmt.Errorf("rows.Scan error: %v", err)
 		}
 	}
+	rows.Close()
 	o.Version = lastv + 1
 	keystr := strings.Join(OutputTableKeys, ", ")
 	idxstr := strings.Join(OutputTableIndices, ", ")
-	stmt := fmt.Sprintf("INSERT INTO outputs (%s) VALUES (%s)", keystr, idxstr)
+	stmt = fmt.Sprintf("INSERT INTO outputs (%s) VALUES (%s)", keystr, idxstr)
 	if _, err := tx.Exec(stmt, o.dbValues()...); err != nil {
 		return fmt.Errorf("could not insert outputs: %v", err)
 	}
