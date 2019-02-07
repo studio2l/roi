@@ -61,6 +61,12 @@ func (s *Shot) dbValues() []interface{} {
 	if s == nil {
 		s = &Shot{}
 	}
+	if s.Tags == nil {
+		s.Tags = make([]string, 0)
+	}
+	if s.WorkingTasks == nil {
+		s.WorkingTasks = make([]string, 0)
+	}
 	return []interface{}{
 		s.ID,
 		s.ProjectID,
@@ -80,7 +86,7 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	id STRING NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %'),
 	project_id STRING NOT NULL CHECK (length(project_id) > 0) CHECK (project_id NOT LIKE '% %'),
-	status STRING NOT NULL CHECK (length(status) > 0)  CHECK (status NOT LIKE '% %'),
+	status STRING NOT NULL,
 	edit_order INT NOT NULL,
 	description STRING NOT NULL,
 	cg_description STRING NOT NULL,
@@ -238,7 +244,7 @@ func (u UpdateShotParam) keys() []string {
 	return []string{
 		"status",
 		"edit_order",
-		"decsription",
+		"description",
 		"cg_description",
 		"timecode_in",
 		"timecode_out",
@@ -253,6 +259,12 @@ func (u UpdateShotParam) indices() []string {
 }
 
 func (u UpdateShotParam) values() []interface{} {
+	if u.Tags == nil {
+		u.Tags = make([]string, 0)
+	}
+	if u.WorkingTasks == nil {
+		u.WorkingTasks = make([]string, 0)
+	}
 	return []interface{}{
 		u.Status,
 		u.EditOrder,
@@ -261,8 +273,8 @@ func (u UpdateShotParam) values() []interface{} {
 		u.TimecodeIn,
 		u.TimecodeOut,
 		u.Duration,
-		u.Tags,
-		u.WorkingTasks,
+		pq.Array(u.Tags),
+		pq.Array(u.WorkingTasks),
 	}
 }
 

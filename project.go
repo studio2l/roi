@@ -181,6 +181,9 @@ func (u UpdateProjectParam) indices() []string {
 }
 
 func (u UpdateProjectParam) values() []interface{} {
+	if u.DefaultTasks == nil {
+		u.DefaultTasks = []string{}
+	}
 	return []interface{}{
 		u.Name,
 		u.Status,
@@ -197,7 +200,7 @@ func (u UpdateProjectParam) values() []interface{} {
 		u.VFXDueDate,
 		u.OutputSize,
 		u.ViewLUT,
-		u.DefaultTasks,
+		pq.Array(u.DefaultTasks),
 	}
 }
 
