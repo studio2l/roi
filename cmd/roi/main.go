@@ -634,7 +634,8 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	shotFilter := r.Form.Get("shot")
 	tagFilter := r.Form.Get("tag")
 	statusFilter := r.Form.Get("status")
-	shots, err := roi.SearchShots(db, prj, shotFilter, tagFilter, statusFilter)
+	assigneeFilter := r.Form.Get("assignee")
+	shots, err := roi.SearchShots(db, prj, shotFilter, tagFilter, statusFilter, assigneeFilter)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -660,23 +661,25 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	recipt := struct {
-		LoggedInUser string
-		Projects     []string
-		Project      string
-		Shots        []*roi.Shot
-		Tasks        map[string]map[string]*roi.Task
-		FilterShot   string
-		FilterTag    string
-		FilterStatus string
+		LoggedInUser   string
+		Projects       []string
+		Project        string
+		Shots          []*roi.Shot
+		Tasks          map[string]map[string]*roi.Task
+		FilterShot     string
+		FilterTag      string
+		FilterStatus   string
+		FilterAssignee string
 	}{
-		LoggedInUser: session["userid"],
-		Projects:     prjs,
-		Project:      prj,
-		Shots:        shots,
-		Tasks:        tasks,
-		FilterShot:   shotFilter,
-		FilterTag:    tagFilter,
-		FilterStatus: statusFilter,
+		LoggedInUser:   session["userid"],
+		Projects:       prjs,
+		Project:        prj,
+		Shots:          shots,
+		Tasks:          tasks,
+		FilterShot:     shotFilter,
+		FilterTag:      tagFilter,
+		FilterStatus:   statusFilter,
+		FilterAssignee: assigneeFilter,
 	}
 	err = executeTemplate(w, "search.html", recipt)
 	if err != nil {
