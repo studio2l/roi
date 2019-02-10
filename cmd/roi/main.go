@@ -119,6 +119,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		log.Print(fmt.Sprintf("could not get session: %s", err))
 		clearSession(w)
 	}
+	if session == nil || session["userid"] == "" {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
 	recipt := struct {
 		LoggedInUser string
 	}{
