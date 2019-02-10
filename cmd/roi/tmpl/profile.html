@@ -29,8 +29,8 @@
 			</div>
 			<div class="field"><label>직책</label>
 				<select type="text" name="position">
-					<option value=""{{if eq $.User.Position ""}}selected{{end}}>없음</option>
-					<option value="lead" {{if eq $.User.Position "lead"}}selected{{end}}>팀장</option>
+					<option value=""{{if eq $.User.Role ""}}selected{{end}}>없음</option>
+					<option value="lead" {{if eq $.User.Role "lead"}}selected{{end}}>팀장</option>
 				</select>
 			</div>
 			<div class="field"><label>이메일</label>
