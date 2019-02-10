@@ -181,27 +181,43 @@ func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 }
 
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
-func SearchShots(db *sql.DB, prj, shot, tag, status string) ([]*Shot, error) {
-	keystr := strings.Join(ShotTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM shots", keystr)
+func SearchShots(db *sql.DB, prj, shot, tag, status, assignee string) ([]*Shot, error) {
+	keystr := ""
+	for i, k := range ShotTableKeys {
+		if i != 0 {
+			keystr += ", "
+		}
+		// 태스크에 있는 정보를 찾기 위해 JOIN 해야 할 경우가 있기 때문에
+		// shots. 을 붙인다.
+		keystr += "shots." + k
+	}
 	where := make([]string, 0)
 	vals := make([]interface{}, 0)
-	where = append(where, "project_id=$1")
+	i := 1 // 인덱스가 1부터 시작이다.
+	stmt := fmt.Sprintf("SELECT %s FROM shots", keystr)
+	where = append(where, fmt.Sprintf("shots.project_id=$%d", i))
 	vals = append(vals, prj)
-	i := 2 // $1 은 이미 project_id를 찾는데 쓰임
+	i++
 	if shot != "" {
-		where = append(where, fmt.Sprintf("id=$%d", i))
+		where = append(where, fmt.Sprintf("shots.id=$%d", i))
 		vals = append(vals, shot)
 		i++
 	}
 	if tag != "" {
-		where = append(where, fmt.Sprintf("$%d::string = ANY(tags)", i))
+		where = append(where, fmt.Sprintf("$%d::string = ANY(shots.tags)", i))
 		vals = append(vals, tag)
 		i++
 	}
 	if status != "" {
-		where = append(where, fmt.Sprintf("status=$%d", i))
+		where = append(where, fmt.Sprintf("shots.status=$%d", i))
 		vals = append(vals, status)
+		i++
+	}
+	if assignee != "" {
+		stmt += " JOIN tasks ON (tasks.shot_id = shots.id)"
+		where = append(where, fmt.Sprintf("tasks.assignee=$%d", i))
+		vals = append(vals, assignee)
+		i++
 	}
 	wherestr := strings.Join(where, " AND ")
 	if wherestr != "" {
