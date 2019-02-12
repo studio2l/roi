@@ -18,6 +18,7 @@ var testShotA = &Shot{
 	TimecodeOut:   "00:00:05:12",
 	Duration:      132,
 	Tags:          []string{"로이", "리무브"},
+	WorkingTasks:  []string{"fx_fire"}, // testTaskA 확인
 }
 
 var testShotB = &Shot{

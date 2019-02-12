@@ -195,6 +195,32 @@ func AllTasks(db *sql.DB, prj, shot string) ([]*Task, error) {
 	return tasks, nil
 }
 
+// UserTasks는 해당 유저의 모든 태스크를 db에서 검색해 반환한다.
+func UserTasks(db *sql.DB, user string) ([]*Task, error) {
+	// 샷의 working_tasks에 속하지 않은 태스크는 보이지 않는다.
+	keystr := ""
+	for i, k := range TaskTableKeys {
+		if i != 0 {
+			keystr += ", "
+		}
+		keystr += "tasks." + k
+	}
+	stmt := fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.project_id = shots.project_id AND tasks.shot_id = shots.id)  WHERE tasks.assignee='%s' AND tasks.name = ANY(shots.working_tasks)", keystr, user)
+	rows, err := db.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	tasks := make([]*Task, 0)
+	for rows.Next() {
+		t, err := taskFromRows(rows)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, t)
+	}
+	return tasks, nil
+}
+
 // DeleteTask는 db의 특정 프로젝트에서 태스크를 하나 지운다.
 func DeleteTask(db *sql.DB, prj, shot, task string) error {
 	stmt := "DELETE FROM tasks WHERE project_id=$1 AND shot_id=$2 AND name=$3"

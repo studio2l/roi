@@ -214,7 +214,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee string) ([]*Shot, 
 		i++
 	}
 	if assignee != "" {
-		stmt += " JOIN tasks ON (tasks.shot_id = shots.id)"
+		stmt += " JOIN tasks ON (tasks.project_id = shots.project_id AND tasks.shot_id = shots.id)"
 		where = append(where, fmt.Sprintf("tasks.assignee=$%d", i))
 		vals = append(vals, assignee)
 		i++

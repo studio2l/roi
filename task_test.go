@@ -47,6 +47,14 @@ func TestTask(t *testing.T) {
 	if !exist {
 		t.Fatalf("added task not exist")
 	}
+	tasks, err := UserTasks(db, "kybin")
+	if len(tasks) != 1 {
+		t.Fatalf("invalid number of user tasks: want 1, got %d", len(tasks))
+	}
+	tasks, err = UserTasks(db, "unknown")
+	if len(tasks) != 0 {
+		t.Fatalf("invalid number of user tasks: want 0, got %d", len(tasks))
+	}
 	err = DeleteTask(db, testProject.ID, testShotA.ID, testTaskA.Name)
 	if err != nil {
 		t.Fatalf("could not delete task: %s", err)
