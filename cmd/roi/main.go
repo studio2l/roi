@@ -123,10 +123,32 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
+	user := session["userid"]
+	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	if err != nil {
+		log.Printf("error connecting to the database: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+	tasks, err := roi.UserTasks(db, user)
+	if err != nil {
+		log.Printf("could not get user tasks: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	numTasks := make(map[string]map[string]int)
+	for _, t := range tasks {
+		if numTasks[t.ProjectID] == nil {
+			numTasks[t.ProjectID] = make(map[string]int)
+		}
+		numTasks[t.ProjectID][string(t.Status)] += 1
+	}
 	recipt := struct {
 		LoggedInUser string
+		NumTasks     map[string]map[string]int
 	}{
 		LoggedInUser: session["userid"],
+		NumTasks:     numTasks,
 	}
 	err = executeTemplate(w, "index.html", recipt)
 	if err != nil {

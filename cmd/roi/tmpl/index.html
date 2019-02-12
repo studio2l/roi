@@ -1,3 +1,17 @@
 {{template "head.html"}}
 {{template "nav.html" $}}
+<div style="padding:15px 10px 15px 10px;z-index:0;">
+{{range $prj, $nInStatus := $.NumTasks}}
+<div class="ui inverted segment">
+	<a href="/search/{{$prj}}?assignee={{$.LoggedInUser}}">
+		<div class="ui grey large header">{{$prj}}</div>
+	</a>
+	{{range $status, $n := $nInStatus}}
+	<a href="/search/{{$prj}}?assignee={{$.LoggedInUser}}&status={{$status}}">
+		<div class="ui grey image label">{{$status}}<div class="detail">{{$n}}</div></div>
+	<a>
+	{{end}}
+</div>
+{{end}}
+</div>
 {{template "footer.html"}}
