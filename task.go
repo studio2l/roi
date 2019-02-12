@@ -205,7 +205,7 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 		}
 		keystr += "tasks." + k
 	}
-	stmt := fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.shot_id = shots.id)  WHERE tasks.assignee='%s' AND tasks.name = ANY(shots.working_tasks)", keystr, user)
+	stmt := fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.project_id = shots.project_id AND tasks.shot_id = shots.id)  WHERE tasks.assignee='%s' AND tasks.name = ANY(shots.working_tasks)", keystr, user)
 	rows, err := db.Query(stmt)
 	if err != nil {
 		return nil, err
