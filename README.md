@@ -51,6 +51,11 @@ cp -i cockroach-v2.1.2.linux-amd64/cockroach /usr/local/bin
 cd ~ # 또는 원하는 실행 장소에서
 cockroach start --insecure &
 
+# Test DB 추가
+cd /roi/cmd/roishot/
+go build
+./roishot ./testdata/test.xlsx
+
 # 서버 실행
 export GO111MODULE=on # 혹시 빠뜨렸을 때에 대비해
 git clone https://github.com/studio2l/roi
