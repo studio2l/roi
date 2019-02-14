@@ -59,3 +59,11 @@ go build
 ./roi -init
 sudo ./roi
 ```
+
+### Test DB 추가
+
+```
+cd ~/roi/cmd/roishot
+go build
+./roishot ./testdata/test.xlsx
+```
