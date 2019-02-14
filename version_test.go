@@ -8,13 +8,13 @@ import (
 	"time"
 )
 
-var testOutputA = &Output{
+var testVersionA = &Version{
 	ProjectID: testProject.ID,
 	ShotID:    testShotA.ID,
 	TaskName:  testTaskA.Name,
 
-	Version: 0, // DB에 Output을 추가할 때는 버전이 지정되어 있으면 안된다.
-	Files:   []string{"/project/test/FOO_0010/scene/test.v001.abc"},
+	Num:         0, // DB에 Version을 추가할 때는 Num이 지정되어 있으면 안된다.
+	OutputFiles: []string{"/project/test/FOO_0010/scene/test.v001.abc"},
 	Images: []string{
 		"/project/test/FOO_0010/render/test.v001.0001.jpg",
 		"/project/test/FOO_0010/render/test.v001.0002.jpg",
@@ -24,7 +24,7 @@ var testOutputA = &Output{
 	Created:  time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
 }
 
-func TestOutput(t *testing.T) {
+func TestVersion(t *testing.T) {
 	// 테스트 서버에 접속
 	db, err := sql.Open("postgres", "postgresql://root@localhost:54545/roi?sslmode=disable")
 	if err != nil {
@@ -50,44 +50,44 @@ func TestOutput(t *testing.T) {
 		t.Fatalf("could not add task: %v", err)
 	}
 
-	err = AddOutput(db, testProject.ID, testShotA.ID, testTaskA.Name, testOutputA)
+	err = AddVersion(db, testProject.ID, testShotA.ID, testTaskA.Name, testVersionA)
 	if err != nil {
-		t.Fatalf("could not add output: %v", err)
+		t.Fatalf("could not add version: %v", err)
 	}
-	exist, err := OutputExist(db, testProject.ID, testShotA.ID, testTaskA.Name, testOutputA.Version)
+	exist, err := VersionExist(db, testProject.ID, testShotA.ID, testTaskA.Name, testVersionA.Num)
 	if err != nil {
-		t.Fatalf("could not check output exist: %v", err)
+		t.Fatalf("could not check version exist: %v", err)
 	}
 	if !exist {
-		t.Fatalf("added output not exist")
+		t.Fatalf("added version not exist")
 	}
-	want := testOutputA
-	want.Version = 1 // DB에 들어가면서 버전이 추가되어야 한다.
-	got, err := GetOutput(db, testProject.ID, testShotA.ID, testTaskA.Name, want.Version)
+	want := testVersionA
+	want.Num = 1 // DB에 들어가면서 버전 번호가 추가되어야 한다.
+	got, err := GetVersion(db, testProject.ID, testShotA.ID, testTaskA.Name, want.Num)
 	if err != nil {
-		t.Fatalf("could not get output: %v", err)
+		t.Fatalf("could not get version: %v", err)
 	}
 	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("added output is not expected: got %v, want %v", got, want)
+		t.Fatalf("added version is not expected: got %v, want %v", got, want)
 	}
-	err = UpdateOutput(db, testProject.ID, testShotA.ID, testTaskA.Name, testOutputA.Version, UpdateOutputParam{})
+	err = UpdateVersion(db, testProject.ID, testShotA.ID, testTaskA.Name, testVersionA.Num, UpdateVersionParam{})
 	if err != nil {
-		t.Fatalf("could not clear(update) output: %v", err)
+		t.Fatalf("could not clear(update) version: %v", err)
 	}
-	err = DeleteOutput(db, testProject.ID, testShotA.ID, testTaskA.Name, testOutputA.Version)
+	err = DeleteVersion(db, testProject.ID, testShotA.ID, testTaskA.Name, testVersionA.Num)
 	if err != nil {
-		t.Fatalf("could not delete output: %v", err)
+		t.Fatalf("could not delete version: %v", err)
 	}
-	err = DeleteOutput(db, testProject.ID, testShotA.ID, testTaskA.Name, testOutputA.Version)
+	err = DeleteVersion(db, testProject.ID, testShotA.ID, testTaskA.Name, testVersionA.Num)
 	if err == nil {
-		t.Fatalf("could delete output again")
+		t.Fatalf("could delete version again")
 	}
-	exist, err = OutputExist(db, testProject.ID, testShotA.ID, testTaskA.Name, testOutputA.Version)
+	exist, err = VersionExist(db, testProject.ID, testShotA.ID, testTaskA.Name, testVersionA.Num)
 	if err != nil {
-		t.Fatalf("could not check output exist: %v", err)
+		t.Fatalf("could not check version exist: %v", err)
 	}
 	if exist {
-		t.Fatalf("deleted output exist")
+		t.Fatalf("deleted version exist")
 	}
 
 	err = DeleteTask(db, testProject.ID, testShotA.ID, testTaskA.Name)

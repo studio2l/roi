@@ -1106,7 +1106,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func addOutputHandler(w http.ResponseWriter, r *http.Request) {
+func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
@@ -1161,7 +1161,7 @@ func addOutputHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "need 'task_name'", http.StatusBadRequest)
 		return
 	}
-	// addOutput은 새 버전을 추가하는 역할만 하고 값을 넣는 역할은 하지 않는다.
+	// addVersion은 새 버전을 추가하는 역할만 하고 값을 넣는 역할은 하지 않는다.
 	// 만일 인수를 받았다면 에러를 낼 것.
 	version := r.Form.Get("version")
 	if version != "" {
@@ -1196,14 +1196,14 @@ func addOutputHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
 		return
 	}
-	o := &roi.Output{
+	o := &roi.Version{
 		ProjectID: prj,
 		ShotID:    shot,
 		TaskName:  task,
 	}
-	err = roi.AddOutput(db, prj, shot, task, o)
+	err = roi.AddVersion(db, prj, shot, task, o)
 	if err != nil {
-		log.Printf("could not add output to task '%s': %v", taskID, err)
+		log.Printf("could not add version to task '%s': %v", taskID, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
@@ -1211,7 +1211,7 @@ func addOutputHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func updateOutputHandler(w http.ResponseWriter, r *http.Request) {
+func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
@@ -1287,16 +1287,16 @@ func updateOutputHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
 		return
 	}
-	outputID := fmt.Sprintf("%s.%s.%s.v%v03d", prj, shot, task, version)
+	versionID := fmt.Sprintf("%s.%s.%s.v%v03d", prj, shot, task, version)
 	if r.Method == "POST" {
-		exist, err := roi.OutputExist(db, prj, shot, task, version)
+		exist, err := roi.VersionExist(db, prj, shot, task, version)
 		if err != nil {
-			log.Printf("could not check output '%s' exist: %v", outputID, err)
+			log.Printf("could not check version '%s' exist: %v", versionID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
 		if !exist {
-			http.Error(w, "output '%s' not exist", http.StatusBadRequest)
+			http.Error(w, "version '%s' not exist", http.StatusBadRequest)
 			return
 		}
 		fromStringTime := func(st string) time.Time {
@@ -1306,35 +1306,35 @@ func updateOutputHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			return t
 		}
-		u := roi.UpdateOutputParam{
-			Files:    fields(r.Form.Get("files"), ","),
-			Images:   fields(r.Form.Get("images"), ","),
-			Mov:      r.Form.Get("mov"),
-			WorkFile: r.Form.Get("work_file"),
-			Created:  fromStringTime(r.Form.Get("created")),
+		u := roi.UpdateVersionParam{
+			OutputFiles: fields(r.Form.Get("output_files"), ","),
+			Images:      fields(r.Form.Get("images"), ","),
+			Mov:         r.Form.Get("mov"),
+			WorkFile:    r.Form.Get("work_file"),
+			Created:     fromStringTime(r.Form.Get("created")),
 		}
-		roi.UpdateOutput(db, prj, shot, task, version, u)
+		roi.UpdateVersion(db, prj, shot, task, version, u)
 		http.Redirect(w, r, "/search/"+prj, http.StatusSeeOther)
 		return
 	}
-	o, err := roi.GetOutput(db, prj, shot, task, version)
+	o, err := roi.GetVersion(db, prj, shot, task, version)
 	if err != nil {
-		log.Printf("could not get output '%s': %v", outputID, err)
+		log.Printf("could not get version '%s': %v", versionID, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	if o == nil {
-		http.Error(w, fmt.Sprintf("output '%s' not exist", outputID), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("version '%s' not exist", versionID), http.StatusBadRequest)
 		return
 	}
 	recipt := struct {
 		LoggedInUser string
-		Output       *roi.Output
+		Version      *roi.Version
 	}{
 		LoggedInUser: session["userid"],
-		Output:       o,
+		Version:      o,
 	}
-	err = executeTemplate(w, "update-output.html", recipt)
+	err = executeTemplate(w, "update-version.html", recipt)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1447,8 +1447,8 @@ func main() {
 	mux.HandleFunc("/add-shot/", addShotHandler)
 	mux.HandleFunc("/update-shot", updateShotHandler)
 	mux.HandleFunc("/update-task", updateTaskHandler)
-	mux.HandleFunc("/add-output", addOutputHandler)
-	mux.HandleFunc("/update-output", updateOutputHandler)
+	mux.HandleFunc("/add-version", addVersionHandler)
+	mux.HandleFunc("/update-version", updateVersionHandler)
 	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
