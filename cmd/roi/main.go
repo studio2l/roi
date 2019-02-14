@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"strconv"
@@ -41,17 +42,41 @@ func hasThumbnail(prj, shot string) bool {
 	return true
 }
 
-// dateTime은 Go의 시간 포맷을 YYYY-MM-DD로 표현한다.
-func dateTime(t *time.Time) string {
-	return t.Format("2006-01-02")
+// stringFromTime은 시간을 rfc3339 형식의 문자열로 표현한다.
+func stringFromTime(t *time.Time) string {
+	return t.Format(time.RFC3339)
+}
+
+// timeFromString는 rfc3339 형식의 문자열에서 시간을 얻는다.
+// 만일 형식이 틀려 에러가 나면 그냥 로그로 남긴다.
+func timeFromString(s string) (time.Time, error) {
+	return time.Parse(time.RFC3339, s)
+}
+
+// parseTimeforms는 http.Request.Form에서 시간 형식의 Form에 대해 파싱해
+// 맵으로 반환한다. 만일 받아들인 문자열이 시간 형식에 맞지 않으면 에러를 낸다.
+func parseTimeForms(form url.Values, keys ...string) (map[string]time.Time, error) {
+	tforms := make(map[string]time.Time)
+	for _, k := range keys {
+		v := form.Get(k)
+		if v == "" {
+			continue
+		}
+		t, err := timeFromString(v)
+		if err != nil {
+			return nil, fmt.Errorf("invalid time string '%s' for '%s'", v, k)
+		}
+		tforms[k] = t
+	}
+	return tforms, nil
 }
 
 // parseTemplate은 tmpl 디렉토리 안의 html파일들을 파싱하여 http 응답에 사용될 수 있도록 한다.
 func parseTemplate() {
 	templates = template.Must(template.New("").Funcs(template.FuncMap{
-		"hasThumbnail": hasThumbnail,
-		"dateTime":     dateTime,
-		"join":         strings.Join,
+		"hasThumbnail":   hasThumbnail,
+		"stringFromTime": stringFromTime,
+		"join":           strings.Join,
 	}).ParseGlob("tmpl/*.html"))
 }
 
@@ -466,12 +491,16 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("project '%s' exist", id), http.StatusBadRequest)
 			return
 		}
-		fromStringTime := func(st string) time.Time {
-			t, err := time.Parse("2006-01-02", st)
-			if err != nil {
-				fmt.Println(err)
-			}
-			return t
+		timeForms, err := parseTimeForms(r.Form,
+			"start_date",
+			"release_date",
+			"crank_in",
+			"crank_up",
+			"vfx_due_date",
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 		p := &roi.Project{
 			ID:            id,
@@ -483,11 +512,11 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 			VFXSupervisor: r.Form.Get("vfx_supervisor"),
 			VFXManager:    r.Form.Get("vfx_manager"),
 			CGSupervisor:  r.Form.Get("cg_supervisor"),
-			StartDate:     fromStringTime(r.Form.Get("start_date")),
-			ReleaseDate:   fromStringTime(r.Form.Get("release_date")),
-			CrankIn:       fromStringTime(r.Form.Get("crank_in")),
-			CrankUp:       fromStringTime(r.Form.Get("crank_up")),
-			VFXDueDate:    fromStringTime(r.Form.Get("vfx_due_date")),
+			StartDate:     timeForms["start_date"],
+			ReleaseDate:   timeForms["release_date"],
+			CrankIn:       timeForms["crank_in"],
+			CrankUp:       timeForms["crank_up"],
+			VFXDueDate:    timeForms["vfx_due_date"],
 			OutputSize:    r.Form.Get("output_size"),
 			ViewLUT:       r.Form.Get("view_lut"),
 			DefaultTasks:  fields(r.Form.Get("default_tasks"), ","),
@@ -552,14 +581,18 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("project '%s' not exist", id), http.StatusBadRequest)
 		return
 	}
+	timeForms, err := parseTimeForms(r.Form,
+		"start_date",
+		"release_date",
+		"crank_in",
+		"crank_up",
+		"vfx_due_date",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	if r.Method == "POST" {
-		fromStringTime := func(st string) time.Time {
-			t, err := time.Parse("2006-01-02", st)
-			if err != nil {
-				fmt.Println(err)
-			}
-			return t
-		}
 		upd := roi.UpdateProjectParam{
 			Name:          r.Form.Get("name"),
 			Status:        r.Form.Get("status"),
@@ -569,11 +602,11 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			VFXSupervisor: r.Form.Get("vfx_supervisor"),
 			VFXManager:    r.Form.Get("vfx_manager"),
 			CGSupervisor:  r.Form.Get("cg_supervisor"),
-			StartDate:     fromStringTime(r.Form.Get("start_date")),
-			ReleaseDate:   fromStringTime(r.Form.Get("release_date")),
-			CrankIn:       fromStringTime(r.Form.Get("crank_in")),
-			CrankUp:       fromStringTime(r.Form.Get("crank_up")),
-			VFXDueDate:    fromStringTime(r.Form.Get("vfx_due_date")),
+			StartDate:     timeForms["start_date"],
+			ReleaseDate:   timeForms["release_date"],
+			CrankIn:       timeForms["crank_in"],
+			CrankUp:       timeForms["crank_up"],
+			VFXDueDate:    timeForms["vfx_due_date"],
 			OutputSize:    r.Form.Get("output_size"),
 			ViewLUT:       r.Form.Get("view_lut"),
 			DefaultTasks:  fields(r.Form.Get("default_tasks"), ","),
@@ -1299,19 +1332,19 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "version '%s' not exist", http.StatusBadRequest)
 			return
 		}
-		fromStringTime := func(st string) time.Time {
-			t, err := time.Parse("2006-01-02", st)
-			if err != nil {
-				fmt.Println(err)
-			}
-			return t
+		timeForms, err := parseTimeForms(r.Form,
+			"created",
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 		u := roi.UpdateVersionParam{
 			OutputFiles: fields(r.Form.Get("output_files"), ","),
 			Images:      fields(r.Form.Get("images"), ","),
 			Mov:         r.Form.Get("mov"),
 			WorkFile:    r.Form.Get("work_file"),
-			Created:     fromStringTime(r.Form.Get("created")),
+			Created:     timeForms["created"],
 		}
 		roi.UpdateVersion(db, prj, shot, task, version, u)
 		http.Redirect(w, r, "/search/"+prj, http.StatusSeeOther)
