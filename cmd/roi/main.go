@@ -48,7 +48,7 @@ func stringFromTime(t *time.Time) string {
 }
 
 // timeFromString는 rfc3339 형식의 문자열에서 시간을 얻는다.
-// 만일 형식이 틀려 에러가 나면 그냥 로그로 남긴다.
+// 받은 문자열이 형식에 맞지 않으면 에러를 반환한다.
 func timeFromString(s string) (time.Time, error) {
 	return time.Parse(time.RFC3339, s)
 }
