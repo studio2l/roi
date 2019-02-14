@@ -221,19 +221,20 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 	return tasks, nil
 }
 
-// DeleteTask는 db의 특정 프로젝트에서 태스크를 하나 지운다.
+// DeleteTask는 해당 태스크와 그 하위의 모든 데이터를 db에서 지운다.
+// 해당 태스크가 없어도 에러를 내지 않기 때문에 검사를 원한다면 TaskExist를 사용해야 한다.
+// 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
 func DeleteTask(db *sql.DB, prj, shot, task string) error {
-	stmt := "DELETE FROM tasks WHERE project_id=$1 AND shot_id=$2 AND name=$3"
-	res, err := db.Exec(stmt, prj, shot, task)
+	tx, err := db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
-	n, err := res.RowsAffected()
-	if err != nil {
-		return err
+	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
+	if _, err := tx.Exec("DELETE FROM tasks WHERE project_id=$1 AND shot_id=$2 AND name=$3", prj, shot, task); err != nil {
+		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
 	}
-	if n == 0 {
-		return fmt.Errorf("task not exist: %s.%s.%s", prj, shot, task)
+	if _, err := tx.Exec("DELETE FROM versions WHERE project_id=$1 AND shot_id=$2 AND task_name=$3", prj, shot, task); err != nil {
+		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
 	}
-	return nil
+	return tx.Commit()
 }

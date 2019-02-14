@@ -78,10 +78,6 @@ func TestVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not delete version: %v", err)
 	}
-	err = DeleteVersion(db, testProject.ID, testShotA.ID, testTaskA.Name, testVersionA.Num)
-	if err == nil {
-		t.Fatalf("could delete version again")
-	}
 	exist, err = VersionExist(db, testProject.ID, testShotA.ID, testTaskA.Name, testVersionA.Num)
 	if err != nil {
 		t.Fatalf("could not check version exist: %v", err)

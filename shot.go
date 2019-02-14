@@ -311,11 +311,23 @@ func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 	return nil
 }
 
-// DeleteShot은 db의 특정 프로젝트에서 샷을 하나 지운다.
-func DeleteShot(db *sql.DB, prj string, shot string) error {
-	stmt := "DELETE FROM shots WHERE project_id=$1 AND id=$2"
-	if _, err := db.Exec(stmt, prj, shot); err != nil {
-		return err
+// DeleteShot은 해당 샷과 그 하위의 모든 데이터를 db에서 지운다.
+// 해당 샷이 없어도 에러를 내지 않기 때문에 검사를 원한다면 ShotExist를 사용해야 한다.
+// 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
+func DeleteShot(db *sql.DB, prj, shot string) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
-	return nil
+	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
+	if _, err := tx.Exec("DELETE FROM shots WHERE project_id=$1 AND id=$2", prj, shot); err != nil {
+		return fmt.Errorf("could not delete data from 'shots' table: %v", err)
+	}
+	if _, err := tx.Exec("DELETE FROM tasks WHERE project_id=$1 AND shot_id=$2", prj, shot); err != nil {
+		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
+	}
+	if _, err := tx.Exec("DELETE FROM versions WHERE project_id=$1 AND shot_id=$2", prj, shot); err != nil {
+		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
+	}
+	return tx.Commit()
 }

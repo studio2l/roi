@@ -284,14 +284,26 @@ func AllProjects(db *sql.DB) ([]*Project, error) {
 	return prjs, nil
 }
 
+// DeleteProject는 해당 프로젝트와 그 하위의 모든 데이터를 db에서 지운다.
+// 해당 프로젝트가 없어도 에러를 내지 않기 때문에 검사를 원한다면 ProjectExist를 사용해야 한다.
+// 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
 func DeleteProject(db *sql.DB, prj string) error {
-	stmt := "DELETE FROM shots WHERE project_id=$1"
-	if _, err := db.Exec(stmt, prj); err != nil {
-		return err
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
-	stmt = "DELETE FROM projects WHERE id=$1"
-	if _, err := db.Exec(stmt, prj); err != nil {
-		return err
+	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
+	if _, err := tx.Exec("DELETE FROM projects WHERE id=$1", prj); err != nil {
+		return fmt.Errorf("could not delete data from 'projects' table: %v", err)
 	}
-	return nil
+	if _, err := tx.Exec("DELETE FROM shots WHERE project_id=$1", prj); err != nil {
+		return fmt.Errorf("could not delete data from 'shots' table: %v", err)
+	}
+	if _, err := tx.Exec("DELETE FROM tasks WHERE project_id=$1", prj); err != nil {
+		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
+	}
+	if _, err := tx.Exec("DELETE FROM versions WHERE project_id=$1", prj); err != nil {
+		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
+	}
+	return tx.Commit()
 }

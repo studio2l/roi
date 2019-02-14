@@ -122,15 +122,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not initialize tables: %v", err)
 	}
+
 	// 기존의 데이터를 일단 지운다. 더 쉽게 테스트하기 위한 임시방편이다.
-	if _, err := db.Exec("DELETE FROM shots WHERE project_id=$1", prj); err != nil {
-		fmt.Fprintln(os.Stderr, "could not delete projects' shots: ", err)
-		os.Exit(1)
-	}
-	if _, err := db.Exec("DELETE FROM projects WHERE id=$1", prj); err != nil {
-		fmt.Fprintln(os.Stderr, "could not delete project:", err)
-		os.Exit(1)
-	}
+	roi.DeleteProject(db, prj)
 
 	p := &roi.Project{}
 	p.ID = prj
