@@ -30,7 +30,7 @@
 			<input type="text" name="work_file" value="{{.Version.WorkFile}}"/>
 		</div>
 		<div class="field"><label>생성일</label>
-			<input type="text" name="created" value="{{.Version.Created}}"/>
+			<input type="text" name="created" value="{{stringFromTime .Version.Created}}"/>
 		</div>
 		<button class="ui button green" type="submit" value="Submit">수정</button>
 
