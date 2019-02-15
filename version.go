@@ -257,19 +257,17 @@ func AllVersions(db *sql.DB, prj, shot, task string) ([]*Version, error) {
 	return versions, nil
 }
 
-// DeleteVersion은 db의 특정 프로젝트에서 아웃풋을 하나 지운다.
+// DeleteVersion은 해당 버전과 그 하위의 모든 데이터를 db에서 지운다.
+// 해당 버전이 없어도 에러를 내지 않기 때문에 검사를 원한다면 VersionExist를 사용해야 한다.
+// 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
 func DeleteVersion(db *sql.DB, prj, shot, task string, version int) error {
-	stmt := "DELETE FROM versions WHERE project_id=$1 AND shot_id=$2 AND task_name=$3 AND num=$4"
-	res, err := db.Exec(stmt, prj, shot, task, version)
+	tx, err := db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
-	n, err := res.RowsAffected()
-	if err != nil {
-		return err
+	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
+	if _, err := tx.Exec("DELETE FROM versions WHERE project_id=$1 AND shot_id=$2 AND task_name=$3 AND num=$4", prj, shot, task, version); err != nil {
+		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
 	}
-	if n == 0 {
-		return fmt.Errorf("output not exist: %s.%s.%s.v%03d", prj, shot, task, version)
-	}
-	return nil
+	return tx.Commit()
 }

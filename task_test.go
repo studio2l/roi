@@ -59,10 +59,6 @@ func TestTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not delete task: %s", err)
 	}
-	err = DeleteTask(db, testProject.ID, testShotA.ID, testTaskA.Name)
-	if err == nil {
-		t.Fatalf("could delete task again")
-	}
 	exist, err = TaskExist(db, testProject.ID, testShotA.ID, testTaskA.Name)
 	if err != nil {
 		t.Fatalf("could not check task exist: %s", err)
