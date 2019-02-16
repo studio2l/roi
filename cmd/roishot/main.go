@@ -149,6 +149,7 @@ func main() {
 				ProjectID: prj,
 				ShotID:    s.ID,
 				Name:      task,
+				Status:    roi.TaskStatus("not-set"),
 			}
 			roi.AddTask(db, prj, s.ID, t)
 		}
