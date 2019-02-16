@@ -209,8 +209,8 @@ func VersionExist(db *sql.DB, prj, shot, task string, version int) (bool, error)
 	return rows.Next(), nil
 }
 
-// outputFromRows는 테이블의 한 열에서 아웃풋을 받아온다.
-func outputFromRows(rows *sql.Rows) (*Version, error) {
+// versionFromRows는 테이블의 한 열에서 아웃풋을 받아온다.
+func versionFromRows(rows *sql.Rows) (*Version, error) {
 	v := &Version{}
 	err := rows.Scan(
 		&v.ProjectID, &v.ShotID, &v.TaskName,
@@ -235,7 +235,7 @@ func GetVersion(db *sql.DB, prj, shot, task string, version int) (*Version, erro
 	if !ok {
 		return nil, nil
 	}
-	return outputFromRows(rows)
+	return versionFromRows(rows)
 }
 
 // AllVersions는 db의 특정 태스크의 아웃풋 전체를 반환한다.
@@ -248,11 +248,11 @@ func AllVersions(db *sql.DB, prj, shot, task string) ([]*Version, error) {
 	}
 	versions := make([]*Version, 0)
 	for rows.Next() {
-		o, err := outputFromRows(rows)
+		v, err := versionFromRows(rows)
 		if err != nil {
 			return nil, err
 		}
-		versions = append(versions, o)
+		versions = append(versions, v)
 	}
 	return versions, nil
 }
