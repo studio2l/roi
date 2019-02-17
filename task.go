@@ -18,23 +18,22 @@ const (
 	TaskHold       = TaskStatus("hold")
 )
 
+var AllTaskStatus = []TaskStatus{
+	TaskNotSet,
+	TaskAssigned,
+	TaskInProgress,
+	TaskPending,
+	TaskRetake,
+	TaskDone,
+	TaskHold,
+}
+
 // isValidTaskStatus는 해당 태스크 상태가 유효한지를 반환한다.
-func isValidTaskStatus(s TaskStatus) bool {
-	switch s {
-	case TaskNotSet:
-		return true
-	case TaskAssigned:
-		return true
-	case TaskInProgress:
-		return true
-	case TaskPending:
-		return true
-	case TaskRetake:
-		return true
-	case TaskDone:
-		return true
-	case TaskHold:
-		return true
+func isValidTaskStatus(ts TaskStatus) bool {
+	for _, s := range AllTaskStatus {
+		if ts == s {
+			return true
+		}
 	}
 	return false
 }
