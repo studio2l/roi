@@ -21,12 +21,46 @@ func IsValidShotID(id string) bool {
 type ShotStatus string
 
 const (
-	ShotWaiting    ShotStatus = "waiting"
-	ShotInProgress            = "in-progress"
-	ShotDone                  = "done"
-	ShotHold                  = "hold"
-	ShotOmit                  = "omit"
+	ShotWaiting    = ShotStatus("waiting")
+	ShotInProgress = ShotStatus("in-progress")
+	ShotDone       = ShotStatus("done")
+	ShotHold       = ShotStatus("hold")
+	ShotOmit       = ShotStatus("omit")
 )
+
+var AllShotStatus = []ShotStatus{
+	ShotWaiting,
+	ShotInProgress,
+	ShotDone,
+	ShotHold,
+	ShotOmit,
+}
+
+// isValidShotStatus는 해당 샷 상태가 유효한지를 반환한다.
+func isValidShotStatus(ss ShotStatus) bool {
+	for _, s := range AllShotStatus {
+		if ss == s {
+			return true
+		}
+	}
+	return false
+}
+
+func (s ShotStatus) UIString() string {
+	switch s {
+	case ShotWaiting:
+		return "대기"
+	case ShotInProgress:
+		return "진행"
+	case ShotDone:
+		return "완료"
+	case ShotHold:
+		return "홀드"
+	case ShotOmit:
+		return "오밋"
+	}
+	return ""
+}
 
 type Shot struct {
 	// 샷 아이디. 프로젝트 내에서 고유해야 한다.
@@ -86,7 +120,7 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	id STRING NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %'),
 	project_id STRING NOT NULL CHECK (length(project_id) > 0) CHECK (project_id NOT LIKE '% %'),
-	status STRING NOT NULL,
+	status STRING NOT NULL CHECK (length(status) > 0),
 	edit_order INT NOT NULL,
 	description STRING NOT NULL,
 	cg_description STRING NOT NULL,
@@ -130,6 +164,9 @@ func AddShot(db *sql.DB, prj string, s *Shot) error {
 	}
 	if s.WorkingTasks == nil {
 		s.WorkingTasks = make([]string, 0)
+	}
+	if !isValidShotStatus(s.Status) {
+		return fmt.Errorf("invalid shot status: '%s'", s.Status)
 	}
 	keys := strings.Join(ShotTableKeys, ", ")
 	idxs := strings.Join(ShotTableIndices, ", ")
@@ -209,7 +246,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee string) ([]*Shot, 
 		i++
 	}
 	if status != "" {
-		where = append(where, fmt.Sprintf("shots.status=$%d", i))
+		where = append(where, fmt.Sprintf("shots.Status=$%d", i))
 		vals = append(vals, status)
 		i++
 	}
@@ -301,6 +338,9 @@ func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 	}
 	if shot == "" {
 		return errors.New("shot id empty")
+	}
+	if !isValidShotStatus(upd.Status) {
+		return fmt.Errorf("invalid shot status: '%s'", upd.Status)
 	}
 	keystr := strings.Join(upd.keys(), ", ")
 	idxstr := strings.Join(upd.indices(), ", ")

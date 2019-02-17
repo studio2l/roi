@@ -724,6 +724,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		Projects       []string
 		Project        string
 		Shots          []*roi.Shot
+		AllShotStatus  []roi.ShotStatus
 		Tasks          map[string]map[string]*roi.Task
 		FilterShot     string
 		FilterTag      string
@@ -734,6 +735,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		Projects:       prjs,
 		Project:        prj,
 		Shots:          shots,
+		AllShotStatus:  roi.AllShotStatus,
 		Tasks:          tasks,
 		FilterShot:     shotFilter,
 		FilterTag:      tagFilter,
@@ -1047,11 +1049,13 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 	recipt := struct {
 		LoggedInUser  string
 		Shot          *roi.Shot
+		AllShotStatus []roi.ShotStatus
 		Tasks         map[string]*roi.Task
 		AllTaskStatus []roi.TaskStatus
 	}{
 		LoggedInUser:  session["userid"],
 		Shot:          s,
+		AllShotStatus: roi.AllShotStatus,
 		Tasks:         tm,
 		AllTaskStatus: roi.AllTaskStatus,
 	}

@@ -120,7 +120,7 @@ func TestShot(t *testing.T) {
 	}
 
 	for _, s := range want {
-		err = UpdateShot(db, testProject.ID, s.ID, UpdateShotParam{})
+		err = UpdateShot(db, testProject.ID, s.ID, UpdateShotParam{Status: ShotWaiting})
 		if err != nil {
 			t.Fatalf("could not clear(update) shot: %s", err)
 		}

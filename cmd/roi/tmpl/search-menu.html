@@ -10,8 +10,9 @@
             <input type="text" style="background-color: transparent;" name="tag" placeholder="태그" value="{{$.FilterTag}}">
             <select class="ui compact selection dropdown" style="background-color: transparent;" id="status-select" name="status">
                 <option value="" {{if eq $.FilterStatus ""}}selected{{end}}>모든 상태</option>
-                <option value="in-progress" {{if eq $.FilterStatus "in-progress"}}selected{{end}}>진행중</option>
-                <option value="done" {{if eq $.FilterStatus "done"}}selected{{end}}>완료</option>
+                {{range $.AllShotStatus}}
+                <option value="{{.}}" {{if eq . $.FilterStatus}}selected{{end}}>{{.UIString}}</option>
+                {{end}}
             </select>
             <input type="text" style="background-color: transparent;" name="assignee" placeholder="담당자" value="{{$.FilterAssignee}}">
             <input class="ui grey button" type="submit" value="검색">
