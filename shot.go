@@ -246,7 +246,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee string) ([]*Shot, 
 		i++
 	}
 	if status != "" {
-		where = append(where, fmt.Sprintf("shots.Status=$%d", i))
+		where = append(where, fmt.Sprintf("shots.status=$%d", i))
 		vals = append(vals, status)
 		i++
 	}
