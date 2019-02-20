@@ -12,20 +12,22 @@ const (
 	TaskNotSet     = TaskStatus("not-set")
 	TaskAssigned   = TaskStatus("assigned")
 	TaskInProgress = TaskStatus("in-progress")
-	TaskPending    = TaskStatus("pending")
+	TaskAskConfirm = TaskStatus("ask-confirm")
 	TaskRetake     = TaskStatus("retake")
 	TaskDone       = TaskStatus("done")
 	TaskHold       = TaskStatus("hold")
+	TaskOmit       = TaskStatus("omit")
 )
 
 var AllTaskStatus = []TaskStatus{
 	TaskNotSet,
 	TaskAssigned,
 	TaskInProgress,
-	TaskPending,
+	TaskAskConfirm,
 	TaskRetake,
 	TaskDone,
 	TaskHold,
+	TaskOmit,
 }
 
 // isValidTaskStatus는 해당 태스크 상태가 유효한지를 반환한다.
@@ -48,14 +50,16 @@ func (s TaskStatus) UIString() string {
 		return "할당됨"
 	case TaskInProgress:
 		return "진행중"
-	case TaskPending:
-		return "컨펌기다림"
+	case TaskAskConfirm:
+		return "컨펌요청"
 	case TaskRetake:
 		return "리테이크"
 	case TaskDone:
 		return "완료"
 	case TaskHold:
 		return "홀드"
+	case TaskOmit:
+		return "오밋"
 	}
 	return ""
 }
