@@ -1,7 +1,6 @@
 package roi
 
 import (
-	"log"
 	"reflect"
 	"testing"
 	"time"
@@ -28,13 +27,6 @@ func TestVersion(t *testing.T) {
 	db, err := testDB()
 	if err != nil {
 		t.Fatalf("could not connect to database: %v", err)
-	}
-	if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
-		log.Fatal("error creating db 'roi': ", err)
-	}
-	err = InitTables(db)
-	if err != nil {
-		t.Fatalf("could not initialize tables: %v", err)
 	}
 	err = AddProject(db, testProject)
 	if err != nil {

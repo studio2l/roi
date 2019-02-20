@@ -1430,14 +1430,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not initialize database: %v", err)
 	}
-	db, err := roi.DB()
-	if err != nil {
-		log.Fatalf("could not connect to database: %v", err)
-	}
-	err = roi.InitTables(db)
-	if err != nil {
-		log.Fatalf("could not initialize tables: %v", err)
-	}
 
 	parseTemplate()
 
