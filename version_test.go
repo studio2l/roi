@@ -1,7 +1,6 @@
 package roi
 
 import (
-	"database/sql"
 	"log"
 	"reflect"
 	"testing"
@@ -26,9 +25,9 @@ var testVersionA = &Version{
 
 func TestVersion(t *testing.T) {
 	// 테스트 서버에 접속
-	db, err := sql.Open("postgres", "postgresql://root@localhost:54545/roi?sslmode=disable")
+	db, err := testDB()
 	if err != nil {
-		t.Fatalf("error connecting to the database: %s", err)
+		t.Fatalf("could not connect to database: %v", err)
 	}
 	if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
 		log.Fatal("error creating db 'roi': ", err)

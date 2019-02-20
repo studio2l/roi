@@ -1,6 +1,7 @@
 package roi
 
 import (
+	"database/sql"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,6 +12,11 @@ import (
 	"testing"
 	"time"
 )
+
+// testDB는 로이의 테스트 DB 핸들러를 반환한다.
+func testDB() (*sql.DB, error) {
+	return sql.Open("postgres", "postgresql://root@localhost:54545/roi?sslmode=disable")
+}
 
 func TestMain(m *testing.M) {
 	// DB 시작
