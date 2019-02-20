@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
 	"html/template"
@@ -1393,20 +1392,6 @@ func main() {
 	blockFile := "cert/cookie.block"
 
 	if init {
-		db, err := sql.Open("postgres", "postgresql://root@localhost:26257/roi?sslmode=disable")
-		if err != nil {
-			log.Fatal("error connecting to the database: ", err)
-		}
-		if _, err := db.Exec("CREATE USER IF NOT EXISTS roiuser"); err != nil {
-			log.Fatal("error creating user 'roiuser': ", err)
-		}
-		if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
-			log.Fatal("error creating db 'roi': ", err)
-		}
-		if _, err := db.Exec("GRANT ALL ON DATABASE roi TO roiuser"); err != nil {
-			log.Fatal("error granting 'roi' to 'roiuser': ", err)
-		}
-
 		// 기본 Self Signed Certificate는 항상 정해진 위치에 생성되어야 한다.
 		cert := "cert/cert.pem"
 		key := "cert/key.pem"
@@ -1441,6 +1426,10 @@ func main() {
 		return
 	}
 
+	err := roi.InitDB()
+	if err != nil {
+		log.Fatalf("could not initialize database: %v", err)
+	}
 	db, err := roi.DB()
 	if err != nil {
 		log.Fatalf("could not connect to database: %v", err)
