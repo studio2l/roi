@@ -121,7 +121,7 @@ func AddVersion(db *sql.DB, prj, shot, task string, v *Version) error {
 	if _, err := tx.Exec(stmt, v.dbValues()...); err != nil {
 		return fmt.Errorf("could not insert versions: %v", err)
 	}
-	if _, err := tx.Exec("UPDATE tasks SET last_output_version=$1 WHERE project_id=$2 AND shot_id=$3 AND name=$4", v.Num, prj, shot, task); err != nil {
+	if _, err := tx.Exec("UPDATE tasks SET status=$1, last_output_version=$2 WHERE project_id=$3 AND shot_id=$4 AND name=$5", TaskInProgress, v.Num, prj, shot, task); err != nil {
 		return fmt.Errorf("could not update last version num of task: %v", err)
 	}
 	err = tx.Commit()
