@@ -29,9 +29,9 @@
 					{{with index (index $.Tasks $s.ID) .}}
 					<tr>
 						<td class="one wide left align">{{.Name}}</td>
+						<td class="one wide left align">{{.Status.UIString}}</td>
 						<td class="one wide left align">{{.Assignee}}</td>
 						<td class="one wide left align">{{if .LastOutputVersion}}{{printf "v%03d" .LastOutputVersion}}{{end}}</td>
-						<td class="one wide left align">{{.Status}}</td>
 						<td class="one wide left align">01/01</td>
 						<td class="eight wide left align"></td>
 						<td class="one wide left align">{{if and (eq $.LoggedInUser .Assignee) (ge .LastOutputVersion 1)}}<a href="/update-version?project_id={{.ProjectID}}&shot_id={{.ShotID}}&task_name={{.Name}}&version={{.LastOutputVersion}}" style="font-size:10px">수정</a>{{end}}</td>

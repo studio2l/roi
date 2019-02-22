@@ -10,7 +10,7 @@ var testTaskA = &Task{
 	ProjectID: testProject.ID,
 	ShotID:    testShotA.ID,
 	Name:      "fx_fire",
-	Status:    TaskWaiting,
+	Status:    TaskNotSet,
 	Assignee:  "kybin",
 }
 

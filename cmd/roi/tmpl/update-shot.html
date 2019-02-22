@@ -45,19 +45,23 @@
 
 	<div class="ui form">
 		{{range $.Shot.WorkingTasks}}
-		{{with index $.Tasks .}}
-		<div id="task-{{.Name}}" style="border:solid 1px grey;border-radius:8px;padding:15px;background-color:grey;">
+		{{with $t := index $.Tasks .}}
+		<div id="task-{{$t.Name}}" style="border:solid 1px grey;border-radius:8px;padding:15px;background-color:grey;">
 			<div class="field">
-				<label class="ui grey label" style="font-size:1.3rem;">{{.Name}}</label>
+				<label class="ui grey label" style="font-size:1.3rem;">{{$t.Name}}</label>
 			</div>
 			<div class="field"><label>상태</label>
-				<input id="task-{{.Name}}-status" type="text" value="{{.Status}}" />
+				<select id="task-{{$t.Name}}-status" type="text" value="{{$t.Status}}">
+					{{range $s := $.AllTaskStatus}}
+					<option value="{{$s}}" {{if eq $t.Status $s}}selected{{end}}>{{$s.UIString}}</option>
+					{{end}}
+				</select>
 			</div>
 			<div class="field"><label>담당</label>
-				<input id="task-{{.Name}}-assignee"  type="text" value="{{.Assignee}}" />
+				<input id="task-{{$t.Name}}-assignee"  type="text" value="{{$t.Assignee}}" />
 			</div>
-			<button id="task-{{.Name}}-btn" class="ui button teal" onclick="updateTask('{{.Name}}')">수정</button>
-			<div id="task-{{.Name}}-update-result" class="ui"></div>
+			<button id="task-{{$t.Name}}-btn" class="ui button teal" onclick="updateTask('{{$t.Name}}')">수정</button>
+			<div id="task-{{$t.Name}}-update-result" class="ui"></div>
 		</div>
 		<div style="height:2rem;"></div>
 		{{end}}

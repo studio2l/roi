@@ -1045,13 +1045,15 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		tm[t.Name] = t
 	}
 	recipt := struct {
-		LoggedInUser string
-		Shot         *roi.Shot
-		Tasks        map[string]*roi.Task
+		LoggedInUser  string
+		Shot          *roi.Shot
+		Tasks         map[string]*roi.Task
+		AllTaskStatus []roi.TaskStatus
 	}{
-		LoggedInUser: session["userid"],
-		Shot:         s,
-		Tasks:        tm,
+		LoggedInUser:  session["userid"],
+		Shot:          s,
+		Tasks:         tm,
+		AllTaskStatus: roi.AllTaskStatus,
 	}
 	err = executeTemplate(w, "update-shot.html", recipt)
 	if err != nil {

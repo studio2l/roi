@@ -9,15 +9,60 @@ import (
 type TaskStatus string
 
 const (
-	TaskWaiting    = TaskStatus("waiting")
+	TaskNotSet     = TaskStatus("not-set")
 	TaskAssigned   = TaskStatus("assigned")
 	TaskInProgress = TaskStatus("in-progress")
-	TaskPending    = TaskStatus("pending")
+	TaskAskConfirm = TaskStatus("ask-confirm")
 	TaskRetake     = TaskStatus("retake")
 	TaskDone       = TaskStatus("done")
 	TaskHold       = TaskStatus("hold")
-	TaskOmit       = TaskStatus("omit") // 할일: task에 omit이 필요할까?
+	TaskOmit       = TaskStatus("omit")
 )
+
+var AllTaskStatus = []TaskStatus{
+	TaskNotSet,
+	TaskAssigned,
+	TaskInProgress,
+	TaskAskConfirm,
+	TaskRetake,
+	TaskDone,
+	TaskHold,
+	TaskOmit,
+}
+
+// isValidTaskStatus는 해당 태스크 상태가 유효한지를 반환한다.
+func isValidTaskStatus(ts TaskStatus) bool {
+	for _, s := range AllTaskStatus {
+		if ts == s {
+			return true
+		}
+	}
+	return false
+}
+
+// UIString은 UI안에서 사용하는 현지화된 문자열이다.
+// 할일: 한국어 외의 문자열 지원
+func (s TaskStatus) UIString() string {
+	switch s {
+	case TaskNotSet:
+		return "-"
+	case TaskAssigned:
+		return "할당됨"
+	case TaskInProgress:
+		return "진행중"
+	case TaskAskConfirm:
+		return "컨펌요청"
+	case TaskRetake:
+		return "리테이크"
+	case TaskDone:
+		return "완료"
+	case TaskHold:
+		return "홀드"
+	case TaskOmit:
+		return "오밋"
+	}
+	return ""
+}
 
 type Task struct {
 	// 관련 아이디
@@ -50,7 +95,7 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	project_id STRING NOT NULL CHECK (length(project_id) > 0) CHECK (project_id NOT LIKE '% %'),
 	shot_id STRING NOT NULL CHECK (length(shot_id) > 0) CHECK (shot_id NOT LIKE '% %'),
 	name STRING NOT NULL CHECK (length(name) > 0) CHECK (name NOT LIKE '% %'),
-	status STRING NOT NULL,
+	status STRING NOT NULL CHECK (length(status) > 0),
 	assignee STRING NOT NULL,
 	last_output_version INT NOT NULL,
 	UNIQUE(project_id, shot_id, name)
@@ -82,6 +127,9 @@ func AddTask(db *sql.DB, prj, shot string, t *Task) error {
 	}
 	if t.Name == "" {
 		return fmt.Errorf("task name not specified")
+	}
+	if !isValidTaskStatus(t.Status) {
+		return fmt.Errorf("invalid task status: '%s'", t.Status)
 	}
 	keystr := strings.Join(TaskTableKeys, ", ")
 	idxstr := strings.Join(TaskTableIndices, ", ")
@@ -127,6 +175,9 @@ func UpdateTask(db *sql.DB, prj, shot, task string, upd UpdateTaskParam) error {
 	}
 	if task == "" {
 		return fmt.Errorf("task name not specified")
+	}
+	if !isValidTaskStatus(upd.Status) {
+		return fmt.Errorf("invalid task status: '%s'", upd.Status)
 	}
 	keystr := strings.Join(upd.keys(), ", ")
 	idxstr := strings.Join(upd.indices(), ", ")
