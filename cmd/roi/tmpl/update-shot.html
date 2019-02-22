@@ -29,7 +29,13 @@
 		});
 		</script>
 		<div class="field"><label>상태</label>
-			<input type="text" name="status" value="{{.Shot.Status}}"/>
+			<select type="text" name="status">
+				{{with $s := .Shot}}
+				{{range $ss := $.AllShotStatus}}
+				<option value="{{$ss}}" {{if eq $ss $s.Status}}selected{{end}}>{{$ss.UIString}}</option>
+				{{end}}
+				{{end}}
+			</select>
 		</div>
 		<div class="field"><label>내용</label>
 			<input type="text" name="description" value="{{.Shot.Description}}"/>

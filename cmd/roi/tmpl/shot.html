@@ -3,7 +3,7 @@
 	<div id="main">
 		<h1 class="ui top attached inverted header">
 			{{$.Shot.ID}}
-			<div class="ui blue label">{{$.Shot.Status}}</div>
+			<div class="ui blue label">{{$.Shot.Status.UIString}}</div>
 			<div class="ui green label">{{stringFromDate $.Shot.DueDate}}</div>
 			<div class="ui label">
 				<a href="/update-shot?project_id={{$.Shot.ProjectID}}&id={{$.Shot.ID}}" style="font-size:10px;">수정</a>
