@@ -50,7 +50,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}()
 	// DB가 시작되기까지 시간 필요
-	time.Sleep(time.Second)
+	time.Sleep(2 * time.Second)
 
 	initTestDB()
 
