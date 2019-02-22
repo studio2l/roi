@@ -7,12 +7,11 @@
 <div class="ui inverted segment">
 	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:3px;font-size:15px;">
 		<div style="width:192px;margin-right:20px;">
-			<a class="ui medium grey header" href="/shot/{{$.Project}}/{{.ID}}">{{.ID}}</a>
+			<a class="ui medium grey header" style="flex:1"; href="/shot/{{$.Project}}/{{.ID}}">{{.ID}}</a>
+			<a style="font-size:10px;" href="/update-shot?project_id={{$.Project}}&id={{.ID}}">수정</a>
 		</div>
 		<div style="flex:1;font-size:14px;"> {{.CGDescription}}</div>
-		<div style="font-size:10px;">
-			<a href="/update-shot?project_id={{$.Project}}&id={{.ID}}">수정</a>
-		</div>
+		{{if not .DueDate.IsZero}}<div>~ {{stringFromDate .DueDate}}</div>{{end}}
 	</div>
 	<div class="shot-main" style="display:flex;">
 		<div style="width:192px;margin-right:20px;">

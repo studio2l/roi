@@ -11,6 +11,23 @@
 		<div class="field disabled"><label>아이디</label>
 			<input type="text" name="id" value="{{.Shot.ID}}"/>
 		</div>
+		<div class="field"><label>마감일</label>
+			<div class="ui calendar" id="duedate">
+				<div class="ui input left icon">
+					<i class="calendar icon"></i><input type="text" name="due_date" value="{{with $.Shot.DueDate}}{{if not .IsZero}}{{.}}{{end}}{{end}}">
+				</div>
+			</div>
+		</div>
+		<script>
+		$('#duedate').calendar({
+			type: 'date',
+			formatter: {
+				date: (date, settings) => {
+					return rfc3339(date);
+				}
+			}
+		});
+		</script>
 		<div class="field"><label>상태</label>
 			<input type="text" name="status" value="{{.Shot.Status}}"/>
 		</div>

@@ -42,8 +42,19 @@ func hasThumbnail(prj, shot string) bool {
 }
 
 // stringFromTime은 시간을 rfc3339 형식의 문자열로 표현한다.
-func stringFromTime(t *time.Time) string {
-	return t.Format(time.RFC3339)
+func stringFromTime(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Local().Format(time.RFC3339)
+}
+
+// stringFromDate는 시간을 rfc3339 형식의 문자열로 표현하되 T부터는 표시하지 않는다.
+func stringFromDate(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return strings.Split(t.Local().Format(time.RFC3339), "T")[0]
 }
 
 // timeFromString는 rfc3339 형식의 문자열에서 시간을 얻는다.
@@ -75,6 +86,7 @@ func parseTemplate() {
 	templates = template.Must(template.New("").Funcs(template.FuncMap{
 		"hasThumbnail":   hasThumbnail,
 		"stringFromTime": stringFromTime,
+		"stringFromDate": stringFromDate,
 		"join":           strings.Join,
 	}).ParseGlob("tmpl/*.html"))
 }
@@ -986,6 +998,10 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		tasks := fields(r.Form.Get("working_tasks"), ",")
+		tforms, err := parseTimeForms(r.Form, "due_date")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		upd := roi.UpdateShotParam{
 			Status:        roi.ShotStatus(r.Form.Get("status")),
 			EditOrder:     atoi(r.Form.Get("edit_order")),
@@ -996,6 +1012,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			Duration:      atoi(r.Form.Get("duration")),
 			Tags:          fields(r.Form.Get("tags"), ","),
 			WorkingTasks:  tasks,
+			DueDate:       tforms["due_date"],
 		}
 		err = roi.UpdateShot(db, prj, shot, upd)
 		if err != nil {
