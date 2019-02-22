@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
 	"html/template"
@@ -149,10 +148,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := session["userid"]
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		log.Printf("error connecting to the database: %v", err)
-		http.Error(w, "", http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	tasks, err := roi.UserTasks(db, user)
@@ -195,10 +194,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "password field emtpy", http.StatusBadRequest)
 			return
 		}
-		db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+		db, err := roi.DB()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("could not connect to database: %v", err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
 		match, err := roi.UserPasswordMatch(db, id, pw)
@@ -267,10 +266,10 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "passwords are not matched", http.StatusBadRequest)
 			return
 		}
-		db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+		db, err := roi.DB()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("could not connect to database: %v", err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
 		err = roi.AddUser(db, id, pw)
@@ -314,10 +313,10 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login/", http.StatusSeeOther)
 		return
 	}
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	if r.Method == "POST" {
@@ -388,10 +387,10 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "passwords are not matched", http.StatusBadRequest)
 		return
 	}
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	id := session["userid"]
@@ -414,10 +413,10 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 
 // projectsHandler는 /project 페이지로 사용자가 접속했을때 페이지를 반환한다.
 func projectsHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 
@@ -449,10 +448,10 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 // addProjectHandler는 /add-project 페이지로 사용자가 접속했을때 페이지를 반환한다.
 // 만일 POST로 프로젝트 정보가 오면 프로젝트를 생성한다.
 func addProjectHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	session, err := getSession(r)
@@ -543,10 +542,10 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 // updateProjectHandler는 /update-project 페이지로 사용자가 접속했을때 페이지를 반환한다.
 // 만일 POST로 프로젝트 정보가 오면 프로젝트 정보를 수정한다.
 func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	session, err := getSession(r)
@@ -646,10 +645,10 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	prj := r.URL.Path[len("/search/"):]
 
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 
@@ -756,10 +755,10 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	prj := pths[0]
 	shot := pths[1]
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	session, err := getSession(r)
@@ -800,10 +799,10 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addShotHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	session, err := getSession(r)
@@ -926,10 +925,10 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateShotHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	session, err := getSession(r)
@@ -1062,10 +1061,10 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	session, err := getSession(r)
@@ -1142,10 +1141,10 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addVersionHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	session, err := getSession(r)
@@ -1247,10 +1246,10 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error connecting to the database: ", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	session, err := getSession(r)
@@ -1395,20 +1394,6 @@ func main() {
 	blockFile := "cert/cookie.block"
 
 	if init {
-		db, err := sql.Open("postgres", "postgresql://root@localhost:26257/roi?sslmode=disable")
-		if err != nil {
-			log.Fatal("error connecting to the database: ", err)
-		}
-		if _, err := db.Exec("CREATE USER IF NOT EXISTS roiuser"); err != nil {
-			log.Fatal("error creating user 'roiuser': ", err)
-		}
-		if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
-			log.Fatal("error creating db 'roi': ", err)
-		}
-		if _, err := db.Exec("GRANT ALL ON DATABASE roi TO roiuser"); err != nil {
-			log.Fatal("error granting 'roi' to 'roiuser': ", err)
-		}
-
 		// 기본 Self Signed Certificate는 항상 정해진 위치에 생성되어야 한다.
 		cert := "cert/cert.pem"
 		key := "cert/key.pem"
@@ -1443,13 +1428,9 @@ func main() {
 		return
 	}
 
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
+	err := roi.InitDB()
 	if err != nil {
-		log.Fatal("error connecting to the database: ", err)
-	}
-	err = roi.InitTables(db)
-	if err != nil {
-		log.Fatalf("could not initialize tables: %v", err)
+		log.Fatalf("could not initialize database: %v", err)
 	}
 
 	parseTemplate()

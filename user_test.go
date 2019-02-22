@@ -1,8 +1,6 @@
 package roi
 
 import (
-	"database/sql"
-	"log"
 	"reflect"
 	"testing"
 )
@@ -20,17 +18,9 @@ func TestUser(t *testing.T) {
 	}
 	password := "no! this is not my password"
 
-	// 테스트 서버에 접속
-	db, err := sql.Open("postgres", "postgresql://root@localhost:54545/roi?sslmode=disable")
+	db, err := testDB()
 	if err != nil {
-		t.Fatalf("error connecting to the database: %s", err)
-	}
-	if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
-		log.Fatal("error creating db 'roi': ", err)
-	}
-	err = InitTables(db)
-	if err != nil {
-		t.Fatalf("could not initialze tables: %v", err)
+		t.Fatalf("could not connect to database: %v", err)
 	}
 	err = AddUser(db, u.ID, password)
 	if err != nil {

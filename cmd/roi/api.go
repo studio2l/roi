@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -22,10 +21,10 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	db, err := sql.Open("postgres", "postgresql://root@localhost:26257/roi?sslmode=disable")
+	db, err := roi.DB()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		resp, _ := json.Marshal(response{Err: fmt.Sprintf("there was an internal error, sorry!")})
+		resp, _ := json.Marshal(response{Err: fmt.Sprintf("internal error")})
 		w.Write(resp)
 		return
 	}

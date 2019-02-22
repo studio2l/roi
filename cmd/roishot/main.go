@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -114,11 +113,7 @@ func main() {
 		tasks[s.ID] = strings.FieldsFunc(xlrow["tasks"], func(r rune) bool { return r == ',' })
 	}
 
-	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
-	if err != nil {
-		log.Fatal("error connecting to the database: ", err)
-	}
-	err = roi.InitTables(db)
+	db, err := roi.DB()
 	if err != nil {
 		log.Fatalf("could not initialize tables: %v", err)
 	}
