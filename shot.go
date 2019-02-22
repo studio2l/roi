@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/lib/pq"
 )
@@ -55,6 +56,10 @@ type Shot struct {
 	// 그 태스크는 (예를 들어 태스크가 Omit 되는 등의 이유로) 숨겨진 태스크이며,
 	// 직접 지우지 않는 한 db에 보관된다.
 	WorkingTasks []string
+
+	StartDate time.Time
+	EndDate   time.Time
+	DueDate   time.Time
 }
 
 func (s *Shot) dbValues() []interface{} {
@@ -79,6 +84,9 @@ func (s *Shot) dbValues() []interface{} {
 		s.Duration,
 		pq.Array(s.Tags),
 		pq.Array(s.WorkingTasks),
+		s.StartDate,
+		s.EndDate,
+		s.DueDate,
 	}
 }
 
@@ -95,6 +103,9 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	duration INT NOT NULL,
 	tags STRING[] NOT NULL,
 	working_tasks STRING[] NOT NULL,
+	start_date TIMESTAMPTZ NOT NULL,
+	end_date TIMESTAMPTZ NOT NULL,
+	due_date TIMESTAMPTZ NOT NULL,
 	UNIQUE(id, project_id)
 )`
 
@@ -110,12 +121,12 @@ var ShotTableKeys = []string{
 	"duration",
 	"tags",
 	"working_tasks",
+	"start_date",
+	"end_date",
+	"due_date",
 }
 
-var ShotTableIndices = []string{
-	"$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9", "$10",
-	"$11",
-}
+var ShotTableIndices = dbIndices(ShotTableKeys)
 
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
 func AddShot(db *sql.DB, prj string, s *Shot) error {
@@ -157,6 +168,7 @@ func shotFromRows(rows *sql.Rows) (*Shot, error) {
 		&s.ID, &s.ProjectID, &s.Status,
 		&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
 		&s.Duration, pq.Array(&s.Tags), pq.Array(&s.WorkingTasks),
+		&s.StartDate, &s.EndDate, &s.DueDate,
 	)
 	if err != nil {
 		return nil, err
@@ -254,6 +266,7 @@ type UpdateShotParam struct {
 	Duration      int
 	Tags          []string
 	WorkingTasks  []string
+	DueDate       time.Time
 }
 
 func (u UpdateShotParam) keys() []string {
@@ -267,6 +280,7 @@ func (u UpdateShotParam) keys() []string {
 		"duration",
 		"tags",
 		"working_tasks",
+		"due_date",
 	}
 }
 
@@ -291,6 +305,7 @@ func (u UpdateShotParam) values() []interface{} {
 		u.Duration,
 		pq.Array(u.Tags),
 		pq.Array(u.WorkingTasks),
+		u.DueDate,
 	}
 }
 
