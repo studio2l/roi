@@ -1473,7 +1473,7 @@ func main() {
 	mux.HandleFunc("/logout/", logoutHandler)
 	mux.HandleFunc("/settings/profile", profileHandler)
 	mux.HandleFunc("/update-password", updatePasswordHandler)
-	mux.HandleFunc("/signup/", signupHandler)
+	mux.HandleFunc("/signup", signupHandler)
 	mux.HandleFunc("/projects", projectsHandler)
 	mux.HandleFunc("/add-project", addProjectHandler)
 	mux.HandleFunc("/update-project", updateProjectHandler)
