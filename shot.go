@@ -63,6 +63,22 @@ func (s ShotStatus) UIString() string {
 	return ""
 }
 
+func (s ShotStatus) UIColor() string {
+	switch s {
+	case ShotWaiting:
+		return "yellow"
+	case ShotInProgress:
+		return "green"
+	case ShotDone:
+		return "blue"
+	case ShotHold:
+		return "darkgey"
+	case ShotOmit:
+		return "black"
+	}
+	return ""
+}
+
 type Shot struct {
 	// 샷 아이디. 프로젝트 내에서 고유해야 한다.
 	// 영문자와 숫자, 언더바(_) 만 사용할 것.
