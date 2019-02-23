@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 )
 
 type TaskStatus string
@@ -74,6 +75,9 @@ type Task struct {
 	Status            TaskStatus
 	Assignee          string
 	LastOutputVersion int
+	StartDate         time.Time
+	EndDate           time.Time
+	DueDate           time.Time
 }
 
 func (t *Task) dbValues() []interface{} {
@@ -87,6 +91,9 @@ func (t *Task) dbValues() []interface{} {
 		t.Status,
 		t.Assignee,
 		t.LastOutputVersion,
+		t.StartDate,
+		t.EndDate,
+		t.DueDate,
 	}
 }
 
@@ -98,6 +105,9 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	status STRING NOT NULL CHECK (length(status) > 0),
 	assignee STRING NOT NULL,
 	last_output_version INT NOT NULL,
+	start_date TIMESTAMPTZ NOT NULL,
+	end_date TIMESTAMPTZ NOT NULL,
+	due_date TIMESTAMPTZ NOT NULL,
 	UNIQUE(project_id, shot_id, name)
 )`
 
@@ -108,11 +118,12 @@ var TaskTableKeys = []string{
 	"status",
 	"assignee",
 	"last_output_version",
+	"start_date",
+	"end_date",
+	"due_date",
 }
 
-var TaskTableIndices = []string{
-	"$1", "$2", "$3", "$4", "$5", "$6",
-}
+var TaskTableIndices = dbIndices(TaskTableKeys)
 
 // AddTask는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddTask(db *sql.DB, prj, shot string, t *Task) error {
@@ -145,12 +156,14 @@ func AddTask(db *sql.DB, prj, shot string, t *Task) error {
 type UpdateTaskParam struct {
 	Status   TaskStatus
 	Assignee string
+	DueDate  time.Time
 }
 
 func (u UpdateTaskParam) keys() []string {
 	return []string{
 		"status",
 		"assignee",
+		"due_date",
 	}
 }
 
@@ -162,6 +175,7 @@ func (u UpdateTaskParam) values() []interface{} {
 	return []interface{}{
 		u.Status,
 		u.Assignee,
+		u.DueDate,
 	}
 }
 
@@ -204,6 +218,7 @@ func taskFromRows(rows *sql.Rows) (*Task, error) {
 	err := rows.Scan(
 		&t.ProjectID, &t.ShotID,
 		&t.Name, &t.Status, &t.Assignee, &t.LastOutputVersion,
+		&t.StartDate, &t.EndDate, &t.DueDate,
 	)
 	if err != nil {
 		return nil, err

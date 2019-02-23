@@ -1,10 +1,3 @@
-$('#add-menu')
-  .dropdown()
-;
-$('#user-menu')
-  .dropdown()
-;
-
 function rfc3339(d) {
   function pad(n) {
     return n < 10 ? "0" + n : n;
