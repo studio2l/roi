@@ -7,7 +7,7 @@
 		<div class="ui grey large header">{{$prj}}</div>
 	</a>
 	{{range $status, $n := $nInStatus}}
-	<a href="/search/{{$prj}}?assignee={{$.LoggedInUser}}&status={{$status}}">
+	<a href="/search/{{$prj}}?assignee={{$.LoggedInUser}}&task_status={{$status}}">
 		<div class="ui grey image label">{{$status}}<div class="detail">{{$n}}</div></div>
 	<a>
 	{{end}}

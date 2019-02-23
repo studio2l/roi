@@ -705,7 +705,8 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	tagFilter := r.Form.Get("tag")
 	statusFilter := r.Form.Get("status")
 	assigneeFilter := r.Form.Get("assignee")
-	shots, err := roi.SearchShots(db, prj, shotFilter, tagFilter, statusFilter, assigneeFilter)
+	taskStatusFilter := r.Form.Get("task_status")
+	shots, err := roi.SearchShots(db, prj, shotFilter, tagFilter, statusFilter, assigneeFilter, taskStatusFilter)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -731,27 +732,31 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	recipt := struct {
-		LoggedInUser   string
-		Projects       []string
-		Project        string
-		Shots          []*roi.Shot
-		AllShotStatus  []roi.ShotStatus
-		Tasks          map[string]map[string]*roi.Task
-		FilterShot     string
-		FilterTag      string
-		FilterStatus   string
-		FilterAssignee string
+		LoggedInUser     string
+		Projects         []string
+		Project          string
+		Shots            []*roi.Shot
+		AllShotStatus    []roi.ShotStatus
+		Tasks            map[string]map[string]*roi.Task
+		AllTaskStatus    []roi.TaskStatus
+		FilterShot       string
+		FilterTag        string
+		FilterStatus     string
+		FilterAssignee   string
+		FilterTaskStatus string
 	}{
-		LoggedInUser:   session["userid"],
-		Projects:       prjs,
-		Project:        prj,
-		Shots:          shots,
-		AllShotStatus:  roi.AllShotStatus,
-		Tasks:          tasks,
-		FilterShot:     shotFilter,
-		FilterTag:      tagFilter,
-		FilterStatus:   statusFilter,
-		FilterAssignee: assigneeFilter,
+		LoggedInUser:     session["userid"],
+		Projects:         prjs,
+		Project:          prj,
+		Shots:            shots,
+		AllShotStatus:    roi.AllShotStatus,
+		Tasks:            tasks,
+		AllTaskStatus:    roi.AllTaskStatus,
+		FilterShot:       shotFilter,
+		FilterTag:        tagFilter,
+		FilterStatus:     statusFilter,
+		FilterAssignee:   assigneeFilter,
+		FilterTaskStatus: taskStatusFilter,
 	}
 	err = executeTemplate(w, "search.html", recipt)
 	if err != nil {

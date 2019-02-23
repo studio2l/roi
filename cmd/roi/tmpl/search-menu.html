@@ -15,6 +15,12 @@
                 {{end}}
             </select>
             <input type="text" style="background-color: transparent;" name="assignee" placeholder="담당자" value="{{$.FilterAssignee}}">
+            <select class="ui compact selection dropdown" style="background-color: transparent;" id="task-status-select" name="task_status">
+                <option value="" {{if eq $.FilterStatus ""}}selected{{end}}>모든 상태</option>
+                {{range $.AllTaskStatus}}
+                <option value="{{.}}" {{if eq . $.FilterTaskStatus}}selected{{end}}>{{.UIString}}</option>
+                {{end}}
+            </select>
             <input class="ui grey button" type="submit" value="검색">
         </form>
         </div>
