@@ -7,7 +7,7 @@
 		<h2 class="ui dividing header">사용자 정보</h2>
 		<form method="post" class="ui form">
 			<div class="field"><label>이름</label>
-				<input type="text" name="kor-name" value="{{$.User.KorName}}"/>
+				<input type="text" name="kor_name" value="{{$.User.KorName}}"/>
 			</div>
 			<div class="field"><label>영문이름</label>
 				<input type="text" name="name" value="{{$.User.Name}}"/>
@@ -37,12 +37,12 @@
 				<input type="text" name="email" value="{{$.User.Email}}"/>
 			</div>
 			<div class="field"><label>전화번호</label>
-				<input type="text" name="phone-number" value="{{$.User.PhoneNumber}}"/>
+				<input type="text" name="phone_number" value="{{$.User.PhoneNumber}}"/>
 			</div>
 			<div class="field"><label>입사일</label>
 				<div class="ui calendar" id="entrydate">
 					<div class="ui input left icon">
-						<i class="calendar icon"></i><input type="text" name="entry-date" value="{{$.User.EntryDate}}">
+						<i class="calendar icon"></i><input type="text" name="entry_date" value="{{$.User.EntryDate}}">
 					</div>
 				</div>
 			</div>
@@ -60,13 +60,13 @@
 		<h2 class="ui dividing header">비밀번호 변경</h2>
 		<form action="/update-password" method="post" class="ui form">
 			<div class="field"><label>기존 패스워드</label>
-				<input type="password" name="old-password"/>
+				<input type="password" name="old_password"/>
 			</div>
 			<div class="field"><label>새 패스워드</label>
-				<input type="password" name="new-password"/>
+				<input type="password" name="new_password"/>
 			</div>
 			<div class="field"><label>새 패스워드 재입력</label>
-				<input type="password" name="new-password-confirm"/>
+				<input type="password" name="new_password_confirm"/>
 			</div>
 			<!--버튼 : 비밀번호 변경-->
 			<button class="ui button green" type="submit" value="Submit" >비밀번호 변경</button>
