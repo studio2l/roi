@@ -246,7 +246,7 @@ func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 }
 
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
-func SearchShots(db *sql.DB, prj, shot, tag, status, assignee string) ([]*Shot, error) {
+func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status string) ([]*Shot, error) {
 	keystr := ""
 	for i, k := range ShotTableKeys {
 		if i != 0 {
@@ -278,10 +278,17 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee string) ([]*Shot, 
 		vals = append(vals, status)
 		i++
 	}
-	if assignee != "" {
+	if assignee != "" || task_status != "" {
 		stmt += " JOIN tasks ON (tasks.project_id = shots.project_id AND tasks.shot_id = shots.id)"
+	}
+	if assignee != "" {
 		where = append(where, fmt.Sprintf("tasks.assignee=$%d", i))
 		vals = append(vals, assignee)
+		i++
+	}
+	if task_status != "" {
+		where = append(where, fmt.Sprintf("tasks.status=$%d", i))
+		vals = append(vals, task_status)
 		i++
 	}
 	wherestr := strings.Join(where, " AND ")
@@ -293,12 +300,21 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee string) ([]*Shot, 
 		return nil, err
 	}
 	defer rows.Close()
+	// 태스크 검색을 해 JOIN이 되면 샷이 중복으로 추가될 수 있다.
+	// DISTINCT를 이용해 문제를 해결하려고 했으나 DB가 꺼진다.
+	// 우선은 여기서 걸러낸다.
+	hasShot := make(map[string]bool, 0)
 	shots := make([]*Shot, 0)
 	for rows.Next() {
 		s, err := shotFromRows(rows)
 		if err != nil {
 			return nil, err
 		}
+		ok := hasShot[s.ID]
+		if ok {
+			continue
+		}
+		hasShot[s.ID] = true
 		shots = append(shots, s)
 	}
 	sort.Slice(shots, func(i int, j int) bool {
