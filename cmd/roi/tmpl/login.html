@@ -18,13 +18,15 @@
 					<i class="lock icon"></i><input id="login_password" name="password" value="" type="password"></input>
 					</div>
 				</div>
-				<button class="ui fluid large green submit button" type="submit">로그인</button>
+			<button class="ui fluid large green submit button" type="submit">로그인</button>
 			</div>
 		</form>
+		<div class="ui horizontal inverted divider">
+			Or
+		</div>
+		<!--이미 가입되어 있는 경우 로그인페이지로 이동-->
+		<a href="/signup"><button class="ui fluid large button">가입</button></a>
 		<!--에러 안내 메세지 출력-->
-		<!--가입하지 않은 경우 가입페이지로 이동-->
-		<div class="ui divider"></div>
-		<a href="/signup"><button class="ui large button">가입</button></a>
 	</div>
 </div>
 {{template "footer.html"}}
