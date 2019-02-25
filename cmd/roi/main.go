@@ -172,16 +172,16 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	numTasks := make(map[string]map[string]int)
+	numTasks := make(map[string]map[roi.TaskStatus]int)
 	for _, t := range tasks {
 		if numTasks[t.ProjectID] == nil {
-			numTasks[t.ProjectID] = make(map[string]int)
+			numTasks[t.ProjectID] = make(map[roi.TaskStatus]int)
 		}
-		numTasks[t.ProjectID][string(t.Status)] += 1
+		numTasks[t.ProjectID][t.Status] += 1
 	}
 	recipt := struct {
 		LoggedInUser string
-		NumTasks     map[string]map[string]int
+		NumTasks     map[string]map[roi.TaskStatus]int
 	}{
 		LoggedInUser: session["userid"],
 		NumTasks:     numTasks,
