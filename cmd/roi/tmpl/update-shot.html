@@ -83,6 +83,23 @@
 			<div class="field"><label>담당</label>
 				<input id="task-{{$t.Name}}-assignee"  type="text" value="{{$t.Assignee}}" />
 			</div>
+			<div class="field"><label>마감일</label>
+				<div class="ui calendar" id="task-{{$t.Name}}-due_date-parent">
+					<div class="ui input left icon">
+						<i class="calendar icon"></i><input type="text" id="task-{{$t.Name}}-due_date" value="{{with $t.DueDate}}{{if not .IsZero}}{{.}}{{end}}{{end}}">
+					</div>
+				</div>
+			</div>
+			<script>
+			$('#task-{{$t.Name}}-due_date-parent').calendar({
+				type: 'date',
+				formatter: {
+					date: (date, settings) => {
+						return rfc3339(date);
+					}
+				}
+			});
+			</script>
 			<button id="task-{{$t.Name}}-btn" class="ui button teal" onclick="updateTask('{{$t.Name}}')">수정</button>
 			<div id="task-{{$t.Name}}-update-result" class="ui"></div>
 		</div>
@@ -97,12 +114,14 @@
 function updateTask(name) {
 	let status = document.getElementById("task-" + name + "-status").value;
 	let assignee = document.getElementById("task-" + name + "-assignee").value;
+	let due = encodeURIComponent(document.getElementById("task-" + name + "-due_date").value);
 	let param = new Array(
 		"project_id={{$.Shot.ProjectID}}",
 		"shot_id={{$.Shot.ID}}",
 		"name=" + name,
 		"status=" + status,
 		"assignee=" + assignee,
+		"due_date=" + due,
 	).join("&");
 	let resultEl = document.getElementById("task-" + name + "-update-result");
 	resultEl.innerText = name + " 태스크를 수정중입니다.";

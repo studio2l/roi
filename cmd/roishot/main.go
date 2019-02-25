@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/studio2l/roi"
 
@@ -113,9 +114,13 @@ func main() {
 		tasks[s.ID] = strings.FieldsFunc(xlrow["tasks"], func(r rune) bool { return r == ',' })
 	}
 
+	err = roi.InitDB()
+	if err != nil {
+		log.Fatalf("could not initialize database: %v", err)
+	}
 	db, err := roi.DB()
 	if err != nil {
-		log.Fatalf("could not initialize tables: %v", err)
+		log.Fatalf("could not get database: %v", err)
 	}
 
 	// 기존의 데이터를 일단 지운다. 더 쉽게 테스트하기 위한 임시방편이다.
@@ -145,6 +150,7 @@ func main() {
 				ShotID:    s.ID,
 				Name:      task,
 				Status:    roi.TaskNotSet,
+				DueDate:   time.Time{},
 			}
 			roi.AddTask(db, prj, s.ID, t)
 		}
