@@ -202,14 +202,15 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	tasksInTimeline := make([][]*roi.Task, 28)
 	for _, t := range tasks {
 		due := int(t.DueDate.Sub(time.Now()).Hours() / 24)
-		if due >= 0 {
-			tasks := tasksInTimeline[due]
-			if tasks == nil {
-				tasks = make([]*roi.Task, 0)
-			}
-			tasks = append(tasks, t)
-			tasksInTimeline[due] = tasks
+		if due >= len(tasksInTimeline) || due < 0 {
+			continue
 		}
+		tasks := tasksInTimeline[due]
+		if tasks == nil {
+			tasks = make([]*roi.Task, 0)
+		}
+		tasks = append(tasks, t)
+		tasksInTimeline[due] = tasks
 	}
 	weekdayInTimeline := make([]int, len(tasksInTimeline))
 	for i := range tasksInTimeline {
