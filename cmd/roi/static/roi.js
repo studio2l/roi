@@ -1,3 +1,8 @@
+// 상단 메뉴의 등록 및 설정 메뉴 드롭다운 활성화
+$('#add-menu').dropdown();
+$('#user-menu').dropdown();
+
+
 function rfc3339(d) {
   function pad(n) {
     return n < 10 ? "0" + n : n;
