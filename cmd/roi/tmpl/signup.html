@@ -1,5 +1,4 @@
 {{template "head.html" }}
-{{template "nav.html" $}}
 <div style="margin-top:10%;"></div>
 <div class="ui middle aligned center aligned grid">
 	<div class="column" style="width:350px;">
@@ -26,25 +25,13 @@
 				</div>
 				<button class="ui fluid large green submit button" type="submit">가입</button>
 			</div>
-	  	</form>
+		</form>
+		<!--이미 가입되어 있는 경우 로그인페이지로 이동-->
+		<div class="ui horizontal inverted divider">
+			Or
+		</div>
+		<a href="/login"><button class="ui fluid large button">로그인</button></a>
 		<!--에러 안내 메세지 출력-->
 	</div>
 </div>
-	<!--<div style="height:100px;">
-		</div>
-		<form method="post">
-		<div>
-			<div>아이디</div>
-			<input id="signup_id" name="id" value="" type="text"></input>
-			<div></div>
-			<diV>패스워드</div>
-			<input id="signup_password" name="password" value="" type="password"></input>
-			<div></div>
-			<div>패스워드 재입력</div>
-			<input id="signup_password_confirm" name="password_confirm" value="" type="password"></input>
-			<div></div>
-			<input type="submit" value="가입하기"></div>
-		</div>
-		</form>
-	</div-->
 {{template "footer.html"}}
