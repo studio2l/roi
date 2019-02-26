@@ -1,6 +1,36 @@
 {{template "head.html"}}
 {{template "nav.html" $}}
 <div style="padding:15px 10px 15px 10px;z-index:0;">
+
+<div class="ui small header">타임라인</div>
+<!-- semantic-ui를 이용하기 어려운 부분이라 html5의 flex를 이용함 -->
+<div style="display:flex;border:solid 1px #1b1c1d;border-radius:2px;padding:0px 4px;background-color:#1b1c1d">
+{{range $i, $tasksAtTheDay := $.TasksInTimeline}}
+	<!-- 날짜 타일 배경색 지정 -->
+	{{$bg := "grey"}}
+	{{$saturday := eq (index $.WeekdayInTimeline $i) 6}}
+	{{$sunday := eq (index $.WeekdayInTimeline $i) 0}}
+	{{if or $saturday $sunday}}
+		{{$bg = "#333744"}}
+	{{end}}
+	{{$haveTasks := ne (len $tasksAtTheDay) 0}}
+	{{if $haveTasks}}
+		{{$bg = dayColorInTimeline (len $tasksAtTheDay)}}
+	{{end}}
+	<!-- 날짜 타일 -->
+	<div style="flex:1;height:0.9rem;margin:4px 1px;border-radius:1px;background-color:{{$bg}};font-size:0.7rem;display:flex;align-items:center;justify-content:center;">
+		{{if $haveTasks}}
+			{{len $tasksAtTheDay}}
+		{{end}}
+	</div>
+	<!-- 한 주 구분 -->
+	{{if and $sunday (ne $i  (sub (len $.TasksInTimeline) 1))}}
+		<div style="margin:0px 6px;"></div>
+	{{end}}
+{{end}}
+</div>
+
+<div class="ui small header">태스크</div>
 {{range $prj, $nInStatus := $.NumTasks}}
 <div class="ui inverted segment">
 	<a href="/search/{{$prj}}?assignee={{$.LoggedInUser}}">
