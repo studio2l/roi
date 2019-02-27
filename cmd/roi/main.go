@@ -89,6 +89,19 @@ func parseTimeForms(form url.Values, keys ...string) (map[string]time.Time, erro
 	return tforms, nil
 }
 
+// dayColorInTimeline은 해당 일의 태스크 갯수를 받아 이를 UI 색상으로 표현한다.
+func dayColorInTimeline(i int) string {
+	switch i {
+	case 0:
+		return "grey"
+	case 1:
+		return "yellow"
+	case 2:
+		return "orange"
+	}
+	return "red"
+}
+
 // parseTemplate은 tmpl 디렉토리 안의 html파일들을 파싱하여 http 응답에 사용될 수 있도록 한다.
 func parseTemplate() {
 	templates = template.Must(template.New("").Funcs(template.FuncMap{
@@ -96,6 +109,9 @@ func parseTemplate() {
 		"stringFromTime":      stringFromTime,
 		"stringFromDate":      stringFromDate,
 		"shortStringFromDate": shortStringFromDate,
+		"dayColorInTimeline":  dayColorInTimeline,
+		"mod":                 func(i, m int) int { return i % m },
+		"sub":                 func(a, b int) int { return a - b },
 		"join":                strings.Join,
 	}).ParseGlob("tmpl/*.html"))
 }
@@ -181,6 +197,26 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
+	// 앞으로 4주에 대한 태스크 정보를 보인다.
+	// 총 기간이나 단위는 추후 설정할 수 있도록 할 것.
+	tasksInTimeline := make([][]*roi.Task, 28)
+	for _, t := range tasks {
+		due := int(t.DueDate.Sub(time.Now()).Hours() / 24)
+		if due >= len(tasksInTimeline) || due < 0 {
+			continue
+		}
+		tasks := tasksInTimeline[due]
+		if tasks == nil {
+			tasks = make([]*roi.Task, 0)
+		}
+		tasks = append(tasks, t)
+		tasksInTimeline[due] = tasks
+	}
+	weekdayInTimeline := make([]int, len(tasksInTimeline))
+	for i := range tasksInTimeline {
+		wd := time.Now().Add(time.Duration(i) * 24 * time.Hour).Weekday()
+		weekdayInTimeline[i] = int(wd)
+	}
 	numTasks := make(map[string]map[roi.TaskStatus]int)
 	for _, t := range tasks {
 		if numTasks[t.ProjectID] == nil {
@@ -189,11 +225,15 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		numTasks[t.ProjectID][t.Status] += 1
 	}
 	recipt := struct {
-		LoggedInUser string
-		NumTasks     map[string]map[roi.TaskStatus]int
+		LoggedInUser      string
+		TasksInTimeline   [][]*roi.Task
+		WeekdayInTimeline []int
+		NumTasks          map[string]map[roi.TaskStatus]int
 	}{
-		LoggedInUser: session["userid"],
-		NumTasks:     numTasks,
+		LoggedInUser:      session["userid"],
+		TasksInTimeline:   tasksInTimeline,
+		WeekdayInTimeline: weekdayInTimeline,
+		NumTasks:          numTasks,
 	}
 	err = executeTemplate(w, "index.html", recipt)
 	if err != nil {

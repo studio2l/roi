@@ -19,8 +19,8 @@ function rfc3339(d) {
   return d.getFullYear() + "-" +
     pad(d.getMonth() + 1) + "-" +
     pad(d.getDate()) + "T" +
-    pad(19) + ":" +
-    pad(0) + ":" +
-    pad(0) +
+    pad(23) + ":" +
+    pad(59) + ":" +
+    pad(59) +
     timezoneOffset(d.getTimezoneOffset());
 }
