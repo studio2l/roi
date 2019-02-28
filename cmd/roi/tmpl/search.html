@@ -62,7 +62,7 @@
 			<div class="ui black mini label">{{.Duration}}f</div>
 		</div>
 		<div>
-			<div class="ui {{.Status.UIColor}} mini label">{{.Status.UIString}}</div>
+			<a href="?status={{.Status}}"><div class="ui {{.Status.UIColor}} mini label">{{.Status.UIString}}</div></a>
 			{{range $i, $v := .Tags -}}
 			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="?tag={{.}}">{{.}}</a>
 			{{- end}}
