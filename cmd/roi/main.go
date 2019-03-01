@@ -755,7 +755,13 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	statusFilter := r.Form.Get("status")
 	assigneeFilter := r.Form.Get("assignee")
 	taskStatusFilter := r.Form.Get("task_status")
-	shots, err := roi.SearchShots(db, prj, shotFilter, tagFilter, statusFilter, assigneeFilter, taskStatusFilter)
+	tforms, err := parseTimeForms(r.Form, "task_due_date")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	taskDueDateFilter := tforms["task_due_date"]
+	shots, err := roi.SearchShots(db, prj, shotFilter, tagFilter, statusFilter, assigneeFilter, taskStatusFilter, taskDueDateFilter)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -781,31 +787,33 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	recipt := struct {
-		LoggedInUser     string
-		Projects         []string
-		Project          string
-		Shots            []*roi.Shot
-		AllShotStatus    []roi.ShotStatus
-		Tasks            map[string]map[string]*roi.Task
-		AllTaskStatus    []roi.TaskStatus
-		FilterShot       string
-		FilterTag        string
-		FilterStatus     string
-		FilterAssignee   string
-		FilterTaskStatus string
+		LoggedInUser      string
+		Projects          []string
+		Project           string
+		Shots             []*roi.Shot
+		AllShotStatus     []roi.ShotStatus
+		Tasks             map[string]map[string]*roi.Task
+		AllTaskStatus     []roi.TaskStatus
+		FilterShot        string
+		FilterTag         string
+		FilterStatus      string
+		FilterAssignee    string
+		FilterTaskStatus  string
+		FilterTaskDueDate time.Time
 	}{
-		LoggedInUser:     session["userid"],
-		Projects:         prjs,
-		Project:          prj,
-		Shots:            shots,
-		AllShotStatus:    roi.AllShotStatus,
-		Tasks:            tasks,
-		AllTaskStatus:    roi.AllTaskStatus,
-		FilterShot:       shotFilter,
-		FilterTag:        tagFilter,
-		FilterStatus:     statusFilter,
-		FilterAssignee:   assigneeFilter,
-		FilterTaskStatus: taskStatusFilter,
+		LoggedInUser:      session["userid"],
+		Projects:          prjs,
+		Project:           prj,
+		Shots:             shots,
+		AllShotStatus:     roi.AllShotStatus,
+		Tasks:             tasks,
+		AllTaskStatus:     roi.AllTaskStatus,
+		FilterShot:        shotFilter,
+		FilterTag:         tagFilter,
+		FilterStatus:      statusFilter,
+		FilterAssignee:    assigneeFilter,
+		FilterTaskStatus:  taskStatusFilter,
+		FilterTaskDueDate: taskDueDateFilter,
 	}
 	err = executeTemplate(w, "search.html", recipt)
 	if err != nil {

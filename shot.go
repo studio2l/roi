@@ -246,7 +246,7 @@ func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 }
 
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
-func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status string) ([]*Shot, error) {
+func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status string, task_due_date time.Time) ([]*Shot, error) {
 	keystr := ""
 	for i, k := range ShotTableKeys {
 		if i != 0 {
@@ -278,7 +278,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 		vals = append(vals, status)
 		i++
 	}
-	if assignee != "" || task_status != "" {
+	if assignee != "" || task_status != "" || !task_due_date.IsZero() {
 		stmt += " JOIN tasks ON (tasks.project_id = shots.project_id AND tasks.shot_id = shots.id)"
 	}
 	if assignee != "" {
@@ -289,6 +289,11 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 	if task_status != "" {
 		where = append(where, fmt.Sprintf("tasks.status=$%d", i))
 		vals = append(vals, task_status)
+		i++
+	}
+	if !task_due_date.IsZero() {
+		where = append(where, fmt.Sprintf("tasks.due_date=$%d", i))
+		vals = append(vals, task_due_date)
 		i++
 	}
 	wherestr := strings.Join(where, " AND ")

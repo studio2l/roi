@@ -3,6 +3,7 @@ package roi
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 var testShotA = &Shot{
@@ -84,7 +85,7 @@ func TestShot(t *testing.T) {
 		}
 	}
 
-	got, err := SearchShots(db, testProject.ID, "", "", "", "", "")
+	got, err := SearchShots(db, testProject.ID, "", "", "", "", "", time.Time{})
 	if err != nil {
 		t.Fatalf("could not search shots from shots table: %s", err)
 	}
@@ -92,7 +93,7 @@ func TestShot(t *testing.T) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
 
-	got, err = SearchShots(db, testProject.ID, "CG_0010", "", "", "", "")
+	got, err = SearchShots(db, testProject.ID, "CG_0010", "", "", "", "", time.Time{})
 	if err != nil {
 		t.Fatalf("could not search shots from shots table: %s", err)
 	}
@@ -100,7 +101,7 @@ func TestShot(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
-	got, err = SearchShots(db, testProject.ID, "", "로이", "", "", "")
+	got, err = SearchShots(db, testProject.ID, "", "로이", "", "", "", time.Time{})
 	if err != nil {
 		t.Fatalf("could not search shots from shots table: %s", err)
 	}
