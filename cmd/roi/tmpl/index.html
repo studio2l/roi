@@ -5,26 +5,24 @@
 <div class="ui small header">타임라인</div>
 <!-- semantic-ui를 이용하기 어려운 부분이라 html5의 flex를 이용함 -->
 <div style="display:flex;border:solid 1px #1b1c1d;border-radius:2px;padding:0px 4px;background-color:#1b1c1d">
-{{range $i, $tasksAtTheDay := $.TasksInTimeline}}
+{{range $i, $day := $.Timeline}}
 	<!-- 날짜 타일 배경색 지정 -->
 	{{$bg := "grey"}}
-	{{$saturday := eq (index $.WeekdayInTimeline $i) 6}}
-	{{$sunday := eq (index $.WeekdayInTimeline $i) 0}}
-	{{if or $saturday $sunday}}
+	{{if isWeekend $day}}
 		{{$bg = "#333744"}}
 	{{end}}
-	{{$haveTasks := ne (len $tasksAtTheDay) 0}}
-	{{if $haveTasks}}
-		{{$bg = dayColorInTimeline (len $tasksAtTheDay)}}
+	{{$numTasks := len (index $.TasksOfDay $day)}}
+	{{if ne $numTasks 0}}
+		{{$bg = dayColorInTimeline $numTasks}}
 	{{end}}
 	<!-- 날짜 타일 -->
-	<div style="flex:1;height:0.9rem;margin:4px 1px;border-radius:1px;background-color:{{$bg}};font-size:0.7rem;display:flex;align-items:center;justify-content:center;">
-		{{if $haveTasks}}
-			{{len $tasksAtTheDay}}
+	<div style="flex:1;height:0.9rem;margin:4px 1px;border-radius:1px;background-color:{{$bg}};font-size:0.7rem;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="timelineClicked({{stringFromDate $day}})">
+		{{if ne $numTasks 0}}
+			{{$numTasks}}
 		{{end}}
 	</div>
 	<!-- 한 주 구분 -->
-	{{if and $sunday (ne $i  (sub (len $.TasksInTimeline) 1))}}
+	{{if and (isSunday $day) (ne $i (sub (len $.Timeline) 1))}}
 		<div style="margin:0px 6px;"></div>
 	{{end}}
 {{end}}
@@ -33,15 +31,73 @@
 <div class="ui small header">태스크</div>
 {{range $prj, $nInStatus := $.NumTasks}}
 <div class="ui inverted segment">
-	<a href="/search/{{$prj}}?assignee={{$.LoggedInUser}}">
-		<div class="ui grey large header">{{$prj}}</div>
-	</a>
-	{{range $status, $n := $nInStatus}}
-	<a href="/search/{{$prj}}?assignee={{$.LoggedInUser}}&task_status={{$status}}">
-		<div class="ui grey image label">{{$status.UIString}}<div class="detail">{{$n}}</div></div>
-	</a>
-	{{end}}
+	<div class="ui grid">
+		<div class="ui four wide column">
+			<a href="/search/{{$prj}}?assignee={{$.LoggedInUser}}">
+				<div class="ui blue large header">{{$prj}}</div>
+			</a>
+		</div>
+		<div class="ui twelve wide column right aligned">
+			{{range $status, $n := $nInStatus}}
+			<a href="/search/{{$prj}}?assignee={{$.LoggedInUser}}&task_status={{$status}}">
+				<div class="ui grey small image label">{{$status.UIString}}<div class="detail">{{$n}}</div></div>
+			</a>
+			{{end}}
+		</div>
+	</div>
+	<div class="ui divider">
+	</div>
+	<div id="project-{{$prj}}-tasks-of-day" class="tasks-of-day ui grey inverted segment">
+		타임라인의 날짜를 선택해서 당일이 마감인 태스크를 살펴보세요.
+	</div>
 </div>
 {{end}}
 </div>
+
+<script>
+let taskFromID = {
+	{{range $id, $t := $.TaskFromID -}}
+	"{{$id}}": {
+		"project": "{{$t.ProjectID}}",
+		"shot": "{{$t.ShotID}}",
+		"name": "{{$t.Name}}",
+		"status": "{{$t.Status}}",
+	},
+	{{end}}
+};
+
+let tasksOfDay = {
+	{{range $day, $tasks := $.TasksOfDay -}}
+	"{{stringFromDate $day}}": [
+		{{range $id := $tasks -}}
+		"{{$id}}",
+		{{end}}
+	],
+	{{end}}
+};
+
+function timelineClicked(day) {
+	if (tasksOfDay == null) {
+		return;
+	}
+	let tasks = tasksOfDay[day]
+	let els = document.getElementsByClassName("tasks-of-day");
+	for (i = 0; i < els.length; i++) {
+		els[i].innerHTML = "";
+	}
+	for (i = 0; i < tasks.length; i++) {
+		let t = taskFromID[tasks[i]];
+		let el = document.getElementById("project-" + t.project + "-tasks-of-day");
+		let label = document.createElement("a");
+		label.setAttribute("href", "/shot/" + t.project + "/" + t.shot);
+		label.setAttribute("class", "ui small label");
+		label.innerHTML = t.shot;
+		detail = document.createElement("div");
+		detail.setAttribute("class", "detail");
+		detail.innerHTML = t.name;
+		label.append(detail);
+		el.append(label);
+	}
+}
+</script>
 {{template "footer.html"}}

@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -39,6 +40,18 @@ func hasThumbnail(prj, shot string) bool {
 		return true // 함수 주석 참고
 	}
 	return true
+}
+
+// isWeekend는 해당일이 주말인지를 검사한다.
+func isWeekend(t time.Time) bool {
+	wd := t.Weekday()
+	return wd == time.Saturday || wd == time.Sunday
+}
+
+// isSunday는 해당일이 일요일인지를 검사한다.
+func isSunday(t time.Time) bool {
+	wd := t.Weekday()
+	return wd == time.Sunday
 }
 
 // stringFromTime은 시간을 rfc3339 형식의 문자열로 표현한다.
@@ -109,6 +122,8 @@ func parseTemplate() {
 		"stringFromTime":      stringFromTime,
 		"stringFromDate":      stringFromDate,
 		"shortStringFromDate": shortStringFromDate,
+		"isWeekend":           isWeekend,
+		"isSunday":            isSunday,
 		"dayColorInTimeline":  dayColorInTimeline,
 		"mod":                 func(i, m int) int { return i % m },
 		"sub":                 func(a, b int) int { return a - b },
@@ -197,25 +212,35 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
+	// 태스크를 미리 아이디 기준으로 정렬해 두면 아래에서 사용되는
+	// tasksOfDay 또한 아이디 기준으로 정렬된다.
+	sort.Slice(tasks, func(i, j int) bool {
+		ti := tasks[i]
+		idi := ti.ProjectID + "." + ti.ShotID + "." + ti.Name
+		tj := tasks[j]
+		idj := tj.ProjectID + "." + tj.ShotID + "." + tj.Name
+		return strings.Compare(idi, idj) <= 0
+	})
+	taskFromID := make(map[string]*roi.Task)
+	for _, t := range tasks {
+		tid := t.ProjectID + "." + t.ShotID + "." + t.Name
+		taskFromID[tid] = t
+	}
+	tasksOfDay := make(map[time.Time][]string, 28)
+	for _, t := range tasks {
+		if tasksOfDay[t.DueDate] == nil {
+			tasksOfDay[t.DueDate] = make([]string, 0)
+		}
+		tid := t.ProjectID + "." + t.ShotID + "." + t.Name
+		tasksOfDay[t.DueDate] = append(tasksOfDay[t.DueDate], tid)
+	}
 	// 앞으로 4주에 대한 태스크 정보를 보인다.
 	// 총 기간이나 단위는 추후 설정할 수 있도록 할 것.
-	tasksInTimeline := make([][]*roi.Task, 28)
-	for _, t := range tasks {
-		due := int(t.DueDate.Sub(time.Now()).Hours() / 24)
-		if due >= len(tasksInTimeline) || due < 0 {
-			continue
-		}
-		tasks := tasksInTimeline[due]
-		if tasks == nil {
-			tasks = make([]*roi.Task, 0)
-		}
-		tasks = append(tasks, t)
-		tasksInTimeline[due] = tasks
-	}
-	weekdayInTimeline := make([]int, len(tasksInTimeline))
-	for i := range tasksInTimeline {
-		wd := time.Now().Add(time.Duration(i) * 24 * time.Hour).Weekday()
-		weekdayInTimeline[i] = int(wd)
+	timeline := make([]time.Time, 28)
+	y, m, d := time.Now().Date()
+	today := time.Date(y, m, d, 23, 59, 59, 0, time.Local).UTC()
+	for i := range timeline {
+		timeline[i] = today.Add(time.Duration(i) * 24 * time.Hour)
 	}
 	numTasks := make(map[string]map[roi.TaskStatus]int)
 	for _, t := range tasks {
@@ -225,15 +250,17 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		numTasks[t.ProjectID][t.Status] += 1
 	}
 	recipt := struct {
-		LoggedInUser      string
-		TasksInTimeline   [][]*roi.Task
-		WeekdayInTimeline []int
-		NumTasks          map[string]map[roi.TaskStatus]int
+		LoggedInUser string
+		Timeline     []time.Time
+		NumTasks     map[string]map[roi.TaskStatus]int
+		TaskFromID   map[string]*roi.Task
+		TasksOfDay   map[time.Time][]string
 	}{
-		LoggedInUser:      session["userid"],
-		TasksInTimeline:   tasksInTimeline,
-		WeekdayInTimeline: weekdayInTimeline,
-		NumTasks:          numTasks,
+		LoggedInUser: session["userid"],
+		Timeline:     timeline,
+		NumTasks:     numTasks,
+		TaskFromID:   taskFromID,
+		TasksOfDay:   tasksOfDay,
 	}
 	err = executeTemplate(w, "index.html", recipt)
 	if err != nil {
