@@ -77,13 +77,15 @@ let tasksOfDay = {
 };
 
 function timelineClicked(day) {
-	if (tasksOfDay == null) {
-		return;
-	}
-	let tasks = tasksOfDay[day]
+	// 기존 태스크 링크 삭제
 	let els = document.getElementsByClassName("tasks-of-day");
 	for (i = 0; i < els.length; i++) {
 		els[i].innerHTML = "";
+	}
+	// 해당 날에 태스크가 있다면 링크 추가
+	let tasks = tasksOfDay[day]
+	if (tasks == null) {
+		return;
 	}
 	for (i = 0; i < tasks.length; i++) {
 		let t = taskFromID[tasks[i]];
