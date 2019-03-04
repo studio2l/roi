@@ -71,5 +71,25 @@
 			<!--버튼 : 비밀번호 변경-->
 			<button class="ui button green" type="submit" value="Submit" >비밀번호 변경</button>
 		</form>
+	<div class="ui section divider"></div>
+	<!--setting-->
+	<h2 class="ui dividing inverted header">Setting</h2>
+		<!--언어선택-->
+		<div class="ui inverted form">
+			<div class="inline fields">
+				<label for="language">Select Language:</label>
+				<div class="field">
+					<div class="ui language radio checkbox">
+						<input type="radio" name="language" checked="" tabindex="0" class="hidden">
+						<label>한글</label>
+					</div>
+				</div>
+				<div class="field">
+					<div class="ui language radio checkbox">
+						<input type="radio" name="language" tabindex="0" class="hidden">
+						<label>English</label>
+					</div>
+				</div>
+			</div>
 </div>
 {{template "footer.html"}}
