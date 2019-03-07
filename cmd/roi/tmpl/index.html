@@ -103,5 +103,33 @@ function timelineClicked(day) {
 		el.append(label);
 	}
 }
+
+function showAllTasks() {
+	// 기존 태스크 링크 삭제
+	let els = document.getElementsByClassName("tasks-of-day");
+	for (i = 0; i < els.length; i++) {
+		els[i].innerHTML = "";
+	}
+	let tasks = [];
+	for (let id in taskFromID) {
+		tasks.push(id);
+	}
+	tasks.sort();
+	// 태스크 링크 추가
+	for (i = 0; i < tasks.length; i++) {
+		let t = taskFromID[tasks[i]]
+		let el = document.getElementById("project-" + t.project + "-tasks-of-day");
+		let label = document.createElement("a");
+		label.setAttribute("href", "/shot/" + t.project + "/" + t.shot);
+		label.setAttribute("class", "ui small label");
+		label.innerHTML = t.shot;
+		detail = document.createElement("div");
+		detail.setAttribute("class", "detail");
+		detail.innerHTML = t.name;
+		label.append(detail);
+		el.append(label);
+	}
+}
+showAllTasks();
 </script>
 {{template "footer.html"}}
