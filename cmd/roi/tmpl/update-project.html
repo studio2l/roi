@@ -14,6 +14,19 @@
 		<div class="field"><label>영문이름</label>
 			<input type="text" name="name" value="{{.Project.Name}}"/>
 		</div>
+		<!--type 설정-->
+		<div class="field"><label>타입</label>
+			<select id="project-type" class="ui dropdown">
+				<!--목록을 시스템 설정에서 가져옵니다.-->
+				<option value="">Select Project Type</option>
+				<option value="Feature Film">Feature Film</option>
+				<option value="Animation">Animation</option>
+				<option value="Commercial">Commercial</option>
+				<option value="MusicVideo">MusicVideo</option>
+				<option value="A-type">A-type</option>
+				<option value="B-type">B-type</option>
+			  </select>
+		</div>
 		<div class="field"><label>클라이언트</label>
 			<input type="text" name="client" value="{{.Project.Client}}"/>
 		</div>
