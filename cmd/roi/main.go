@@ -1117,16 +1117,23 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 				ProjectID: prj,
 				ShotID:    shot,
 				Name:      task,
+				Status:    roi.TaskNotSet,
 				DueDate:   time.Time{},
 			}
+			tid := prj + "." + shot + "." + task
 			exist, err := roi.TaskExist(db, prj, shot, task)
 			if err != nil {
-				log.Printf("could not check task '%s' exist: %v", prj+"."+shot+"."+task, err)
+				log.Printf("could not check task '%s' exist: %v", tid, err)
 				http.Error(w, "internal error", http.StatusInternalServerError)
 				return
 			}
 			if !exist {
-				roi.AddTask(db, prj, shot, t)
+				err := roi.AddTask(db, prj, shot, t)
+				if err != nil {
+					log.Printf("could not add task '%s': %v", tid, err)
+					http.Error(w, "internal error", http.StatusInternalServerError)
+					return
+				}
 			}
 		}
 		http.Redirect(w, r, fmt.Sprintf("/shot/%s/%s", prj, shot), http.StatusSeeOther)
