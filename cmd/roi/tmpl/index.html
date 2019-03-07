@@ -16,7 +16,7 @@
 		{{$bg = dayColorInTimeline $numTasks}}
 	{{end}}
 	<!-- 날짜 타일 -->
-	<div style="flex:1;height:0.9rem;margin:4px 1px;border-radius:1px;background-color:{{$bg}};font-size:0.7rem;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="timelineClicked({{stringFromDate $day}})">
+	<div style="flex:1;height:0.9rem;margin:4px 1px;border-radius:1px;background-color:{{$bg}};font-size:0.7rem;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="showTasks({{stringFromDate $day}})">
 		{{if ne $numTasks 0}}
 			{{$numTasks}}
 		{{end}}
@@ -41,9 +41,9 @@
 			</a>
 		</div>
 		<div class="ui twelve wide column right aligned">
-			{{range $status, $n := $nInStatus}}
+			{{range $status := $.AllTaskStatus}}
 			<a href="/search/{{$prj}}?assignee={{$.LoggedInUser}}&task_status={{$status}}">
-				<div class="ui grey small image label">{{$status.UIString}}<div class="detail">{{$n}}</div></div>
+				<div class="ui grey small image label">{{$status.UIString}}<div id="project-{{$prj}}-status-{{$status}}" class="detail">0</div></div>
 			</a>
 			{{end}}
 		</div>
@@ -78,41 +78,25 @@ let tasksOfDay = {
 	{{end}}
 };
 
-function timelineClicked(day) {
-	// 기존 태스크 링크 삭제
-	let els = document.getElementsByClassName("tasks-of-day");
-	for (i = 0; i < els.length; i++) {
-		els[i].innerHTML = "";
-	}
-	// 해당 날에 태스크가 있다면 링크 추가
-	let tasks = tasksOfDay[day]
-	if (tasks == null) {
-		return;
-	}
-	for (i = 0; i < tasks.length; i++) {
-		let t = taskFromID[tasks[i]];
-		let el = document.getElementById("project-" + t.project + "-tasks-of-day");
-		let label = document.createElement("a");
-		label.setAttribute("href", "/shot/" + t.project + "/" + t.shot);
-		label.setAttribute("class", "ui small label");
-		label.innerHTML = t.shot;
-		detail = document.createElement("div");
-		detail.setAttribute("class", "detail");
-		detail.innerHTML = t.name;
-		label.append(detail);
-		el.append(label);
-	}
-}
+let allTaskStatus = [
+	{{range $s := $.AllTaskStatus}}
+	"{{$s}}",
+	{{- end}}
+];
 
-function showAllTasks() {
+function showTasks(day) {
 	// 기존 태스크 링크 삭제
 	let els = document.getElementsByClassName("tasks-of-day");
 	for (i = 0; i < els.length; i++) {
 		els[i].innerHTML = "";
 	}
 	let tasks = [];
-	for (let id in taskFromID) {
-		tasks.push(id);
+	if (day == "") {
+		for (let id in taskFromID) {
+			tasks.push(id);
+		}
+	} else {
+		tasks = tasksOfDay[day];
 	}
 	tasks.sort();
 	// 태스크 링크 추가
@@ -129,7 +113,33 @@ function showAllTasks() {
 		label.append(detail);
 		el.append(label);
 	}
+	// 프로젝트별 태스크 상태 수정
+	let numTaskStatusPerProject = {}; // [project][status]int
+	for (let task in taskFromID) {
+		let t = taskFromID[task];
+		if (numTaskStatusPerProject[t.project] == null) {
+			numTaskStatusPerProject[t.project] = {};
+		}
+	}
+	for (let prj in numTaskStatusPerProject) {
+		for (i = 0; i < allTaskStatus.length; i++) {
+			let status = allTaskStatus[i];
+			numTaskStatusPerProject[prj][status] = 0;
+		}
+	}
+	for (i = 0; i < tasks.length; i++) {
+		let t = taskFromID[tasks[i]];
+		numTaskStatusPerProject[t.project][t.status] += 1;
+	}
+	for (let prj in numTaskStatusPerProject) {
+		let numTaskStatus = numTaskStatusPerProject[prj]
+		for (let status in numTaskStatus) {
+			let n = numTaskStatus[status];
+			let el = document.getElementById("project-" + prj + "-status-" + status);
+			el.innerHTML = n;
+		}
+	}
 }
-showAllTasks();
+showTasks("");
 </script>
 {{template "footer.html"}}
