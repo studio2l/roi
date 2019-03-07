@@ -250,17 +250,19 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		numTasks[t.ProjectID][t.Status] += 1
 	}
 	recipt := struct {
-		LoggedInUser string
-		Timeline     []time.Time
-		NumTasks     map[string]map[roi.TaskStatus]int
-		TaskFromID   map[string]*roi.Task
-		TasksOfDay   map[time.Time][]string
+		LoggedInUser  string
+		Timeline      []time.Time
+		NumTasks      map[string]map[roi.TaskStatus]int
+		TaskFromID    map[string]*roi.Task
+		TasksOfDay    map[time.Time][]string
+		AllTaskStatus []roi.TaskStatus
 	}{
-		LoggedInUser: session["userid"],
-		Timeline:     timeline,
-		NumTasks:     numTasks,
-		TaskFromID:   taskFromID,
-		TasksOfDay:   tasksOfDay,
+		LoggedInUser:  session["userid"],
+		Timeline:      timeline,
+		NumTasks:      numTasks,
+		TaskFromID:    taskFromID,
+		TasksOfDay:    tasksOfDay,
+		AllTaskStatus: roi.AllTaskStatus,
 	}
 	err = executeTemplate(w, "index.html", recipt)
 	if err != nil {
