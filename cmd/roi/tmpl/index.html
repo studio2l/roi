@@ -28,7 +28,7 @@
 {{end}}
 </div>
 <div style="margin: 10px;color:grey;">
-타임라인의 날짜를 선택해서 당일이 마감인 태스크를 살펴보세요.
+타임라인의 날짜를 선택해서 당일이 마감인 태스크를 살펴보세요. Esc키를 이용해 전체 태스크 보기로 돌아올 수 있습니다.
 </div>
 
 <div class="ui small header">태스크</div>
@@ -143,5 +143,15 @@ function showTasks(day) {
 
 // 기본적으로 전체 태스크를 보인다.
 showTasks("");
+
+// Esc 키를 눌렀을 때도 전체 태스크로 돌아간다.
+function keyDownEvent(e) {
+	if (e.key == "Escape"){
+		showTasks("");
+	}
+}
+
+document.addEventListener("keydown", keyDownEvent, false);
+
 </script>
 {{template "footer.html"}}
