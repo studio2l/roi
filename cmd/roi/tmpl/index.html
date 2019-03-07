@@ -27,6 +27,9 @@
 	{{end}}
 {{end}}
 </div>
+<div style="margin: 10px;color:grey;">
+타임라인의 날짜를 선택해서 당일이 마감인 태스크를 살펴보세요.
+</div>
 
 <div class="ui small header">태스크</div>
 {{range $prj, $nInStatus := $.NumTasks}}
@@ -48,7 +51,6 @@
 	<div class="ui divider">
 	</div>
 	<div id="project-{{$prj}}-tasks-of-day" class="tasks-of-day ui grey inverted segment">
-		타임라인의 날짜를 선택해서 당일이 마감인 태스크를 살펴보세요.
 	</div>
 </div>
 {{end}}
