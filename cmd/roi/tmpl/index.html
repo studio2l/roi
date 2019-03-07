@@ -101,7 +101,7 @@ function showTasks(day) {
 	tasks.sort();
 	// 태스크 링크 추가
 	for (i = 0; i < tasks.length; i++) {
-		let t = taskFromID[tasks[i]]
+		let t = taskFromID[tasks[i]];
 		let el = document.getElementById("project-" + t.project + "-tasks-of-day");
 		let label = document.createElement("a");
 		label.setAttribute("href", "/shot/" + t.project + "/" + t.shot);
