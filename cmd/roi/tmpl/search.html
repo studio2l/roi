@@ -12,7 +12,7 @@
 			</div>
 			<div style="flex:1;"></div>
 			<div>
-				<a style="font-size:0.7rem;color:#444444;border-bottom:solid 1px #444444" href="/update-shot?project_id={{$.Project}}&id={{.ID}}">수정</a>
+				<a style="font-size:0.7rem;color:#666666;" href="/update-shot?project_id={{$.Project}}&id={{.ID}}">수정</a>
 			</div>
 		</div>
 		<div style="flex:1;font-size:14px;"> {{.CGDescription}}</div>
@@ -32,7 +32,15 @@
 					{{range .WorkingTasks}}
 					{{with index (index $.Tasks $s.ID) .}}
 					<tr>
-						<td class="one wide left aligned">{{.Name}}</td>
+						<td class="ui one wide">
+							<div style="display:flex;">
+								<div style="flex:1;">
+									<a href="" style="color:white;">{{.Name}}</a>
+								</div>
+								<a style="font-size:0.7rem;color:#666666;" href="/update-task?project_id={{$.Project}}&shot_id={{.ShotID}}&name={{.Name}}">수정</a>
+								<div style="width:0.3rem;display:inline-block;"></div>
+							</div>
+						</td>
 						<td class="one wide left aligned">{{.Status.UIString}}</td>
 						<td class="one wide left aligned">{{.Assignee}}</td>
 						<td class="one wide right aligned">|</td>

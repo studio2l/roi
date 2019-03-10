@@ -1,0 +1,64 @@
+{{template "head.html"}}
+{{template "nav.html" $}}
+<!--상단 고정 메뉴로 인해 위치 조정-->
+<div style="padding-top: 2rem;"></div>
+<div class="ui raised very padded text container grey inverted segment">
+	<h2 class="ui dividing header">태스크 수정</h2>
+	<form method="post" class="ui form">
+		<div class="field disabled"><label>프로젝트</label>
+			<input type="text" name="project_id" value="{{.Task.ProjectID}}"/>
+		</div>
+		<div class="field disabled"><label>샷</label>
+			<input type="text" name="shot_id" value="{{.Task.ShotID}}"/>
+		</div>
+		<div class="field disabled"><label>태스크</label>
+			<input type="text" name="name" value="{{.Task.Name}}"/>
+		</div>
+		<div class="field disabled"><label>담당</label>
+			<input type="text" name="assignee" value="{{.Task.Assignee}}"/>
+		</div>
+		<div class="field"><label>마감일</label>
+			<div class="ui calendar" id="duedate">
+				<div class="ui input left icon">
+					<i class="calendar icon"></i><input type="text" name="due_date" value="{{with $.Task.DueDate}}{{if not .IsZero}}{{.}}{{end}}{{end}}">
+				</div>
+			</div>
+		</div>
+		<script>
+		$('#duedate').calendar({
+			type: 'date',
+			formatter: {
+				date: (date, settings) => {
+					return rfc3339(date);
+				}
+			}
+		});
+		</script>
+		<div class="field"><label>상태</label>
+			<select type="text" name="status">
+				{{with $t := $.Task}}
+				{{range $ts := $.AllTaskStatus}}
+				<option value="{{$ts}}" {{if eq $ts $t.Status}}selected{{end}}>{{$ts.UIString}}</option>
+				{{end}}
+				{{end}}
+			</select>
+		</div>
+		<button class="ui button green" type="submit" value="Submit">수정</button>
+
+		<div style="height:2rem;"></div>
+	</form>
+
+	<h2 class="ui dividing header">
+		버전
+		<a href="/add-version?project_id={{$.Task.ProjectID}}&shot_id={{$.Task.ShotID}}&task_name={{$.Task.Name}}" class="ui right floated mini basic inverted button">추가</a>
+	</h2>
+	<div class="ui container">
+		{{range $v := $.Versions}}
+		<a href="/update-version?project_id={{$.Task.ProjectID}}&shot_id={{$.Task.ShotID}}&task_name={{$.Task.Name}}&version={{$v}}" class="ui label">{{printf "v%d" $v}}</a>
+		{{end}}
+	</div>
+</div>
+
+<script>
+</script>
+{{template "footer.html"}}
