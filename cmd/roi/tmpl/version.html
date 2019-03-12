@@ -1,0 +1,27 @@
+{{template "head.html"}}
+{{template "nav.html" $}}
+<div style="padding:30px 30px;display:flex;justify-content:space-between;align-items:center;">
+	<div style="font-size:2rem;color:white;">
+	<b>{{$.Version.ProjectID}} / {{$.Version.ShotID}} / {{$.Version.TaskName}} / {{$.Version.Num}}</b>
+	</div>
+	<a href="/update-version?project_id={{$.Version.ProjectID}}&shot_id={{$.Version.ShotID}}&task_name={{$.Version.TaskName}}&version={{$.Version.Num}}" class="ui right floated mini button" style="font-size:12px;">수정</a>
+</div>
+<div class="ui inverted segment">
+	<div class="ui container center aligned">
+	<div style="height:3rem;"></div>
+	{{if $.Version.Mov}}
+	<video width="800px" controls>
+		<source src="{{$.Version.Mov}}" type="video/mp4">
+		I'm sorry; your browser doesn't support HTML5 video in WebM with VP8/VP9 or MP4 with H.264.
+	</video>
+	<div class="ui inverted grey header">{{$.Version.Mov}}</div>
+	{{end}}
+	{{range $.Version.Images}}
+	<div style="height:6rem;"></div>
+	<img width="800px" src="{{.}}"></img>
+	<div class="ui inverted grey header">{{.}}</div>
+	{{end}}
+	<div style="height:3rem;"></div>
+	</div>
+</div>
+{{template "footer.html"}}

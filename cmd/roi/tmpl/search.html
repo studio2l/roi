@@ -46,7 +46,7 @@
 						<td class="one wide right aligned">|</td>
 						<td class="one wide left aligned">
 							{{if .LastOutputVersion}}
-								{{printf "v%03d" .LastOutputVersion}}
+								<a href="/version/{{.ProjectID}}/{{.ShotID}}/{{.Name}}/{{.LastOutputVersion}}" style="color:white;">{{printf "v%03d" .LastOutputVersion}}</a>
 								{{if eq $.LoggedInUser .Assignee}}
 									<a href="/update-version?project_id={{.ProjectID}}&shot_id={{.ShotID}}&task_name={{.Name}}&version={{.LastOutputVersion}}" style="font-size:10px;">수정</a>
 								{{end}}
