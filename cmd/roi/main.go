@@ -1298,6 +1298,74 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// versionHandler는 /version/ 으로 사용자가 접근했을때 버전 정보가 담긴 페이지를 반환한다.
+func versionHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := roi.DB()
+	if err != nil {
+		log.Printf("could not connect to database: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	session, err := getSession(r)
+	if err != nil {
+		http.Error(w, "could not get session", http.StatusUnauthorized)
+		clearSession(w)
+		return
+	}
+	// 경로로 부터 버전 ID 추출
+	pth := r.URL.Path[len("/version/"):]
+	pths := strings.Split(pth, "/")
+	if len(pths) != 4 {
+		http.NotFound(w, r)
+		return
+	}
+	prj := pths[0]
+	shot := pths[1]
+	task := pths[2]
+	vstring := pths[3]
+	if vstring == "" {
+		msg := fmt.Sprintf("'version' field empty")
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+	version, err := strconv.Atoi(vstring)
+	if err != nil || version <= 0 {
+		msg := fmt.Sprintf("bad version '%s'", pths[3])
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+	id := prj + "." + shot + "." + task + fmt.Sprintf(".v%03d", version)
+
+	exist, err := roi.VersionExist(db, prj, shot, task, version)
+	if err != nil {
+		log.Printf("could not check version exist '%s': %v", id, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if !exist {
+		e := fmt.Sprintf("version '%s' not exist", id)
+		http.Error(w, e, http.StatusBadRequest)
+		return
+	}
+	v, err := roi.GetVersion(db, prj, shot, task, version)
+	if err != nil {
+		log.Printf("could not get version '%s': %v", id, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	recipt := struct {
+		LoggedInUser string
+		Version      *roi.Version
+	}{
+		LoggedInUser: session["userid"],
+		Version:      v,
+	}
+	err = executeTemplate(w, "version.html", recipt)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := roi.DB()
 	if err != nil {
@@ -1621,6 +1689,7 @@ func main() {
 	mux.HandleFunc("/add-shot/", addShotHandler)
 	mux.HandleFunc("/update-shot", updateShotHandler)
 	mux.HandleFunc("/update-task", updateTaskHandler)
+	mux.HandleFunc("/version/", versionHandler)
 	mux.HandleFunc("/add-version", addVersionHandler)
 	mux.HandleFunc("/update-version", updateVersionHandler)
 	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
