@@ -72,7 +72,7 @@ func (s ShotStatus) UIColor() string {
 	case ShotDone:
 		return "blue"
 	case ShotHold:
-		return "darkgey"
+		return "grey"
 	case ShotOmit:
 		return "black"
 	}
