@@ -1,18 +1,25 @@
 {{template "head.html" }}
 {{template "nav.html" $}}
 	<div id="main">
-		<h1 class="ui top attached inverted header">
+		<div class="ui top inverted large header" style="padding:5px;">
+			<div class="sub header">
+				<a href="/search/{{$.Project}}" style="color:grey;"><i class="double angle left small icon" style="margin-right:0.2rem;"></i>{{$.Project}}</a>
+			</div>
+			<div style="height:0.5rem;"></div>
 			{{$.Shot.ID}}
 			<div class="ui blue label">{{$.Shot.Status.UIString}}</div>
-			<div class="ui green label">{{stringFromDate $.Shot.DueDate}}</div>
+			<div class="ui green label">마감일: {{if not $.Shot.DueDate.IsZero}}{{stringFromDate $.Shot.DueDate}}{{else}}미정{{end}}</div>
 			<div class="ui label">
 				<a href="/update-shot?project_id={{$.Shot.ProjectID}}&id={{$.Shot.ID}}" style="font-size:10px;">수정</a>
 			</div>
-			<div class="sub header"><a href="/search/{{$.Project}}">{{$.Project}}</a></div>
-		</h1>
-		<div class="ui attached secondary inverted segment">
+		</div>
+		<div class="ui inverted segment">
 				<div style="display:flex;">
-						<div style="min-width:320px;min-height:180px;background-color:grey;"></div>
+						{{if hasThumbnail $.Shot.ProjectID $.Shot.ID}}
+						<img style="width:320px;height:180px;" src="/thumbnail/{{$.Shot.ProjectID}}/{{$.Shot.ID}}.png" />
+						{{else}}
+						<div style="width:320px;height:180px;background-color:grey;"></div>
+						{{end}}
 						<div style="min-width:20px;"></div>
 						<div style="flex:1;display:flex;flex-direction:column;">
 							<div style="display:flex;"><div style="min-width:80px;">샷 내용</div><div style="color:grey;min-width:20px;">|</div><div>{{.Shot.Description}}</div></div>
@@ -25,23 +32,31 @@
 						</div>
 					</div>
 		</div>
-		<h5 class="ui attached inverted header">컨펌</h5>
-		<div class="ui attached secondary inverted segment">
-			<div style="display:flex;font-size:12px;">
-				<div>#8 2018-09-11</div>
-				<div style="flex:1;"></div>
-				<div>이전 컨펌 내용</div>
-			</div>
+		{{range $task := $.Shot.WorkingTasks}}
+		{{with $t := index $.Task $task}}
+		<div class="ui inverted attached header" style="display:flex;align-items:baseline;">
+			<div style="font-size:14px;min-width:8rem;">{{$t.Name}}</div>
+			<div style="font-size:10px;color:#AAAAAA;min-width:5rem;">{{$t.Status.UIString}}</div>
+			<div style="font-size:10px;color:#AAAAAA;min-width:5rem;">{{shortStringFromDate $t.DueDate}}</div>
+			<div style="flex:1;"></div>
+			<a href="/update-task?project_id={{$t.ProjectID}}&shot_id={{$t.ShotID}}&name={{$t.Name}}" style="font-size:9px;color:grey;">수정</a>
 		</div>
-		<h5 class="ui attached inverted header">Tasks</h5>
-		<div class="ui attached secondary inverted segment" style="display:flex;">
+		<div class="ui inverted attached secondary segment" style="padding:{{if not $t.LastOutputVersion}}1px{{else}}0.5rem{{end}};">
+			{{if $t.LastOutputVersion}}
+			<div style="font-size:10px;">v{{printf "%03d" $t.LastOutputVersion}}</div>
+			<div style="height:0.3rem;"></div>
 			<div style="display:flex;flex-wrap:wrap;">
-				{{range $.Shot.WorkingTasks}}
-				<div style="width:200px;border-bottom:solid 1px #DDDDDD;border-right:solid 1px #DDDDDD;padding:2px;background-color:#CCCCCC;">{{.}}</div>
-				{{end}}
-				<div style="flex:1;"></div>
+				<!-- 목업 이미지 홀더; 실제 이미지로 대체 되어야 함 -->
+				<div style="width:192px;height:108px;background-color:#444444;"></div>
+				<div style="width:1rem;"></div>
+				<div style="width:192px;height:108px;background-color:#444444;"></div>
+				<div style="width:1rem;"></div>
+				<div style="width:192px;height:108px;background-color:#444444;"></div>
 			</div>
+			{{end}}
 		</div>
+		{{end}}
+		{{end}}
 	</div>
 </div>
 {{template "footer.html"}}
