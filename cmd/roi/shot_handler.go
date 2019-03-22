@@ -45,17 +45,21 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
+	task := make(map[string]*roi.Task)
+	for _, t := range tasks {
+		task[t.Name] = t
+	}
 
 	recipt := struct {
 		LoggedInUser string
 		Project      string
 		Shot         *roi.Shot
-		Tasks        []*roi.Task
+		Task         map[string]*roi.Task
 	}{
 		LoggedInUser: session["userid"],
 		Project:      prj,
 		Shot:         s,
-		Tasks:        tasks,
+		Task:         task,
 	}
 	err = executeTemplate(w, "shot.html", recipt)
 	if err != nil {
