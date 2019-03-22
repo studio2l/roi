@@ -30,41 +30,33 @@
 			</div>
 		</div>
 		<div style="flex:1;">
-			<table class="ui very compact striped inverted table">
+			<table class="ui very compact striped inverted celled table">
 				<tbody>
 					{{range .WorkingTasks}}
 					{{with index (index $.Tasks $s.ID) .}}
 					<tr style="font-size:0.9rem;color:#AAAAAA">
-						<td class="ui one wide">
-							<div style="display:flex;">
-								<div style="flex:1;">
+						<td class="ui one wide left aligned">
+							<div style="display:flex;padding:0 0.5rem;">
+								<div style="flex:1;display:inline-block;">
 									<a href="" style="color:white;">{{.Name}}</a>
 								</div>
 								<a style="font-size:0.7rem;color:#666666;" href="/update-task?project_id={{$.Project}}&shot_id={{.ShotID}}&name={{.Name}}">수정</a>
-								<div style="width:0.3rem;display:inline-block;"></div>
 							</div>
 						</td>
-						<td class="one wide" style="border-left:solid 1px #444444">
-							<div style="flex:1;display:flex;justify-content:center;padding:0px 12px;">
-								<div>{{.Status.UIString}}</div>
-							</div>
+						<td class="one wide center aligned">
+							<div>{{.Status.UIString}}</div>
 						</td>
-						<td class="one wide">
-							<div style="flex:1;display:flex;justify-content:center;padding:0px 12px;">
-								<div>{{shortStringFromDate .DueDate}}</div>
-							</div>
+						<td class="one wide center aligned">
+							<div>{{shortStringFromDate .DueDate}}</div>
 						</td>
-						<td class="one wide" style="border-left:solid 1px #444444">
-							<div style="display:flex;justify-content:center;">
-								<div>{{.Assignee}}</div>
-							</div>
+						<td class="one wide center aligned">
+							<div>{{.Assignee}}</div>
 						</td>
-						<td class="one wide" style="border-left:solid 1px #444444">
-							<div style="flex:1;display:flex;justify-content:center;">
+						<td class="one wide center aligned">
 								{{if .LastOutputVersion}}
 									<a href="/version/{{.ProjectID}}/{{.ShotID}}/{{.Name}}/{{.LastOutputVersion}}" style="color:#AAAAAA;">{{printf "v%03d" .LastOutputVersion}}</a>
 									{{if eq $.LoggedInUser .Assignee}}
-										<div style="width:6px;"></div>
+										<div style="display:inline-block;width:6px;"></div>
 										<a href="/update-version?project_id={{.ProjectID}}&shot_id={{.ShotID}}&task_name={{.Name}}&version={{.LastOutputVersion}}" style="font-size:0.7rem;color:#666666;">수정</a>
 									{{end}}
 								{{else}}
@@ -72,11 +64,12 @@
 										<a href="/add-version?project_id={{.ProjectID}}&shot_id={{.ShotID}}&task_name={{.Name}}" style="font-size:0.7rem;color:#666666;">버전 추가</a>
 									{{end}}
 								{{end}}
-							</div>
 						</td>
-						<td class="one wide">
-							<div style="flex:1;display:flex;justify-content:center;">
-								댓글 0
+						<td class="one wide right aligned">
+							<div style="display:flex;padding:0 0.5rem;justify-content:end;">
+								<i class="copy outline icon"></i>
+								<div style="display:inline-block;width:0.5rem;"></div>
+								<i class="comment icon"></i> 0
 							</div>
 						</td>
 					</tr>
