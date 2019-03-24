@@ -238,11 +238,30 @@ func GetVersion(db *sql.DB, prj, shot, task string, version int) (*Version, erro
 	return versionFromRows(rows)
 }
 
-// AllVersions는 db의 특정 태스크의 아웃풋 전체를 반환한다.
-func AllVersions(db *sql.DB, prj, shot, task string) ([]*Version, error) {
+// TaskVersions는 db에서 특정 태스크의 버전 전체를 검색해 반환한다.
+func TaskVersions(db *sql.DB, prj, shot, task string) ([]*Version, error) {
 	keystr := strings.Join(VersionTableKeys, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE project_id=$1 AND shot_id=$2 AND task_name=$3", keystr)
 	rows, err := db.Query(stmt, prj, shot, task)
+	if err != nil {
+		return nil, err
+	}
+	versions := make([]*Version, 0)
+	for rows.Next() {
+		v, err := versionFromRows(rows)
+		if err != nil {
+			return nil, err
+		}
+		versions = append(versions, v)
+	}
+	return versions, nil
+}
+
+// ShotVersions는 db에서 특정 샷의 버전 전체를 검색해 반환한다.
+func ShotVersions(db *sql.DB, prj, shot string) ([]*Version, error) {
+	keystr := strings.Join(VersionTableKeys, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE project_id=$1 AND shot_id=$2", keystr)
+	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
 		return nil, err
 	}

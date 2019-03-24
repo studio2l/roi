@@ -242,8 +242,8 @@ func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
 	return taskFromRows(rows)
 }
 
-// AllTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
-func AllTasks(db *sql.DB, prj, shot string) ([]*Task, error) {
+// ShotTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
+func ShotTasks(db *sql.DB, prj, shot string) ([]*Task, error) {
 	keystr := strings.Join(TaskTableKeys, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE project_id=$1 AND shot_id=$2", keystr)
 	rows, err := db.Query(stmt, prj, shot)

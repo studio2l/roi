@@ -75,7 +75,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tasks := make(map[string]map[string]*roi.Task)
 	for _, s := range shots {
-		ts, err := roi.AllTasks(db, prj, s.ID)
+		ts, err := roi.ShotTasks(db, prj, s.ID)
 		if err != nil {
 			log.Printf("could not get all tasks of shot '%s'", s.ID)
 			http.Error(w, "internal error", http.StatusInternalServerError)
