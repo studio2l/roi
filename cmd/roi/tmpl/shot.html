@@ -25,8 +25,8 @@
 							<div style="display:flex;"><div style="min-width:80px;">샷 내용</div><div style="color:grey;min-width:20px;">|</div><div>{{.Shot.Description}}</div></div>
 							<div style="display:flex;"><div style="min-width:80px;">CG내용</div><div style="color:grey;min-width:20px;">|</div><div>{{.Shot.CGDescription}}</div></div>
 							<div style="flex:1;"></div>
-							<div style="display:flex;min-width:150px;"><div style="width:80px;">타임코드</div><div style="color:grey;min-width:20px;">|</div><div style="flex:1;">{{.Shot.TimecodeIn}}-{{.Shot.TimecodeOut}}</div></div>
-							<div style="display:flex;min-width:150px;"><div style="width:80px;">프레임</div><div style="color:grey;min-width:20px;">|</div></div>
+							<div style="display:flex;min-width:150px;"><div style="width:80px;">타임코드</div><div style="color:grey;min-width:20px;">|</div><div style="flex:1;">{{.Shot.TimecodeIn}} - {{.Shot.TimecodeOut}}</div></div>
+							<div style="display:flex;min-width:150px;"><div style="width:80px;">프레임</div><div style="color:grey;min-width:20px;">|</div>{{.Shot.Duration}}</div>
 							<div style="display:flex;min-width:150px;"><div style="width:80px;">스캔경로</div><div style="color:grey;min-width:20px;">|</div></div>
 							<div style="display:flex;min-width:150px;"><div style="width:80px;">mov경로</div><div style="color:grey;min-width:20px;">|</div></div>
 						</div>
@@ -35,26 +35,46 @@
 		{{range $task := $.Shot.WorkingTasks}}
 		{{with $t := index $.Task $task}}
 		<div class="ui inverted attached header" style="display:flex;align-items:baseline;">
-			<div style="font-size:14px;min-width:8rem;">{{$t.Name}}</div>
+			<div style="font-size:1.1rem;color:#DDDDDD;min-width:8rem;">{{$t.Name}}</div>
+			<div style="flex:1;"></div>
+			<div style="font-size:10px;color:#AAAAAA;min-width:5rem;">{{$t.Assignee}}</div>
 			<div style="font-size:10px;color:#AAAAAA;min-width:5rem;">{{$t.Status.UIString}}</div>
 			<div style="font-size:10px;color:#AAAAAA;min-width:5rem;">{{shortStringFromDate $t.DueDate}}</div>
-			<div style="flex:1;"></div>
-			<a href="/update-task?project_id={{$t.ProjectID}}&shot_id={{$t.ShotID}}&name={{$t.Name}}" style="font-size:9px;color:grey;">수정</a>
+			<a href="/update-task?project_id={{$t.ProjectID}}&shot_id={{$t.ShotID}}&name={{$t.Name}}" style="font-size:0.7rem;color:grey;">수정</a>
 		</div>
-		<div class="ui inverted attached secondary segment" style="padding:{{if not $t.LastOutputVersion}}1px{{else}}0.5rem{{end}};">
+		<div class="ui inverted attached secondary segment" style="padding:{{if not $t.LastOutputVersion}}0.1rem{{else}}1rem{{end}};">
 			{{if $t.LastOutputVersion}}
-			<div style="font-size:10px;">v{{printf "%03d" $t.LastOutputVersion}}</div>
-			<div style="height:0.3rem;"></div>
-			<div style="display:flex;flex-wrap:wrap;">
-				<!-- 목업 이미지 홀더; 실제 이미지로 대체 되어야 함 -->
-				<div style="width:192px;height:108px;background-color:#444444;"></div>
-				<div style="width:1rem;"></div>
-				<div style="width:192px;height:108px;background-color:#444444;"></div>
-				<div style="width:1rem;"></div>
-				<div style="width:192px;height:108px;background-color:#444444;"></div>
+			{{with $v := index $.LastVersion $t.Name}}
+			<div style="display:flex;color:#DDDDDD">
+				<div style="font-size:0.8rem;width:5em;">v{{printf "%03d" $t.LastOutputVersion}}</div>
+				<div style="font-size:0.8rem;"><i class="edit icon"></i>김용빈 슈퍼바이저 - 더 멋있게 부탁드립니다.</div>
+				<div style="flex:1;"></div>
+				<a href="/update-version?project_id={{$v.ProjectID}}&shot_id={{$v.ShotID}}&task_name={{$v.TaskName}}&version={{$v.Num}}" style="font-size:0.6rem;color:#AAAAAA;">수정</a>
+			</div>
+			<div style="height:1rem;"></div>
+			<div style="display:flex;flex-wrap:wrap;padding:0.5rem;">
+				{{if $v.Mov}}
+					<a href="{{$v.Mov}}">
+						<video width="192px;" style="border:2px solid var(--blue);">
+							<source src="{{$v.Mov}}" type="video/mp4">
+							I'm sorry; your browser doesn't support HTML5 video in WebM with VP8/VP9 or MP4 with H.264.
+						</video>
+					</a>
+					<div style="width:1rem;"></div>
+				{{end}}
+				{{range $i, $img := $v.Images}}
+					{{if ne $i 0}}
+						<div style="width:1rem;"></div>
+					{{end}}
+					<a href="{{$img}}">
+						<img src="{{$img}}" style="width:192px;height:108px;background-color:#444444;"></img>
+					</a>
+				{{end}}
 			</div>
 			{{end}}
+			{{end}}
 		</div>
+		<div style="height:1.5rem;"></div>
 		{{end}}
 		{{end}}
 	</div>

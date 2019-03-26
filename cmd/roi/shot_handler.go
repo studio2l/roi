@@ -39,7 +39,7 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	tasks, err := roi.AllTasks(db, prj, s.ID)
+	tasks, err := roi.ShotTasks(db, prj, s.ID)
 	if err != nil {
 		log.Printf("could not get all tasks of shot '%s'", s.ID)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -49,17 +49,34 @@ func shotHandler(w http.ResponseWriter, r *http.Request) {
 	for _, t := range tasks {
 		task[t.Name] = t
 	}
-
+	versions, err := roi.ShotVersions(db, prj, s.ID)
+	if err != nil {
+		if err != nil {
+			log.Printf("could not get versions of shot '%s': %v", s.ID, err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+	}
+	lastVersion := make(map[string]*roi.Version)
+	for _, v := range versions {
+		lv := lastVersion[v.TaskName]
+		if lv != nil && lv.Num > v.Num {
+			continue
+		}
+		lastVersion[v.TaskName] = v
+	}
 	recipt := struct {
 		LoggedInUser string
 		Project      string
 		Shot         *roi.Shot
 		Task         map[string]*roi.Task
+		LastVersion  map[string]*roi.Version
 	}{
 		LoggedInUser: session["userid"],
 		Project:      prj,
 		Shot:         s,
 		Task:         task,
+		LastVersion:  lastVersion,
 	}
 	err = executeTemplate(w, "shot.html", recipt)
 	if err != nil {
@@ -315,7 +332,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("shot '%s' not exist", shot), http.StatusBadRequest)
 		return
 	}
-	ts, err := roi.AllTasks(db, prj, shot)
+	ts, err := roi.ShotTasks(db, prj, shot)
 	if err != nil {
 		log.Printf("could not get all tasks of shot '%s': %v", prj+"."+shot, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)

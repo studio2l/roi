@@ -58,6 +58,20 @@ func TestVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get version: %v", err)
 	}
+	shotVersions, err := ShotVersions(db, testProject.ID, testShotA.ID)
+	if err != nil {
+		t.Fatalf("could not get versions of shot: %v", err)
+	}
+	if len(shotVersions) != 1 {
+		t.Fatalf("shot should have 1 version at this time.")
+	}
+	taskVersions, err := TaskVersions(db, testProject.ID, testShotA.ID, testTaskA.Name)
+	if err != nil {
+		t.Fatalf("could not get versions of task: %v", err)
+	}
+	if len(taskVersions) != 1 {
+		t.Fatalf("task should have 1 version at this time.")
+	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("added version is not expected: got %v, want %v", got, want)
 	}
