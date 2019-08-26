@@ -6,7 +6,7 @@
 {{range $s := .Shots}}
 <div class="ui inverted segment">
 	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;">
-		<div class="ui" style="width:192px;margin-right:22px;display:flex;align-items:end;">
+		<div class="ui" style="width:288px;margin-right:22px;display:flex;align-items:end;">
 				<div style="display:flex;flex-direction:column;">
 					<a style="font-size:1.3rem;color:white;" href="/shot/{{$.Project}}/{{.ID}}"><b>{{.ID}}</b></a>
 					<div style="height:2px;border-radius:1px;background-color:var(--{{.Status.UIColor}});"></div>
@@ -18,11 +18,11 @@
 		<div style="flex:1;font-size:14px;"> {{.CGDescription}}</div>
 	</div>
 	<div class="shot-main" style="display:flex;margin-bottom:6px;">
-		<div style="width:192px;margin-right:22px;">
+		<div style="width:288px;margin-right:22px;">
 			{{if hasThumbnail $.Project .ID}}
-			<img style="width:192px;height:108px;" src="/thumbnail/{{$.Project}}/{{.ID}}.png" />
+			<img style="width:288px;height:162px;" src="/thumbnail/{{$.Project}}/{{.ID}}.png" />
 			{{else}}
-			<div style="box-sizing:border-box;width:192px;height:108px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;">{{.Description}}</div>
+			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;">{{.Description}}</div>
 			{{end}}
 			<div style="display:flex;justify-content:space-between;font-size:11px;color:gray;margin:0px;">
 				<div>{{.TimecodeIn}} - {{.TimecodeOut}}</div>
@@ -80,7 +80,7 @@
 		</div>
 	</div>
 	<div class="shot-footer" style="display:flex;">
-		<div style="width:192px;margin-right:22px;padding:1px;display:flex;justify-content:space-between">
+		<div style="width:288px;margin-right:22px;padding:1px;display:flex;justify-content:space-between">
 			<div style="display:flex;">
 				<div>{{.Status.UIString}}</div>
 			</div>
