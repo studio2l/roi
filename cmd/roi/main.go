@@ -115,6 +115,7 @@ func main() {
 	mux.HandleFunc("/version/", versionHandler)
 	mux.HandleFunc("/add-version", addVersionHandler)
 	mux.HandleFunc("/update-version", updateVersionHandler)
+	mux.HandleFunc("/api/v1/project/add", addProjectApiHandler)
 	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))

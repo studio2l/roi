@@ -1,56 +1,22 @@
 package main
 
 import (
+	"crypto/tls"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/studio2l/roi"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 )
-
-func shotFromMap(m map[string]string) *roi.Shot {
-	return &roi.Shot{
-		ID:            m["shot"],
-		ProjectID:     m["project_id"],
-		Status:        roi.ShotStatus(m["status"]),
-		EditOrder:     toInt(m["edit_order"]),
-		Description:   m["description"],
-		CGDescription: m["cg_description"],
-		TimecodeIn:    m["timecode_in"],
-		TimecodeOut:   m["timecode_out"],
-		Duration:      toInt(m["duration"]),
-		Tags:          fields(m["tags"]),
-		WorkingTasks:  fields(m["tasks"]),
-	}
-}
-
-// q는 문자열을 db에서 인식할 수 있는 형식으로 변경한다.
-func q(s string) string {
-	s = strings.Replace(s, "'", "''", -1)
-	return fmt.Sprint("'", s, "'")
-}
-
-// toInt는 받아들인 문자열을 정수로 바꾼다. 바꿀수 없는 문자열이면 0을 반환한다.
-func toInt(s string) int {
-	i, _ := strconv.Atoi(s)
-	return i
-}
-
-// fields는 문자열을 콤마로 분리한 뒤 각 필드 앞 뒤에 스페이스를 지운다.
-func fields(s string) []string {
-	ss := strings.Split(s, ",")
-	for i, v := range ss {
-		ss[i] = strings.TrimSpace(v)
-	}
-	return ss
-}
 
 func main() {
 	var (
@@ -92,67 +58,40 @@ func main() {
 			title[j] = cell
 		}
 	}
-	shots := make([]*roi.Shot, 0)
-	tasks := make(map[string][]string)
-	thumbs := make(map[string]string)
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: true,
+	}
+	_, err = http.PostForm("https://localhost/api/v1/project/add", url.Values{"id": []string{"test"}})
+	if err != nil {
+		log.Fatal(err)
+	}
 	for _, row := range rows[1:] {
-		xlrow := make(map[string]string)
-		for j := range title {
-			k := title[j]
-			v := row[j]
-			xlrow[k] = v
+		formData := url.Values{}
+		for i := range title {
+			formData.Set(title[i], row[i])
 		}
-		xlrow["project_id"] = prj
-		if xlrow["shot"] == "" {
-			break
+		if formData.Get("shot") == "" {
+			continue
 		}
-		s := shotFromMap(xlrow)
-		shots = append(shots, s)
-		if xlrow["thumbnail"] != "" {
-			thumbs[xlrow["shot"]] = xlrow["thumbnail"]
+		formData.Set("id", formData.Get("shot"))
+		formData.Set("project_id", prj)
+		resp, err := http.PostForm("https://localhost/api/v1/shot/add", formData)
+		if err != nil {
+			log.Fatal(err)
 		}
-		tasks[s.ID] = strings.FieldsFunc(xlrow["tasks"], func(r rune) bool { return r == ',' })
-	}
-
-	err = roi.InitDB()
-	if err != nil {
-		log.Fatalf("could not initialize database: %v", err)
-	}
-	db, err := roi.DB()
-	if err != nil {
-		log.Fatalf("could not get database: %v", err)
-	}
-
-	// 기존의 데이터를 일단 지운다. 더 쉽게 테스트하기 위한 임시방편이다.
-	roi.DeleteProject(db, prj)
-
-	p := &roi.Project{}
-	p.ID = prj
-	if err := roi.AddProject(db, p); err != nil {
-		fmt.Fprintln(os.Stderr, "could not add project:", err)
-		os.Exit(1)
-	}
-
-	for _, s := range shots {
-		if err := roi.AddShot(db, prj, s); err != nil {
-			fmt.Fprintln(os.Stderr, "could not add shot:", err)
+		apiResp := roi.APIResponse{}
+		err = json.NewDecoder(resp.Body).Decode(&apiResp)
+		if err != nil {
+			log.Fatal(err)
 		}
-		thumb := thumbs[s.ID]
-		if thumb != "" {
-			if err := roi.AddThumbnail(prj, s.ID, thumb); err != nil {
-				fmt.Fprintln(os.Stderr, "could not add thumbnail:", err)
-			}
+		fmt.Println(apiResp.Msg)
+		if apiResp.Err != "" {
+			log.Fatal("could not create project: ", apiResp.Err)
 		}
-		shotTasks := tasks[s.ID]
-		for _, task := range shotTasks {
-			t := &roi.Task{
-				ProjectID: prj,
-				ShotID:    s.ID,
-				Name:      task,
-				Status:    roi.TaskNotSet,
-				DueDate:   time.Time{},
-			}
-			roi.AddTask(db, prj, s.ID, t)
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
 		}
+		fmt.Println(string(b))
 	}
 }
