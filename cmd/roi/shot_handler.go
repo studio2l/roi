@@ -4,85 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/studio2l/roi"
 )
-
-// shotHandler는 /shot/ 하위 페이지로 사용자가 접속했을때 샷 정보가 담긴 페이지를 반환한다.
-func shotHandler(w http.ResponseWriter, r *http.Request) {
-	pth := r.URL.Path[len("/shot/"):]
-	pths := strings.Split(pth, "/")
-	if len(pths) != 2 {
-		http.NotFound(w, r)
-		return
-	}
-	prj := pths[0]
-	shot := pths[1]
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-	session, err := getSession(r)
-	if err != nil {
-		log.Print(fmt.Sprintf("could not get session: %s", err))
-		clearSession(w)
-	}
-	s, err := roi.GetShot(db, prj, shot)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if s.ID == "" {
-		http.NotFound(w, r)
-		return
-	}
-	tasks, err := roi.ShotTasks(db, prj, s.ID)
-	if err != nil {
-		log.Printf("could not get all tasks of shot '%s'", s.ID)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-	task := make(map[string]*roi.Task)
-	for _, t := range tasks {
-		task[t.Name] = t
-	}
-	versions, err := roi.ShotVersions(db, prj, s.ID)
-	if err != nil {
-		if err != nil {
-			log.Printf("could not get versions of shot '%s': %v", s.ID, err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
-		}
-	}
-	lastVersion := make(map[string]*roi.Version)
-	for _, v := range versions {
-		lv := lastVersion[v.TaskName]
-		if lv != nil && lv.Num > v.Num {
-			continue
-		}
-		lastVersion[v.TaskName] = v
-	}
-	recipt := struct {
-		LoggedInUser string
-		Project      string
-		Shot         *roi.Shot
-		Task         map[string]*roi.Task
-		LastVersion  map[string]*roi.Version
-	}{
-		LoggedInUser: session["userid"],
-		Project:      prj,
-		Shot:         s,
-		Task:         task,
-		LastVersion:  lastVersion,
-	}
-	err = executeTemplate(w, "shot.html", recipt)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 func addShotHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := roi.DB()
@@ -319,7 +244,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		http.Redirect(w, r, fmt.Sprintf("/shot/%s/%s", prj, shot), http.StatusSeeOther)
+		http.Redirect(w, r, r.RequestURI, http.StatusSeeOther)
 		return
 	}
 	s, err := roi.GetShot(db, prj, shot)
