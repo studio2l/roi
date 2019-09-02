@@ -108,7 +108,6 @@ func main() {
 	mux.HandleFunc("/add-project", addProjectHandler)
 	mux.HandleFunc("/update-project", updateProjectHandler)
 	mux.HandleFunc("/search/", searchHandler)
-	mux.HandleFunc("/shot/", shotHandler)
 	mux.HandleFunc("/add-shot/", addShotHandler)
 	mux.HandleFunc("/update-shot", updateShotHandler)
 	mux.HandleFunc("/update-task", updateTaskHandler)
