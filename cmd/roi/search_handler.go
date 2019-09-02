@@ -21,23 +21,14 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prjRows, err := db.Query("SELECT id FROM projects")
+	ps, err := roi.AllProjects(db)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "project selection error: ", err)
-		return
+		log.Printf("could not get project list: %v", err)
 	}
-	defer prjRows.Close()
-	prjs := make([]string, 0)
-	for prjRows.Next() {
-		p := ""
-		if err := prjRows.Scan(&p); err != nil {
-			fmt.Fprintln(os.Stderr, "error getting prject info from database: ", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		prjs = append(prjs, p)
+	prjs := make([]string, len(ps))
+	for i, p := range ps {
+		prjs[i] = p.Project
 	}
-
 	if prj == "" && len(prjs) != 0 {
 		// 할일: 추후 사용자가 마지막으로 선택했던 프로젝트로 이동
 		http.Redirect(w, r, "/search/"+prjs[0], http.StatusSeeOther)
@@ -75,17 +66,17 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tasks := make(map[string]map[string]*roi.Task)
 	for _, s := range shots {
-		ts, err := roi.ShotTasks(db, prj, s.ID)
+		ts, err := roi.ShotTasks(db, prj, s.Shot)
 		if err != nil {
-			log.Printf("could not get all tasks of shot '%s'", s.ID)
+			log.Printf("could not get all tasks of shot '%s'", s.Shot)
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
 		tm := make(map[string]*roi.Task)
 		for _, t := range ts {
-			tm[t.Name] = t
+			tm[t.Task] = t
 		}
-		tasks[s.ID] = tm
+		tasks[s.Shot] = tm
 	}
 
 	session, err := getSession(r)

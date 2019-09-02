@@ -67,11 +67,11 @@ func (s TaskStatus) UIString() string {
 
 type Task struct {
 	// 관련 아이디
-	ProjectID string
-	ShotID    string
+	Project string
+	Shot    string
 
 	// 태스크 정보
-	Name              string // 이름은 타입 또는 타입_요소로 구성된다. 예) fx, fx_fire
+	Task              string // 이름은 타입 또는 타입_요소로 구성된다. 예) fx, fx_fire
 	Status            TaskStatus
 	Assignee          string
 	LastOutputVersion int
@@ -85,9 +85,9 @@ func (t *Task) dbValues() []interface{} {
 		t = &Task{}
 	}
 	return []interface{}{
-		t.ProjectID,
-		t.ShotID,
-		t.Name,
+		t.Project,
+		t.Shot,
+		t.Task,
 		t.Status,
 		t.Assignee,
 		t.LastOutputVersion,
@@ -99,22 +99,22 @@ func (t *Task) dbValues() []interface{} {
 
 var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	project_id STRING NOT NULL CHECK (length(project_id) > 0) CHECK (project_id NOT LIKE '% %'),
-	shot_id STRING NOT NULL CHECK (length(shot_id) > 0) CHECK (shot_id NOT LIKE '% %'),
-	name STRING NOT NULL CHECK (length(name) > 0) CHECK (name NOT LIKE '% %'),
+	project STRING NOT NULL CHECK (length(project) > 0) CHECK (project NOT LIKE '% %'),
+	shot STRING NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %'),
+	task STRING NOT NULL CHECK (length(task) > 0) CHECK (task NOT LIKE '% %'),
 	status STRING NOT NULL CHECK (length(status) > 0),
 	assignee STRING NOT NULL,
 	last_output_version INT NOT NULL,
 	start_date TIMESTAMPTZ NOT NULL,
 	end_date TIMESTAMPTZ NOT NULL,
 	due_date TIMESTAMPTZ NOT NULL,
-	UNIQUE(project_id, shot_id, name)
+	UNIQUE(project, shot, task)
 )`
 
 var TaskTableKeys = []string{
-	"project_id",
-	"shot_id",
-	"name",
+	"project",
+	"shot",
+	"task",
 	"status",
 	"assignee",
 	"last_output_version",
@@ -136,7 +136,7 @@ func AddTask(db *sql.DB, prj, shot string, t *Task) error {
 	if t == nil {
 		return fmt.Errorf("nil task")
 	}
-	if t.Name == "" {
+	if t.Task == "" {
 		return fmt.Errorf("task name not specified")
 	}
 	if !isValidTaskStatus(t.Status) {
@@ -195,7 +195,7 @@ func UpdateTask(db *sql.DB, prj, shot, task string, upd UpdateTaskParam) error {
 	}
 	keystr := strings.Join(upd.keys(), ", ")
 	idxstr := strings.Join(upd.indices(), ", ")
-	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE project_id='%s' AND shot_id='%s' AND name='%s'", keystr, idxstr, prj, shot, task)
+	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE project='%s' AND shot='%s' AND task='%s'", keystr, idxstr, prj, shot, task)
 	if _, err := db.Exec(stmt, upd.values()...); err != nil {
 		return err
 	}
@@ -204,7 +204,7 @@ func UpdateTask(db *sql.DB, prj, shot, task string, upd UpdateTaskParam) error {
 
 // TaskExist는 db에 해당 태스크가 존재하는지를 검사한다.
 func TaskExist(db *sql.DB, prj, shot, task string) (bool, error) {
-	stmt := "SELECT name FROM tasks WHERE project_id=$1 AND shot_id=$2 AND name=$3 LIMIT 1"
+	stmt := "SELECT task FROM tasks WHERE project=$1 AND shot=$2 AND task=$3 LIMIT 1"
 	rows, err := db.Query(stmt, prj, shot, task)
 	if err != nil {
 		return false, err
@@ -216,8 +216,8 @@ func TaskExist(db *sql.DB, prj, shot, task string) (bool, error) {
 func taskFromRows(rows *sql.Rows) (*Task, error) {
 	t := &Task{}
 	err := rows.Scan(
-		&t.ProjectID, &t.ShotID,
-		&t.Name, &t.Status, &t.Assignee, &t.LastOutputVersion,
+		&t.Project, &t.Shot,
+		&t.Task, &t.Status, &t.Assignee, &t.LastOutputVersion,
 		&t.StartDate, &t.EndDate, &t.DueDate,
 	)
 	if err != nil {
@@ -230,7 +230,7 @@ func taskFromRows(rows *sql.Rows) (*Task, error) {
 // 만일 그 이름의 태스크가 없다면 nil이 반환된다.
 func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
 	keystr := strings.Join(TaskTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE project_id=$1 AND shot_id=$2 AND name=$3 LIMIT 1", keystr)
+	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE project=$1 AND shot=$2 AND task=$3 LIMIT 1", keystr)
 	rows, err := db.Query(stmt, prj, shot, task)
 	if err != nil {
 		return nil, err
@@ -245,7 +245,7 @@ func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
 // ShotTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
 func ShotTasks(db *sql.DB, prj, shot string) ([]*Task, error) {
 	keystr := strings.Join(TaskTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE project_id=$1 AND shot_id=$2", keystr)
+	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE project=$1 AND shot=$2", keystr)
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
 		return nil, err
@@ -271,7 +271,7 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 		}
 		keystr += "tasks." + k
 	}
-	stmt := fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.project_id = shots.project_id AND tasks.shot_id = shots.id)  WHERE tasks.assignee='%s' AND tasks.name = ANY(shots.working_tasks)", keystr, user)
+	stmt := fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.project = shots.project AND tasks.shot = shots.shot)  WHERE tasks.assignee='%s' AND tasks.task = ANY(shots.working_tasks)", keystr, user)
 	rows, err := db.Query(stmt)
 	if err != nil {
 		return nil, err
@@ -296,10 +296,10 @@ func DeleteTask(db *sql.DB, prj, shot, task string) error {
 		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	if _, err := tx.Exec("DELETE FROM tasks WHERE project_id=$1 AND shot_id=$2 AND name=$3", prj, shot, task); err != nil {
+	if _, err := tx.Exec("DELETE FROM tasks WHERE project=$1 AND shot=$2 AND task=$3", prj, shot, task); err != nil {
 		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM versions WHERE project_id=$1 AND shot_id=$2 AND task_name=$3", prj, shot, task); err != nil {
+	if _, err := tx.Exec("DELETE FROM versions WHERE project=$1 AND shot=$2 AND task=$3", prj, shot, task); err != nil {
 		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
 	}
 	return tx.Commit()

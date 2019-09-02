@@ -5,11 +5,11 @@ import (
 )
 
 var testTaskA = &Task{
-	ProjectID: testProject.ID,
-	ShotID:    testShotA.ID,
-	Name:      "fx_fire",
-	Status:    TaskNotSet,
-	Assignee:  "kybin",
+	Project:  testShotA.Project,
+	Shot:     testShotA.Shot,
+	Task:     "fx_fire",
+	Status:   TaskNotSet,
+	Assignee: "kybin",
 }
 
 func TestTask(t *testing.T) {
@@ -21,16 +21,15 @@ func TestTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add project: %s", err)
 	}
-	err = AddShot(db, testProject.ID, testShotA)
+	err = AddShot(db, testTaskA.Project, testShotA)
 	if err != nil {
 		t.Fatalf("could not add shot: %s", err)
 	}
-
-	err = AddTask(db, testProject.ID, testShotA.ID, testTaskA)
+	err = AddTask(db, testTaskA.Project, testTaskA.Shot, testTaskA)
 	if err != nil {
 		t.Fatalf("could not add task: %s", err)
 	}
-	exist, err := TaskExist(db, testProject.ID, testShotA.ID, testTaskA.Name)
+	exist, err := TaskExist(db, testTaskA.Project, testTaskA.Shot, testTaskA.Task)
 	if err != nil {
 		t.Fatalf("could not check task exist: %s", err)
 	}
@@ -45,11 +44,11 @@ func TestTask(t *testing.T) {
 	if len(tasks) != 0 {
 		t.Fatalf("invalid number of user tasks: want 0, got %d", len(tasks))
 	}
-	err = DeleteTask(db, testProject.ID, testShotA.ID, testTaskA.Name)
+	err = DeleteTask(db, testTaskA.Project, testTaskA.Shot, testTaskA.Task)
 	if err != nil {
 		t.Fatalf("could not delete task: %s", err)
 	}
-	exist, err = TaskExist(db, testProject.ID, testShotA.ID, testTaskA.Name)
+	exist, err = TaskExist(db, testTaskA.Project, testTaskA.Shot, testTaskA.Task)
 	if err != nil {
 		t.Fatalf("could not check task exist: %s", err)
 	}
@@ -57,11 +56,11 @@ func TestTask(t *testing.T) {
 		t.Fatalf("deleted task exist")
 	}
 
-	err = DeleteShot(db, testProject.ID, testShotA.ID)
+	err = DeleteShot(db, testTaskA.Project, testTaskA.Shot)
 	if err != nil {
 		t.Fatalf("could not delete shot: %s", err)
 	}
-	err = DeleteProject(db, testProject.ID)
+	err = DeleteProject(db, testTaskA.Project)
 	if err != nil {
 		t.Fatalf("could not delete project: %s", err)
 	}

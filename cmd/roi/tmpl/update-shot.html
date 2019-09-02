@@ -6,10 +6,10 @@
 	<h2 class="ui dividing header">샷 수정</h2>
 	<form method="post" class="ui form">
 		<div class="field disabled"><label>프로젝트</label>
-			<input type="text" name="project_id" value="{{.Shot.ProjectID}}"/>
+			<input type="text" name="project_id" value="{{.Shot.Project}}"/>
 		</div>
 		<div class="field disabled"><label>아이디</label>
-			<input type="text" name="id" value="{{.Shot.ID}}"/>
+			<input type="text" name="id" value="{{.Shot.Shot}}"/>
 		</div>
 		<div class="field"><label>마감일</label>
 			<div class="ui calendar" id="duedate">
@@ -69,29 +69,29 @@
 	<div class="ui form">
 		{{range $.Shot.WorkingTasks}}
 		{{with $t := index $.Tasks .}}
-		<div id="task-{{$t.Name}}" style="border:solid 1px grey;border-radius:8px;padding:15px;background-color:grey;">
+		<div id="task-{{$t.Task}}" style="border:solid 1px grey;border-radius:8px;padding:15px;background-color:grey;">
 			<div class="field">
-				<label class="ui grey label" style="font-size:1.3rem;">{{$t.Name}}</label>
+				<label class="ui grey label" style="font-size:1.3rem;">{{$t.Task}}</label>
 			</div>
 			<div class="field"><label>상태</label>
-				<select id="task-{{$t.Name}}-status" type="text" value="{{$t.Status}}">
+				<select id="task-{{$t.Task}}-status" type="text" value="{{$t.Status}}">
 					{{range $s := $.AllTaskStatus}}
 					<option value="{{$s}}" {{if eq $t.Status $s}}selected{{end}}>{{$s.UIString}}</option>
 					{{end}}
 				</select>
 			</div>
 			<div class="field"><label>담당</label>
-				<input id="task-{{$t.Name}}-assignee"  type="text" value="{{$t.Assignee}}" />
+				<input id="task-{{$t.Task}}-assignee"  type="text" value="{{$t.Assignee}}" />
 			</div>
 			<div class="field"><label>마감일</label>
-				<div class="ui calendar" id="task-{{$t.Name}}-due_date-parent">
+				<div class="ui calendar" id="task-{{$t.Task}}-due_date-parent">
 					<div class="ui input left icon">
-						<i class="calendar icon"></i><input type="text" id="task-{{$t.Name}}-due_date" value="{{with $t.DueDate}}{{if not .IsZero}}{{.}}{{end}}{{end}}">
+						<i class="calendar icon"></i><input type="text" id="task-{{$t.Task}}-due_date" value="{{with $t.DueDate}}{{if not .IsZero}}{{.}}{{end}}{{end}}">
 					</div>
 				</div>
 			</div>
 			<script>
-			$('#task-{{$t.Name}}-due_date-parent').calendar({
+			$('#task-{{$t.Task}}-due_date-parent').calendar({
 				type: 'date',
 				formatter: {
 					date: (date, settings) => {
@@ -100,8 +100,8 @@
 				}
 			});
 			</script>
-			<button id="task-{{$t.Name}}-btn" class="ui button teal" onclick="updateTask('{{$t.Name}}')">수정</button>
-			<div id="task-{{$t.Name}}-update-result" class="ui"></div>
+			<button id="task-{{$t.Task}}-btn" class="ui button teal" onclick="updateTask('{{$t.Task}}')">수정</button>
+			<div id="task-{{$t.Task}}-update-result" class="ui"></div>
 		</div>
 		<div style="height:2rem;"></div>
 		{{end}}
@@ -116,8 +116,8 @@ function updateTask(name) {
 	let assignee = document.getElementById("task-" + name + "-assignee").value;
 	let due = encodeURIComponent(document.getElementById("task-" + name + "-due_date").value);
 	let param = new Array(
-		"project_id={{$.Shot.ProjectID}}",
-		"shot_id={{$.Shot.ID}}",
+		"project_id={{$.Shot.Project}}",
+		"shot_id={{$.Shot.Shot}}",
 		"name=" + name,
 		"status=" + status,
 		"assignee=" + assignee,

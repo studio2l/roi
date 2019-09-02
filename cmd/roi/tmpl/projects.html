@@ -4,9 +4,9 @@
 <!--검색 결과-->
 {{range .Projects}}
 <div class="ui inverted segment">
-	<div>ID:{{.ID}}, 상태:{{if ne .Status ""}}{{.Status}}{{else}}없음{{end}}</div>
+	<div>ID:{{.Project}}, 상태:{{if ne .Status ""}}{{.Status}}{{else}}없음{{end}}</div>
 	<div>시작일:{{stringFromTime .StartDate}} 종료일:{{stringFromTime .ReleaseDate}}</div>
-	<div><a href="/update-project?id={{.ID}}">수정</a></div>
+	<div><a href="/update-project?id={{.Project}}">수정</a></div>
 </div>
 {{end}}
 </div>

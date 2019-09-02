@@ -57,9 +57,9 @@
 let taskFromID = {
 	{{range $id, $t := $.TaskFromID -}}
 	"{{$id}}": {
-		"project": "{{$t.ProjectID}}",
-		"shot": "{{$t.ShotID}}",
-		"name": "{{$t.Name}}",
+		"project": "{{$t.Project}}",
+		"shot": "{{$t.Shot}}",
+		"name": "{{$t.Task}}",
 		"status": "{{$t.Status}}",
 	},
 	{{end}}

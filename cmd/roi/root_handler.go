@@ -39,14 +39,14 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	// tasksOfDay 또한 아이디 기준으로 정렬된다.
 	sort.Slice(tasks, func(i, j int) bool {
 		ti := tasks[i]
-		idi := ti.ProjectID + "." + ti.ShotID + "." + ti.Name
+		idi := ti.Project + "." + ti.Shot + "." + ti.Task
 		tj := tasks[j]
-		idj := tj.ProjectID + "." + tj.ShotID + "." + tj.Name
+		idj := tj.Project + "." + tj.Shot + "." + tj.Task
 		return strings.Compare(idi, idj) <= 0
 	})
 	taskFromID := make(map[string]*roi.Task)
 	for _, t := range tasks {
-		tid := t.ProjectID + "." + t.ShotID + "." + t.Name
+		tid := t.Project + "." + t.Shot + "." + t.Task
 		taskFromID[tid] = t
 	}
 	tasksOfDay := make(map[time.Time][]string, 28)
@@ -54,7 +54,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		if tasksOfDay[t.DueDate] == nil {
 			tasksOfDay[t.DueDate] = make([]string, 0)
 		}
-		tid := t.ProjectID + "." + t.ShotID + "." + t.Name
+		tid := t.Project + "." + t.Shot + "." + t.Task
 		tasksOfDay[t.DueDate] = append(tasksOfDay[t.DueDate], tid)
 	}
 	// 앞으로 4주에 대한 태스크 정보를 보인다.
@@ -67,10 +67,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	numTasks := make(map[string]map[roi.TaskStatus]int)
 	for _, t := range tasks {
-		if numTasks[t.ProjectID] == nil {
-			numTasks[t.ProjectID] = make(map[roi.TaskStatus]int)
+		if numTasks[t.Project] == nil {
+			numTasks[t.Project] = make(map[roi.TaskStatus]int)
 		}
-		numTasks[t.ProjectID][t.Status] += 1
+		numTasks[t.Project][t.Status] += 1
 	}
 	recipt := struct {
 		LoggedInUser  string

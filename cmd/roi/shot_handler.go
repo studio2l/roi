@@ -93,8 +93,8 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		tasks := fields(r.Form.Get("working_tasks"), ",")
 		s := &roi.Shot{
-			ID:            shot,
-			ProjectID:     prj,
+			Shot:          shot,
+			Project:       prj,
 			Status:        roi.ShotWaiting,
 			EditOrder:     atoi(r.Form.Get("edit_order")),
 			Description:   r.Form.Get("description"),
@@ -113,9 +113,9 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		for _, task := range tasks {
 			t := &roi.Task{
-				ProjectID: prj,
-				ShotID:    shot,
-				Name:      task,
+				Project: prj,
+				Shot:    shot,
+				Task:    task,
 			}
 			roi.AddTask(db, prj, shot, t)
 		}
@@ -222,11 +222,11 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
 		for _, task := range tasks {
 			t := &roi.Task{
-				ProjectID: prj,
-				ShotID:    shot,
-				Name:      task,
-				Status:    roi.TaskNotSet,
-				DueDate:   time.Time{},
+				Project: prj,
+				Shot:    shot,
+				Task:    task,
+				Status:  roi.TaskNotSet,
+				DueDate: time.Time{},
 			}
 			tid := prj + "." + shot + "." + task
 			exist, err := roi.TaskExist(db, prj, shot, task)
@@ -265,7 +265,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tm := make(map[string]*roi.Task)
 	for _, t := range ts {
-		tm[t.Name] = t
+		tm[t.Task] = t
 	}
 	recipt := struct {
 		LoggedInUser  string

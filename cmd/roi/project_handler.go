@@ -99,7 +99,7 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		p := &roi.Project{
-			ID:            id,
+			Project:       id,
 			Name:          r.Form.Get("name"),
 			Status:        "waiting",
 			Client:        r.Form.Get("client"),
