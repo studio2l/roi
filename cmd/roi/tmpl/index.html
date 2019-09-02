@@ -8,9 +8,6 @@
 {{range $i, $day := $.Timeline}}
 	<!-- 날짜 타일 배경색 지정 -->
 	{{$bg := "grey"}}
-	{{if isWeekend $day}}
-		{{$bg = "#333744"}}
-	{{end}}
 	{{$numTasks := len (index $.TasksOfDay $day)}}
 	{{if ne $numTasks 0}}
 		{{$bg = dayColorInTimeline $numTasks}}
