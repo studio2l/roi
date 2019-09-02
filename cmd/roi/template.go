@@ -30,7 +30,6 @@ func parseTemplate() {
 		"stringFromTime":      stringFromTime,
 		"stringFromDate":      stringFromDate,
 		"shortStringFromDate": shortStringFromDate,
-		"isWeekend":           isWeekend,
 		"isSunday":            isSunday,
 		"dayColorInTimeline":  dayColorInTimeline,
 		"mod":                 func(i, m int) int { return i % m },
@@ -56,12 +55,6 @@ func hasThumbnail(prj, shot string) bool {
 		return true // 함수 주석 참고
 	}
 	return true
-}
-
-// isWeekend는 해당일이 주말인지를 검사한다.
-func isWeekend(t time.Time) bool {
-	wd := t.Weekday()
-	return wd == time.Saturday || wd == time.Sunday
 }
 
 // isSunday는 해당일이 일요일인지를 검사한다.
