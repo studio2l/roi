@@ -104,7 +104,7 @@ function showTasks(day) {
 		let t = taskFromID[tasks[i]];
 		let el = document.getElementById("project-" + t.project + "-tasks-of-day");
 		let label = document.createElement("a");
-		label.setAttribute("href", "/shot/" + t.project + "/" + t.shot);
+		label.setAttribute("href", "/search/" + t.project + "?shot=" + t.shot);
 		label.setAttribute("class", "ui small label");
 		label.innerHTML = t.shot;
 		detail = document.createElement("div");
