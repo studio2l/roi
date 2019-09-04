@@ -38,7 +38,7 @@ func main() {
 		fname := filepath.Base(f)
 		prj = strings.TrimSuffix(fname, filepath.Ext(fname))
 	}
-	if !roi.IsValidProjectID(prj) {
+	if !roi.IsValidProject(prj) {
 		fmt.Fprintln(os.Stderr, prj, "이 프로젝트 아이디로 적절치 않습니다.")
 		os.Exit(1)
 	}
