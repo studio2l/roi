@@ -7,8 +7,8 @@ import (
 )
 
 var testShotA = &Shot{
-	ID:            "CG_0010",
-	ProjectID:     testProject.ID,
+	Project:       testProject.Project,
+	Shot:          "CG_0010",
 	Status:        ShotInProgress,
 	EditOrder:     10,
 	Description:   "방에 우두커니 혼자 않아 있는 로이.",
@@ -21,8 +21,8 @@ var testShotA = &Shot{
 }
 
 var testShotB = &Shot{
-	ID:            "CG_0020",
-	ProjectID:     testProject.ID,
+	Shot:          "CG_0020",
+	Project:       testProject.Project,
 	Status:        ShotWaiting,
 	EditOrder:     20,
 	Description:   "고개를 돌려 창문 밖을 바라본다.",
@@ -33,8 +33,8 @@ var testShotB = &Shot{
 	Tags:          []string{"로이", "창문"},
 }
 var testShotC = &Shot{
-	ID:            "CG_0030",
-	ProjectID:     testProject.ID,
+	Shot:          "CG_0030",
+	Project:       testProject.Project,
 	Status:        ShotWaiting,
 	EditOrder:     30,
 	Description:   "쓸쓸해 보이는 가로등",
@@ -60,22 +60,22 @@ func TestShot(t *testing.T) {
 	}
 
 	for _, s := range want {
-		err = AddShot(db, testProject.ID, s)
+		err = AddShot(db, testProject.Project, s)
 		if err != nil {
 			t.Fatalf("could not add shot to shots table: %s", err)
 		}
-		exist, err := ShotExist(db, testProject.ID, s.ID)
+		exist, err := ShotExist(db, testProject.Project, s.Shot)
 		if err != nil {
 			t.Fatalf("could not check shot existence from shots table: %s", err)
 		}
 		if !exist {
-			t.Fatalf("shot not found from shots table: %s", s.ID)
+			t.Fatalf("shot not found from shots table: %s", s.Shot)
 		}
-		got, err := GetShot(db, testProject.ID, s.ID)
+		got, err := GetShot(db, testProject.Project, s.Shot)
 		if err != nil {
 			t.Fatalf("could not get shot from shots table: %s", err)
 		}
-		if !IsValidShotID(got.ID) {
+		if !IsValidShot(got.Shot) {
 			if err != nil {
 				t.Fatalf("find shot with invalid id from shots table: %s", err)
 			}
@@ -85,7 +85,7 @@ func TestShot(t *testing.T) {
 		}
 	}
 
-	got, err := SearchShots(db, testProject.ID, "", "", "", "", "", time.Time{})
+	got, err := SearchShots(db, testProject.Project, "", "", "", "", "", time.Time{})
 	if err != nil {
 		t.Fatalf("could not search shots from shots table: %s", err)
 	}
@@ -93,7 +93,7 @@ func TestShot(t *testing.T) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
 
-	got, err = SearchShots(db, testProject.ID, "CG_0010", "", "", "", "", time.Time{})
+	got, err = SearchShots(db, testProject.Project, "CG_0010", "", "", "", "", time.Time{})
 	if err != nil {
 		t.Fatalf("could not search shots from shots table: %s", err)
 	}
@@ -101,7 +101,7 @@ func TestShot(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
-	got, err = SearchShots(db, testProject.ID, "", "로이", "", "", "", time.Time{})
+	got, err = SearchShots(db, testProject.Project, "", "로이", "", "", "", time.Time{})
 	if err != nil {
 		t.Fatalf("could not search shots from shots table: %s", err)
 	}
@@ -111,17 +111,17 @@ func TestShot(t *testing.T) {
 	}
 
 	for _, s := range want {
-		err = UpdateShot(db, testProject.ID, s.ID, UpdateShotParam{Status: ShotWaiting})
+		err = UpdateShot(db, testProject.Project, s.Shot, UpdateShotParam{Status: ShotWaiting})
 		if err != nil {
 			t.Fatalf("could not clear(update) shot: %s", err)
 		}
-		err = DeleteShot(db, testProject.ID, s.ID)
+		err = DeleteShot(db, testProject.Project, s.Shot)
 		if err != nil {
 			t.Fatalf("could not delete shot from shots table: %s", err)
 		}
 	}
 
-	err = DeleteProject(db, testProject.ID)
+	err = DeleteProject(db, testProject.Project)
 	if err != nil {
 		t.Fatalf("could not delete project: %s", err)
 	}

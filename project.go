@@ -11,15 +11,15 @@ import (
 	"github.com/lib/pq"
 )
 
-var reValidProjectID = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+var reValidProject = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 
-func IsValidProjectID(id string) bool {
-	return reValidProjectID.MatchString(id)
+func IsValidProject(id string) bool {
+	return reValidProject.MatchString(id)
 }
 
 type Project struct {
 	// 프로젝트 아이디. 로이 내에서 고유해야 한다.
-	ID string
+	Project string
 
 	Name   string
 	Status string
@@ -50,7 +50,7 @@ func (p *Project) dbValues() []interface{} {
 		p.DefaultTasks = []string{}
 	}
 	vals := []interface{}{
-		p.ID,
+		p.Project,
 		p.Name,
 		p.Status,
 		p.Client,
@@ -72,7 +72,7 @@ func (p *Project) dbValues() []interface{} {
 }
 
 var ProjectTableKeys = []string{
-	"id",
+	"project",
 	"name",
 	"status",
 	"client",
@@ -98,7 +98,7 @@ var ProjectTableIndices = []string{
 
 var CreateTableIfNotExistsProjectsStmt = `CREATE TABLE IF NOT EXISTS projects (
 	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	id STRING NOT NULL UNIQUE CHECK (LENGTH(id) > 0) CHECK (id NOT LIKE '% %'),
+	project STRING NOT NULL UNIQUE CHECK (LENGTH(project) > 0) CHECK (project NOT LIKE '% %'),
 	name STRING NOT NULL,
 	status STRING NOT NULL,
 	client STRING NOT NULL,
@@ -122,8 +122,8 @@ func AddProject(db *sql.DB, p *Project) error {
 	if p == nil {
 		return errors.New("nil Project is invalid")
 	}
-	if !IsValidProjectID(p.ID) {
-		return fmt.Errorf("Project id is invalid: %s", p.ID)
+	if !IsValidProject(p.Project) {
+		return fmt.Errorf("Project id is invalid: %s", p.Project)
 	}
 	keystr := strings.Join(ProjectTableKeys, ", ")
 	idxstr := strings.Join(ProjectTableIndices, ", ")
@@ -206,12 +206,12 @@ func (u UpdateProjectParam) values() []interface{} {
 
 // UpdateProject는 db의 프로젝트 정보를 수정한다.
 func UpdateProject(db *sql.DB, prj string, upd UpdateProjectParam) error {
-	if !IsValidProjectID(prj) {
+	if !IsValidProject(prj) {
 		return fmt.Errorf("Project id is invalid: %s", prj)
 	}
 	keystr := strings.Join(upd.keys(), ", ")
 	idxstr := strings.Join(upd.indices(), ", ")
-	stmt := fmt.Sprintf("UPDATE projects SET (%s) = (%s) WHERE id='%s'", keystr, idxstr, prj)
+	stmt := fmt.Sprintf("UPDATE projects SET (%s) = (%s) WHERE project='%s'", keystr, idxstr, prj)
 	if _, err := db.Exec(stmt, upd.values()...); err != nil {
 		return err
 	}
@@ -220,7 +220,7 @@ func UpdateProject(db *sql.DB, prj string, upd UpdateProjectParam) error {
 
 // ProjectExist는 db에 해당 프로젝트가 존재하는지를 검사한다.
 func ProjectExist(db *sql.DB, prj string) (bool, error) {
-	rows, err := db.Query("SELECT id FROM projects WHERE id=$1 LIMIT 1", prj)
+	rows, err := db.Query("SELECT project FROM projects WHERE project=$1 LIMIT 1", prj)
 	if err != nil {
 		return false, err
 	}
@@ -231,7 +231,7 @@ func ProjectExist(db *sql.DB, prj string) (bool, error) {
 func projectFromRows(rows *sql.Rows) (*Project, error) {
 	p := &Project{}
 	err := rows.Scan(
-		&p.ID, &p.Name, &p.Status, &p.Client,
+		&p.Project, &p.Name, &p.Status, &p.Client,
 		&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CGSupervisor,
 		&p.CrankIn, &p.CrankUp, &p.StartDate, &p.ReleaseDate, &p.VFXDueDate, &p.OutputSize,
 		&p.ViewLUT, pq.Array(&p.DefaultTasks),
@@ -246,7 +246,7 @@ func projectFromRows(rows *sql.Rows) (*Project, error) {
 // 해당 프로젝트가 없다면 nil이 반환된다.
 func GetProject(db *sql.DB, prj string) (*Project, error) {
 	keystr := strings.Join(ProjectTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM projects WHERE id=$1", keystr)
+	stmt := fmt.Sprintf("SELECT %s FROM projects WHERE project=$1", keystr)
 	rows, err := db.Query(stmt, prj)
 	if err != nil {
 		return nil, err
@@ -293,16 +293,16 @@ func DeleteProject(db *sql.DB, prj string) error {
 		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	if _, err := tx.Exec("DELETE FROM projects WHERE id=$1", prj); err != nil {
+	if _, err := tx.Exec("DELETE FROM projects WHERE project=$1", prj); err != nil {
 		return fmt.Errorf("could not delete data from 'projects' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM shots WHERE project_id=$1", prj); err != nil {
+	if _, err := tx.Exec("DELETE FROM shots WHERE project=$1", prj); err != nil {
 		return fmt.Errorf("could not delete data from 'shots' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM tasks WHERE project_id=$1", prj); err != nil {
+	if _, err := tx.Exec("DELETE FROM tasks WHERE project=$1", prj); err != nil {
 		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM versions WHERE project_id=$1", prj); err != nil {
+	if _, err := tx.Exec("DELETE FROM versions WHERE project=$1", prj); err != nil {
 		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
 	}
 	return tx.Commit()

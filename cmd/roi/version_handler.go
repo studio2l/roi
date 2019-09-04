@@ -169,9 +169,9 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	o := &roi.Version{
-		ProjectID: prj,
-		ShotID:    shot,
-		TaskName:  task,
+		Project: prj,
+		Shot:    shot,
+		Task:    task,
 	}
 	err = roi.AddVersion(db, prj, shot, task, o)
 	if err != nil {

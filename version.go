@@ -11,11 +11,11 @@ import (
 
 // Version은 특정 태스크의 하나의 버전이다.
 type Version struct {
-	ProjectID string
-	ShotID    string
-	TaskName  string
+	Project string
+	Shot    string
+	Task    string
 
-	Num         int       // 버전 번호
+	Version     int       // 버전 번호
 	OutputFiles []string  // 결과물 경로
 	Images      []string  // 결과물을 확인할 수 있는 이미지
 	Mov         string    // 결과물을 영상으로 볼 수 있는 경로
@@ -25,23 +25,23 @@ type Version struct {
 
 var CreateTableIfNotExistsVersionsStmt = `CREATE TABLE IF NOT EXISTS versions (
 	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	project_id STRING NOT NULL CHECK (length(project_id) > 0) CHECK (project_id NOT LIKE '% %'),
-	shot_id STRING NOT NULL CHECK (length(shot_id) > 0) CHECK (shot_id NOT LIKE '% %'),
-	task_name STRING NOT NULL CHECK (length(task_name) > 0) CHECK (task_name NOT LIKE '% %'),
-	num INT NOT NULL,
+	project STRING NOT NULL CHECK (length(project) > 0) CHECK (project NOT LIKE '% %'),
+	shot STRING NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %'),
+	task STRING NOT NULL CHECK (length(task) > 0) CHECK (task NOT LIKE '% %'),
+	version INT NOT NULL,
 	output_files STRING[] NOT NULL,
 	images STRING[] NOT NULL,
 	mov STRING NOT NULL,
 	work_file STRING NOT NULL,
 	created TIMESTAMPTZ NOT NULL,
-	UNIQUE(project_id, shot_id, task_name, num)
+	UNIQUE(project, shot, task, version)
 )`
 
 var VersionTableKeys = []string{
-	"project_id",
-	"shot_id",
-	"task_name",
-	"num",
+	"project",
+	"shot",
+	"task",
+	"version",
 	"output_files",
 	"images",
 	"mov",
@@ -62,10 +62,10 @@ func (v *Version) dbValues() []interface{} {
 		v.Images = make([]string, 0)
 	}
 	return []interface{}{
-		v.ProjectID,
-		v.ShotID,
-		v.TaskName,
-		v.Num,
+		v.Project,
+		v.Shot,
+		v.Task,
+		v.Version,
 		pq.Array(v.OutputFiles),
 		pq.Array(v.Images),
 		v.Mov,
@@ -88,7 +88,7 @@ func AddVersion(db *sql.DB, prj, shot, task string, v *Version) error {
 	if v == nil {
 		return fmt.Errorf("nil output")
 	}
-	if v.Num != 0 {
+	if v.Version != 0 {
 		// 버전은 DB 확인 후 추가된다.
 		return fmt.Errorf("version num should not be specified when adding")
 	}
@@ -97,7 +97,7 @@ func AddVersion(db *sql.DB, prj, shot, task string, v *Version) error {
 		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	stmt := fmt.Sprintf("SELECT last_output_version FROM tasks WHERE project_id='%s' AND shot_id='%s' AND name='%s'", prj, shot, task)
+	stmt := fmt.Sprintf("SELECT last_output_version FROM tasks WHERE project='%s' AND shot='%s' AND task='%s'", prj, shot, task)
 	rows, err := tx.Query(stmt)
 	if err != nil {
 		return fmt.Errorf("could not get last version num of task: %v", err)
@@ -114,14 +114,14 @@ func AddVersion(db *sql.DB, prj, shot, task string, v *Version) error {
 		}
 	}
 	rows.Close()
-	v.Num = lastv + 1
+	v.Version = lastv + 1
 	keystr := strings.Join(VersionTableKeys, ", ")
 	idxstr := strings.Join(VersionTableIndices, ", ")
 	stmt = fmt.Sprintf("INSERT INTO versions (%s) VALUES (%s)", keystr, idxstr)
 	if _, err := tx.Exec(stmt, v.dbValues()...); err != nil {
 		return fmt.Errorf("could not insert versions: %v", err)
 	}
-	if _, err := tx.Exec("UPDATE tasks SET status=$1, last_output_version=$2 WHERE project_id=$3 AND shot_id=$4 AND name=$5", TaskInProgress, v.Num, prj, shot, task); err != nil {
+	if _, err := tx.Exec("UPDATE tasks SET status=$1, last_output_version=$2 WHERE project=$3 AND shot=$4 AND task=$5", TaskInProgress, v.Version, prj, shot, task); err != nil {
 		return fmt.Errorf("could not update last version num of task: %v", err)
 	}
 	err = tx.Commit()
@@ -188,7 +188,7 @@ func UpdateVersion(db *sql.DB, prj, shot, task string, version int, upd UpdateVe
 	}
 	keystr := strings.Join(upd.keys(), ", ")
 	idxstr := strings.Join(upd.indices(), ", ")
-	stmt := fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE project_id='%s' AND shot_id='%s' AND task_name='%s' AND num='%d'", keystr, idxstr, prj, shot, task, version)
+	stmt := fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE project='%s' AND shot='%s' AND task='%s' AND version='%d'", keystr, idxstr, prj, shot, task, version)
 	if _, err := db.Exec(stmt, upd.values()...); err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func VersionExist(db *sql.DB, prj, shot, task string, version int) (bool, error)
 		// 버전 0은 존재하지 않는다.
 		return false, fmt.Errorf("output version not specified")
 	}
-	stmt := "SELECT num FROM versions WHERE project_id=$1 AND shot_id=$2 AND task_name=$3 AND num=$4 LIMIT 1"
+	stmt := "SELECT version FROM versions WHERE project=$1 AND shot=$2 AND task=$3 AND version=$4 LIMIT 1"
 	rows, err := db.Query(stmt, prj, shot, task, version)
 	if err != nil {
 		return false, err
@@ -213,8 +213,8 @@ func VersionExist(db *sql.DB, prj, shot, task string, version int) (bool, error)
 func versionFromRows(rows *sql.Rows) (*Version, error) {
 	v := &Version{}
 	err := rows.Scan(
-		&v.ProjectID, &v.ShotID, &v.TaskName,
-		&v.Num, pq.Array(&v.OutputFiles), pq.Array(&v.Images), &v.Mov, &v.WorkFile, &v.Created,
+		&v.Project, &v.Shot, &v.Task,
+		&v.Version, pq.Array(&v.OutputFiles), pq.Array(&v.Images), &v.Mov, &v.WorkFile, &v.Created,
 	)
 	if err != nil {
 		return nil, err
@@ -226,7 +226,7 @@ func versionFromRows(rows *sql.Rows) (*Version, error) {
 // 만일 그 버전의 아웃풋이 없다면 nil이 반환된다.
 func GetVersion(db *sql.DB, prj, shot, task string, version int) (*Version, error) {
 	keystr := strings.Join(VersionTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE project_id=$1 AND shot_id=$2 AND task_name=$3 AND num=$4 LIMIT 1", keystr)
+	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE project=$1 AND shot=$2 AND task=$3 AND version=$4 LIMIT 1", keystr)
 	rows, err := db.Query(stmt, prj, shot, task, version)
 	if err != nil {
 		return nil, err
@@ -241,7 +241,7 @@ func GetVersion(db *sql.DB, prj, shot, task string, version int) (*Version, erro
 // TaskVersions는 db에서 특정 태스크의 버전 전체를 검색해 반환한다.
 func TaskVersions(db *sql.DB, prj, shot, task string) ([]*Version, error) {
 	keystr := strings.Join(VersionTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE project_id=$1 AND shot_id=$2 AND task_name=$3", keystr)
+	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE project=$1 AND shot=$2 AND task=$3", keystr)
 	rows, err := db.Query(stmt, prj, shot, task)
 	if err != nil {
 		return nil, err
@@ -260,7 +260,7 @@ func TaskVersions(db *sql.DB, prj, shot, task string) ([]*Version, error) {
 // ShotVersions는 db에서 특정 샷의 버전 전체를 검색해 반환한다.
 func ShotVersions(db *sql.DB, prj, shot string) ([]*Version, error) {
 	keystr := strings.Join(VersionTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE project_id=$1 AND shot_id=$2", keystr)
+	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE project=$1 AND shot=$2", keystr)
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
 		return nil, err
@@ -285,7 +285,7 @@ func DeleteVersion(db *sql.DB, prj, shot, task string, version int) error {
 		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	if _, err := tx.Exec("DELETE FROM versions WHERE project_id=$1 AND shot_id=$2 AND task_name=$3 AND num=$4", prj, shot, task, version); err != nil {
+	if _, err := tx.Exec("DELETE FROM versions WHERE project=$1 AND shot=$2 AND task=$3 AND version=$4", prj, shot, task, version); err != nil {
 		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
 	}
 	return tx.Commit()

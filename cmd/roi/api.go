@@ -65,7 +65,7 @@ func addProjectApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p := &roi.Project{
-		ID: prj,
+		Project: prj,
 	}
 	err = roi.AddProject(db, p)
 	if err != nil {
@@ -109,7 +109,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("shot 'id' not specified"))
 		return
 	}
-	if !roi.IsValidShotID(id) {
+	if !roi.IsValidShot(id) {
 		apiBadRequest(w, fmt.Errorf("shot id '%s' is not valid", id))
 		return
 	}
@@ -155,8 +155,8 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		duration = int(f)
 	}
 	s := &roi.Shot{
-		ProjectID:     prj,
-		ID:            id,
+		Project:       prj,
+		Shot:          id,
 		Status:        roi.ShotStatus(status),
 		EditOrder:     editOrder,
 		Description:   r.PostFormValue("description"),

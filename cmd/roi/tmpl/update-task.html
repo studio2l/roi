@@ -6,13 +6,13 @@
 	<h2 class="ui dividing header">태스크 수정</h2>
 	<form method="post" class="ui form">
 		<div class="field disabled"><label>프로젝트</label>
-			<input type="text" name="project_id" value="{{.Task.ProjectID}}"/>
+			<input type="text" name="project_id" value="{{.Task.Project}}"/>
 		</div>
 		<div class="field disabled"><label>샷</label>
-			<input type="text" name="shot_id" value="{{.Task.ShotID}}"/>
+			<input type="text" name="shot_id" value="{{.Task.Shot}}"/>
 		</div>
 		<div class="field disabled"><label>태스크</label>
-			<input type="text" name="name" value="{{.Task.Name}}"/>
+			<input type="text" name="name" value="{{.Task.Task}}"/>
 		</div>
 		<div class="field disabled"><label>담당</label>
 			<input type="text" name="assignee" value="{{.Task.Assignee}}"/>
@@ -50,11 +50,11 @@
 
 	<h2 class="ui dividing header">
 		버전
-		<a href="/add-version?project_id={{$.Task.ProjectID}}&shot_id={{$.Task.ShotID}}&task_name={{$.Task.Name}}" class="ui right floated mini basic inverted button">추가</a>
+		<a href="/add-version?project_id={{$.Task.Project}}&shot_id={{$.Task.Shot}}&task_name={{$.Task.Task}}" class="ui right floated mini basic inverted button">추가</a>
 	</h2>
 	<div class="ui container">
 		{{range $v := $.Versions}}
-		<a href="/update-version?project_id={{$.Task.ProjectID}}&shot_id={{$.Task.ShotID}}&task_name={{$.Task.Name}}&version={{$v}}" class="ui label">{{printf "v%d" $v}}</a>
+		<a href="/update-version?project_id={{$.Task.Project}}&shot_id={{$.Task.Shot}}&task_name={{$.Task.Task}}&version={{$v}}" class="ui label">{{printf "v%d" $v}}</a>
 		{{end}}
 	</div>
 </div>

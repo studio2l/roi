@@ -7,7 +7,7 @@ import (
 )
 
 var testProject = &Project{
-	ID:            "TEST",
+	Project:       "TEST",
 	Name:          "테스트 프로젝트",
 	Status:        "waiting",
 	Client:        "레이지 픽처스",
@@ -36,18 +36,18 @@ func TestProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add project to projects table: %s", err)
 	}
-	exist, err := ProjectExist(db, want.ID)
+	exist, err := ProjectExist(db, want.Project)
 	if err != nil {
 		t.Fatalf("could not check project existence from projects table: %s", err)
 	}
 	if !exist {
-		t.Fatalf("project not found from projects table: %s", want.ID)
+		t.Fatalf("project not found from projects table: %s", want.Project)
 	}
-	got, err := GetProject(db, want.ID)
+	got, err := GetProject(db, want.Project)
 	if err != nil {
 		t.Fatalf("could not get project from projects table: %s", err)
 	}
-	if !IsValidProjectID(got.ID) {
+	if !IsValidProject(got.Project) {
 		if err != nil {
 			t.Fatalf("find project with invalid id from projects table: %s", err)
 		}
@@ -60,11 +60,11 @@ func TestProject(t *testing.T) {
 	if !reflect.DeepEqual(gotAll, wantAll) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
-	err = UpdateProject(db, want.ID, UpdateProjectParam{})
+	err = UpdateProject(db, want.Project, UpdateProjectParam{})
 	if err != nil {
 		t.Fatalf("could not clear(update) project: %s", err)
 	}
-	err = DeleteProject(db, want.ID)
+	err = DeleteProject(db, want.Project)
 	if err != nil {
 		t.Fatalf("could not delete project: %s", err)
 	}

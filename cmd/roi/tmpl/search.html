@@ -8,19 +8,19 @@
 	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;">
 		<div class="ui" style="width:288px;margin-right:22px;display:flex;align-items:end;">
 				<div style="display:flex;flex-direction:column;">
-					<div style="font-size:1.3rem;color:white;"><b>{{.ID}}</b></div>
+					<div style="font-size:1.3rem;color:white;"><b>{{.Shot}}</b></div>
 					<div style="height:2px;border-radius:1px;background-color:var(--{{.Status.UIColor}});"></div>
 				</div>
 				<div style="width:1rem;display:inline-block;"></div>
 				<div style="flex:1;"></div>
-				<a style="font-size:0.7rem;color:#666666;" href="/update-shot?project_id={{$.Project}}&id={{.ID}}">수정</a>
+				<a style="font-size:0.7rem;color:#666666;" href="/update-shot?project_id={{$.Project}}&id={{.Shot}}">수정</a>
 		</div>
 		<div style="flex:1;font-size:14px;"> {{.CGDescription}}</div>
 	</div>
 	<div class="shot-main" style="display:flex;margin-bottom:6px;">
 		<div style="width:288px;margin-right:22px;">
-			{{if hasThumbnail $.Project .ID}}
-			<img style="width:288px;height:162px;" src="/thumbnail/{{$.Project}}/{{.ID}}.png" />
+			{{if hasThumbnail $.Project .Shot}}
+			<img style="width:288px;height:162px;" src="/thumbnail/{{$.Project}}/{{.Shot}}.png" />
 			{{else}}
 			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;">{{.Description}}</div>
 			{{end}}
@@ -33,14 +33,14 @@
 			<table class="ui very compact striped inverted celled table">
 				<tbody>
 					{{range .WorkingTasks}}
-					{{with index (index $.Tasks $s.ID) .}}
+					{{with index (index $.Tasks $s.Shot) .}}
 					<tr style="font-size:0.9rem;color:#AAAAAA">
 						<td class="ui one wide left aligned">
 							<div style="display:flex;padding:0 0.5rem;">
 								<div style="flex:1;display:inline-block;">
-									<a href="" style="color:white;">{{.Name}}</a>
+									<a href="" style="color:white;">{{.Task}}</a>
 								</div>
-								<a style="font-size:0.7rem;color:#666666;" href="/update-task?project_id={{$.Project}}&shot_id={{.ShotID}}&name={{.Name}}">수정</a>
+								<a style="font-size:0.7rem;color:#666666;" href="/update-task?project_id={{$.Project}}&shot_id={{.Shot}}&name={{.Task}}">수정</a>
 							</div>
 						</td>
 						<td class="one wide center aligned">
@@ -54,7 +54,7 @@
 						</td>
 						<td class="one wide center aligned">
 								{{if .LastOutputVersion}}
-									<a href="/version/{{.ProjectID}}/{{.ShotID}}/{{.Name}}/{{.LastOutputVersion}}" style="color:#AAAAAA;">{{printf "v%03d" .LastOutputVersion}}</a>
+									<a href="/version/{{.Project}}/{{.Shot}}/{{.Task}}/{{.LastOutputVersion}}" style="color:#AAAAAA;">{{printf "v%03d" .LastOutputVersion}}</a>
 								{{end}}
 						</td>
 						<td class="one wide right aligned">

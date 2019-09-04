@@ -12,11 +12,13 @@ import (
 	"github.com/lib/pq"
 )
 
-var reValidShotID = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]+$`)
+var reValidShot = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]+$`)
 
-// IsValidShotID은 해당 이름이 샷 이름으로 적절한지 여부를 반환한다.
-func IsValidShotID(id string) bool {
-	return reValidShotID.MatchString(id)
+// IsValidShot은 해당 이름이 샷 이름으로 적절한지 여부를 반환한다.
+// 샷 이름에는 영문자와 숫자, 언더바(_) 만 사용한다.
+// 예) CG_0010, EP01_SC01_0010
+func IsValidShot(id string) bool {
+	return reValidShot.MatchString(id)
 }
 
 type ShotStatus string
@@ -80,13 +82,8 @@ func (s ShotStatus) UIColor() string {
 }
 
 type Shot struct {
-	// 샷 아이디. 프로젝트 내에서 고유해야 한다.
-	// 영문자와 숫자, 언더바(_) 만 사용할 것.
-	// 예) CG_0010, EP01_SC01_0010
-	ID string
-
-	// 관련 아이디
-	ProjectID string
+	Project string
+	Shot    string
 
 	// 샷 정보
 	Status        ShotStatus
@@ -123,8 +120,8 @@ func (s *Shot) dbValues() []interface{} {
 		s.WorkingTasks = make([]string, 0)
 	}
 	return []interface{}{
-		s.ID,
-		s.ProjectID,
+		s.Project,
+		s.Shot,
 		s.Status,
 		s.EditOrder,
 		s.Description,
@@ -142,8 +139,8 @@ func (s *Shot) dbValues() []interface{} {
 
 var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	id STRING NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %'),
-	project_id STRING NOT NULL CHECK (length(project_id) > 0) CHECK (project_id NOT LIKE '% %'),
+	project STRING NOT NULL CHECK (length(project) > 0) CHECK (project NOT LIKE '% %'),
+	shot STRING NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %'),
 	status STRING NOT NULL CHECK (length(status) > 0),
 	edit_order INT NOT NULL,
 	description STRING NOT NULL,
@@ -156,12 +153,12 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	start_date TIMESTAMPTZ NOT NULL,
 	end_date TIMESTAMPTZ NOT NULL,
 	due_date TIMESTAMPTZ NOT NULL,
-	UNIQUE(id, project_id)
+	UNIQUE(project, shot)
 )`
 
 var ShotTableKeys = []string{
-	"id",
-	"project_id",
+	"project",
+	"shot",
 	"status",
 	"edit_order",
 	"description",
@@ -206,7 +203,7 @@ func AddShot(db *sql.DB, prj string, s *Shot) error {
 
 // ShotExist는 db에 해당 샷이 존재하는지를 검사한다.
 func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
-	stmt := "SELECT id FROM shots WHERE project_id=$1 AND id=$2 LIMIT 1"
+	stmt := "SELECT shot FROM shots WHERE project=$1 AND shot=$2 LIMIT 1"
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
 		return false, err
@@ -218,7 +215,7 @@ func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
 func shotFromRows(rows *sql.Rows) (*Shot, error) {
 	s := &Shot{}
 	err := rows.Scan(
-		&s.ID, &s.ProjectID, &s.Status,
+		&s.Project, &s.Shot, &s.Status,
 		&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
 		&s.Duration, pq.Array(&s.Tags), pq.Array(&s.WorkingTasks),
 		&s.StartDate, &s.EndDate, &s.DueDate,
@@ -233,7 +230,7 @@ func shotFromRows(rows *sql.Rows) (*Shot, error) {
 // 만일 그 이름의 샷이 없다면 nil이 반환된다.
 func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 	keystr := strings.Join(ShotTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM shots WHERE project_id=$1 AND id=$2 LIMIT 1", keystr)
+	stmt := fmt.Sprintf("SELECT %s FROM shots WHERE project=$1 AND shot=$2 LIMIT 1", keystr)
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
 		return nil, err
@@ -260,11 +257,11 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 	vals := make([]interface{}, 0)
 	i := 1 // 인덱스가 1부터 시작이다.
 	stmt := fmt.Sprintf("SELECT %s FROM shots", keystr)
-	where = append(where, fmt.Sprintf("shots.project_id=$%d", i))
+	where = append(where, fmt.Sprintf("shots.project=$%d", i))
 	vals = append(vals, prj)
 	i++
 	if shot != "" {
-		where = append(where, fmt.Sprintf("shots.id=$%d", i))
+		where = append(where, fmt.Sprintf("shots.shot=$%d", i))
 		vals = append(vals, shot)
 		i++
 	}
@@ -279,7 +276,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 		i++
 	}
 	if assignee != "" || task_status != "" || !task_due_date.IsZero() {
-		stmt += " JOIN tasks ON (tasks.project_id = shots.project_id AND tasks.shot_id = shots.id)"
+		stmt += " JOIN tasks ON (tasks.project = shots.project AND tasks.shot = shots.shot)"
 	}
 	if assignee != "" {
 		where = append(where, fmt.Sprintf("tasks.assignee=$%d", i))
@@ -315,15 +312,15 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 		if err != nil {
 			return nil, err
 		}
-		ok := hasShot[s.ID]
+		ok := hasShot[s.Shot]
 		if ok {
 			continue
 		}
-		hasShot[s.ID] = true
+		hasShot[s.Shot] = true
 		shots = append(shots, s)
 	}
 	sort.Slice(shots, func(i int, j int) bool {
-		return shots[i].ID <= shots[j].ID
+		return shots[i].Shot <= shots[j].Shot
 	})
 	return shots, nil
 }
@@ -396,7 +393,7 @@ func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 	}
 	keystr := strings.Join(upd.keys(), ", ")
 	idxstr := strings.Join(upd.indices(), ", ")
-	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE project_id='%s' AND id='%s'", keystr, idxstr, prj, shot)
+	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE project='%s' AND shot='%s'", keystr, idxstr, prj, shot)
 	if _, err := db.Exec(stmt, upd.values()...); err != nil {
 		return err
 	}
@@ -412,13 +409,13 @@ func DeleteShot(db *sql.DB, prj, shot string) error {
 		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	if _, err := tx.Exec("DELETE FROM shots WHERE project_id=$1 AND id=$2", prj, shot); err != nil {
+	if _, err := tx.Exec("DELETE FROM shots WHERE project=$1 AND shot=$2", prj, shot); err != nil {
 		return fmt.Errorf("could not delete data from 'shots' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM tasks WHERE project_id=$1 AND shot_id=$2", prj, shot); err != nil {
+	if _, err := tx.Exec("DELETE FROM tasks WHERE project=$1 AND shot=$2", prj, shot); err != nil {
 		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM versions WHERE project_id=$1 AND shot_id=$2", prj, shot); err != nil {
+	if _, err := tx.Exec("DELETE FROM versions WHERE project=$1 AND shot=$2", prj, shot); err != nil {
 		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
 	}
 	return tx.Commit()
