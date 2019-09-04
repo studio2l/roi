@@ -13,7 +13,7 @@
 				</div>
 				<div style="width:1rem;display:inline-block;"></div>
 				<div style="flex:1;"></div>
-				<a style="font-size:0.7rem;color:#666666;" href="/update-shot?project_id={{$.Project}}&id={{.Shot}}">수정</a>
+				<a style="font-size:0.7rem;color:#666666;" href="/update-shot?project={{$.Project}}&shot={{.Shot}}">수정</a>
 		</div>
 		<div style="flex:1;font-size:14px;"> {{.CGDescription}}</div>
 	</div>
@@ -40,7 +40,7 @@
 								<div style="flex:1;display:inline-block;">
 									<a href="" style="color:white;">{{.Task}}</a>
 								</div>
-								<a style="font-size:0.7rem;color:#666666;" href="/update-task?project_id={{$.Project}}&shot_id={{.Shot}}&name={{.Task}}">수정</a>
+								<a style="font-size:0.7rem;color:#666666;" href="/update-task?project={{$.Project}}&shot={{.Shot}}&task={{.Task}}">수정</a>
 							</div>
 						</td>
 						<td class="one wide center aligned">
