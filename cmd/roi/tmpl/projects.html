@@ -4,9 +4,33 @@
 <!--검색 결과-->
 {{range .Projects}}
 <div class="ui inverted segment">
-	<div>ID:{{.Project}}, 상태:{{if ne .Status ""}}{{.Status}}{{else}}없음{{end}}</div>
-	<div>시작일:{{stringFromTime .StartDate}} 종료일:{{stringFromTime .ReleaseDate}}</div>
-	<div><a href="/update-project?id={{.Project}}">수정</a></div>
+	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;">
+		<div class="ui" style="flex:1;margin-right:22px;display:flex;align-items:end;">
+				<div style="display:flex;flex-direction:column;">
+					<div style="font-size:1.3rem;color:white;"><b>{{.Project}}</b></div>
+					<div style="height:2px;border-radius:1px;background-color:var(--{{"blue"}});"></div>
+				</div>
+				<div> / {{.Status}}</div>
+				<div style="width:1rem;display:inline-block;"></div>
+				<a style="font-size:0.7rem;color:#666666;" href="/update-project?id={{.Project}}">수정</a>
+				<div style="flex:1;"></div>
+		</div>
+	</div>
+	<div style="font-size:14px;">
+		<div style="color:gray;margin:0px;">
+			<div style="display:inline-block;margin-right:1rem;">VFX 수퍼바이저: {{.VFXSupervisor}}</div>
+			<div style="display:inline-block;margin-right:1rem;">VFX 매니저: {{.VFXManager}}</div>
+			<div style="display:inline-block;margin-right:1rem;">CG 수퍼바이저: {{.CGSupervisor}}</div>
+			<br>
+			<div style="display:inline-block;margin-right:1rem;">클라이언트: {{.Client}}</div>
+			<div style="display:inline-block;margin-right:1rem;">감독: {{.Director}}</div>
+			<div style="display:inline-block;margin-right:1rem;">PD: {{.Producer}}</div>
+			<br>
+			<div style="display:inline-block;margin-right:1rem">작업시작: {{stringFromDate .StartDate}}</div>
+			<div style="display:inline-block;margin-right:1rem">작업종료: {{stringFromDate .VFXDueDate}}</div>
+			<div style="display:inline-block;margin-right:1rem">개봉일: {{stringFromDate .ReleaseDate}}</div>
+		</div>
+	</div>
 </div>
 {{end}}
 </div>
