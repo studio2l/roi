@@ -88,9 +88,9 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prj := r.PostFormValue("project_id")
+	prj := r.PostFormValue("project")
 	if prj == "" {
-		apiBadRequest(w, fmt.Errorf("'project_id' not specified"))
+		apiBadRequest(w, fmt.Errorf("'project' not specified"))
 		return
 	}
 	exist, err := roi.ProjectExist(db, prj)

@@ -40,12 +40,12 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	r.ParseForm()
 	// 어떤 프로젝트에 샷을 생성해야 하는지 체크.
-	prj := r.Form.Get("project_id")
+	prj := r.Form.Get("project")
 	if prj == "" {
 		// 할일: 현재 GUI 디자인으로는 프로젝트를 선택하기 어렵기 때문에
 		// 일단 첫번째 프로젝트로 이동한다. 나중에는 에러가 나야 한다.
 		// 관련 이슈: #143
-		prjRows, err := db.Query("SELECT id FROM projects")
+		prjRows, err := db.Query("SELECT project FROM projects")
 		if err != nil {
 			log.Print("could not select the first project:", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -61,7 +61,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, "/add-shot/?project_id="+prj, http.StatusSeeOther)
+		http.Redirect(w, r, "/add-shot/?project="+prj, http.StatusSeeOther)
 		return
 	}
 	p, err := roi.GetProject(db, prj)
@@ -76,9 +76,9 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "POST" {
-		shot := r.Form.Get("id")
+		shot := r.Form.Get("shot")
 		if shot == "" {
-			http.Error(w, "need shot 'id'", http.StatusBadRequest)
+			http.Error(w, "need 'shot'", http.StatusBadRequest)
 			return
 		}
 		exist, err := roi.ShotExist(db, prj, shot)
@@ -165,9 +165,9 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		_ = u
 	}
 	r.ParseForm()
-	prj := r.Form.Get("project_id")
+	prj := r.Form.Get("project")
 	if prj == "" {
-		http.Error(w, "need 'project_id'", http.StatusBadRequest)
+		http.Error(w, "need 'project'", http.StatusBadRequest)
 		return
 	}
 	exist, err := roi.ProjectExist(db, prj)
@@ -180,9 +180,9 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("project '%s' not exist", prj), http.StatusBadRequest)
 		return
 	}
-	shot := r.Form.Get("id")
+	shot := r.Form.Get("shot")
 	if shot == "" {
-		http.Error(w, "need 'id'", http.StatusBadRequest)
+		http.Error(w, "need 'shot'", http.StatusBadRequest)
 		return
 	}
 	if r.Method == "POST" {

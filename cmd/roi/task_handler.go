@@ -38,9 +38,9 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		_ = u
 	}
 	r.ParseForm()
-	prj := r.Form.Get("project_id")
+	prj := r.Form.Get("project")
 	if prj == "" {
-		http.Error(w, "need 'project_id'", http.StatusBadRequest)
+		http.Error(w, "need 'project'", http.StatusBadRequest)
 		return
 	}
 	exist, err := roi.ProjectExist(db, prj)
@@ -53,14 +53,14 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("project '%s' not exist", prj), http.StatusBadRequest)
 		return
 	}
-	shot := r.Form.Get("shot_id")
+	shot := r.Form.Get("shot")
 	if shot == "" {
-		http.Error(w, "need 'shot_id'", http.StatusBadRequest)
+		http.Error(w, "need 'shot'", http.StatusBadRequest)
 		return
 	}
-	task := r.Form.Get("name")
+	task := r.Form.Get("task")
 	if task == "" {
-		http.Error(w, "need 'name'", http.StatusBadRequest)
+		http.Error(w, "need 'task'", http.StatusBadRequest)
 		return
 	}
 	taskID := prj + "." + shot + "." + task
