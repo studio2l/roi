@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/studio2l/roi"
 )
@@ -49,7 +50,7 @@ func addProjectApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prj := r.PostFormValue("id")
+	prj := r.PostFormValue("project")
 	if prj == "" {
 		apiBadRequest(w, fmt.Errorf("'id' not specified"))
 		return
@@ -64,8 +65,10 @@ func addProjectApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("project '%s' already exists", prj))
 		return
 	}
+	tasks := fields(r.Form.Get("default_tasks"), ",")
 	p := &roi.Project{
-		Project: prj,
+		Project:      prj,
+		DefaultTasks: tasks,
 	}
 	err = roi.AddProject(db, p)
 	if err != nil {
@@ -73,7 +76,6 @@ func addProjectApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiInternalServerError(w)
 		return
 	}
-
 	apiOK(w, fmt.Sprintf("successfully add a project: '%s'", prj))
 }
 
@@ -104,23 +106,23 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := r.PostFormValue("id")
-	if id == "" {
-		apiBadRequest(w, fmt.Errorf("shot 'id' not specified"))
+	shot := r.PostFormValue("shot")
+	if shot == "" {
+		apiBadRequest(w, fmt.Errorf("'shot' not specified"))
 		return
 	}
-	if !roi.IsValidShot(id) {
-		apiBadRequest(w, fmt.Errorf("shot id '%s' is not valid", id))
+	if !roi.IsValidShot(shot) {
+		apiBadRequest(w, fmt.Errorf("shot id '%s' is not valid", shot))
 		return
 	}
-	exist, err = roi.ShotExist(db, prj, id)
+	exist, err = roi.ShotExist(db, prj, shot)
 	if err != nil {
-		log.Printf("could not check shot '%s' exist: %v", id, err)
+		log.Printf("could not check shot '%s' exist: %v", shot, err)
 		apiInternalServerError(w)
 		return
 	}
 	if exist {
-		apiBadRequest(w, fmt.Errorf("shot '%s' already exists", id))
+		apiBadRequest(w, fmt.Errorf("shot '%s' already exists", shot))
 		return
 	}
 
@@ -154,9 +156,19 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		duration = int(f)
 	}
+	tasks := fields(r.Form.Get("working_tasks"), ",")
+	if len(tasks) == 0 {
+		p, err := roi.GetProject(db, prj)
+		if err != nil {
+			log.Printf("could not get project: %v", err)
+			apiInternalServerError(w)
+			return
+		}
+		tasks = p.DefaultTasks
+	}
 	s := &roi.Shot{
 		Project:       prj,
-		Shot:          id,
+		Shot:          shot,
 		Status:        roi.ShotStatus(status),
 		EditOrder:     editOrder,
 		Description:   r.PostFormValue("description"),
@@ -165,6 +177,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		TimecodeOut:   r.PostFormValue("timecode_out"),
 		Duration:      duration,
 		Tags:          strings.Split(r.PostFormValue("tags"), ","),
+		WorkingTasks:  tasks,
 	}
 	err = roi.AddShot(db, prj, s)
 	if err != nil {
@@ -172,6 +185,20 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiInternalServerError(w)
 		return
 	}
-
-	apiOK(w, fmt.Sprintf("successfully add a shot: '%s'", id))
+	for _, task := range tasks {
+		t := &roi.Task{
+			Project: prj,
+			Shot:    shot,
+			Task:    task,
+			Status:  roi.TaskNotSet,
+			DueDate: time.Time{},
+		}
+		err := roi.AddTask(db, prj, shot, t)
+		if err != nil {
+			log.Printf("could not add task for shot: %v", err)
+			apiInternalServerError(w)
+			return
+		}
+	}
+	apiOK(w, fmt.Sprintf("successfully add a shot: '%s'", shot))
 }

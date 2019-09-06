@@ -61,9 +61,12 @@ func main() {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
 		InsecureSkipVerify: true,
 	}
-	_, err = http.PostForm("https://localhost/api/v1/project/add", url.Values{"id": []string{"test"}})
+	_, err = http.PostForm("https://localhost/api/v1/project/add", url.Values{
+		"project":       []string{"test"},
+		"default_tasks": []string{"fx, lit"},
+	})
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintf(os.Stderr, "could not add project: %v", err)
 	}
 	for _, row := range rows[1:] {
 		formData := url.Values{}
@@ -73,8 +76,8 @@ func main() {
 		if formData.Get("shot") == "" {
 			continue
 		}
-		formData.Set("id", formData.Get("shot"))
-		formData.Set("project_id", prj)
+		formData.Set("project", prj)
+		formData.Set("shot", formData.Get("shot"))
 		resp, err := http.PostForm("https://localhost/api/v1/shot/add", formData)
 		if err != nil {
 			log.Fatal(err)
@@ -86,7 +89,7 @@ func main() {
 		}
 		fmt.Println(apiResp.Msg)
 		if apiResp.Err != "" {
-			log.Fatal("could not create project: ", apiResp.Err)
+			log.Fatal("could not create shot: ", apiResp.Err)
 		}
 		b, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
