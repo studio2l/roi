@@ -116,6 +116,8 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 				Project: prj,
 				Shot:    shot,
 				Task:    task,
+				Status:  roi.TaskNotSet,
+				DueDate: time.Time{},
 			}
 			roi.AddTask(db, prj, shot, t)
 		}
