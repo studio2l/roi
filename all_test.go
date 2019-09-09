@@ -14,7 +14,7 @@ import (
 )
 
 // initTestDB는 테스트용 로이 DB를 생성한다.
-func initTestDB() error {
+func initTestDB() (*sql.DB, error) {
 	return initDB("postgresql://root@localhost:54545/roi?sslmode=disable")
 }
 
@@ -52,7 +52,10 @@ func TestMain(m *testing.M) {
 	// DB가 시작되기까지 시간 필요
 	time.Sleep(2 * time.Second)
 
-	initTestDB()
+	_, err = initTestDB()
+	if err != nil {
+		log.Fatal("could not initialize test db:", err)
+	}
 
 	// 테스트
 	code := m.Run()
