@@ -70,11 +70,20 @@ func main() {
 		return
 	}
 
-	err := roi.InitDB()
+	db, err := roi.InitDB()
 	if err != nil {
 		log.Fatalf("could not initialize database: %v", err)
 	}
-
+	exist, err := roi.UserExist(db, "admin")
+	if err != nil {
+		log.Fatalf("could not check admin user exist: %v", err)
+	}
+	if !exist {
+		err := roi.AddUser(db, "admin", "password1!")
+		if err != nil {
+			log.Fatalf("could not create admin user: %v", err)
+		}
+	}
 	parseTemplate()
 
 	hashKey, err := ioutil.ReadFile(hashFile)
