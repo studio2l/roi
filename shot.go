@@ -12,13 +12,62 @@ import (
 	"github.com/lib/pq"
 )
 
-var reValidShot = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]+$`)
+// 샷 아이디는 시퀀스_이름, 이름 이렇게 두가지 형식이 가능하다.
 
-// IsValidShot은 해당 이름이 샷 이름으로 적절한지 여부를 반환한다.
-// 샷 이름에는 영문자와 숫자, 언더바(_) 만 사용한다.
-// 예) CG_0010, EP01_SC01_0010
+var (
+	// reValidShotChars은 샷 아이디가 허용된 문자열로만 이루어졌는지
+	// 검사하는 정규식이다.
+	// 자세한 것은 아래 각 항목에 대한 정규식에서 검사한다.
+	reValidShotChars = regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
+
+	// reValidShotSequence는 샷의 시퀀스 문자열이 유효한지 검사하는 정규식이다.
+	reValidShotSequence = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9]*$`)
+
+	// reValidShotName은 샷 이름 문자열이 유효한지 검사하는 정규식이다.
+	reValidShotName = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9]*$`)
+)
+
+// ShotSequence은 샷 아이디에서 시퀀스 정보를 반환한다.
+func ShotSequence(shot string) string {
+	ids := strings.Split(shot, "_")
+	if len(ids) == 1 {
+		return ""
+	}
+	return ids[len(ids)-2]
+}
+
+// ShotName은 샷 아이디에서 이름을 반환한다.
+func ShotName(shot string) string {
+	ids := strings.Split(shot, "_")
+	return ids[len(ids)-1]
+}
+
+// IsValidShot은 해당 이름이 샷 아이디로 적절한지 여부를 반환한다.
 func IsValidShot(id string) bool {
-	return reValidShot.MatchString(id)
+	if id == "" {
+		return false
+	}
+	if !reValidShotChars.MatchString(id) {
+		// 허용된 문자열로만 이루어져 있지 않음
+		// 예를 들어 공백이 있음
+		return false
+	}
+	ids := strings.Split(id, "_")
+	if len(ids) > 2 {
+		// 언더바가 너무 많아 씬_샷 형식에 담을수 없음
+		return false
+	}
+	seq := ShotSequence(id)
+	if seq != "" {
+		if !reValidShotSequence.MatchString(seq) {
+			return false
+		}
+	}
+	name := ShotName(id)
+	if !reValidShotName.MatchString(name) {
+		return false
+	}
+	return true
 }
 
 type ShotStatus string
