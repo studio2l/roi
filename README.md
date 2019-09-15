@@ -56,7 +56,6 @@ export GO111MODULE=on # 혹시 빠뜨렸을 때에 대비해
 git clone https://github.com/studio2l/roi
 cd roi/cmd/roi
 go build
-./roi -init
 sudo ./roi
 ```
 
