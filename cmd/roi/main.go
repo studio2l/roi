@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os/exec"
 	"strings"
 
 	"github.com/gorilla/securecookie"
@@ -17,57 +16,43 @@ import (
 // dev는 현재 개발모드인지를 나타낸다.
 var dev bool
 
+func redirectToHttps(w http.ResponseWriter, r *http.Request) {
+	to := "https://" + strings.Split(r.Host, ":")[0] + r.URL.Path
+	if r.URL.RawQuery != "" {
+		to += "?" + r.URL.RawQuery
+	}
+	http.Redirect(w, r, to, http.StatusTemporaryRedirect)
+}
+
 func main() {
 	dev = true
 
 	var (
-		init  bool
-		https string
+		addr  string
+		https bool
 		cert  string
 		key   string
 	)
-	flag.BoolVar(&init, "init", false, "setup roi.")
-	flag.StringVar(&https, "https", ":443", "address to open https port. it doesn't offer http for security reason.")
-	flag.StringVar(&cert, "cert", "cert/cert.pem", "https cert file. default one for testing will created by -init.")
-	flag.StringVar(&key, "key", "cert/key.pem", "https key file. default one for testing will created by -init.")
+	flag.StringVar(&addr, "addr", "localhost:80:443", `site address and it's http/https port.
+when two ports are specified, first port is for http and second is for https.
+with -https flag turned on, it will automatically forward http port to https port.
+when one port is specified, the port will be used for current protocol.
+when no port is specified, default port for current protocol will be used.
+`)
+	flag.BoolVar(&https, "https", false, "use https port.")
+	flag.StringVar(&cert, "cert", "cert/cert.pem", "https cert file. valid only if -https flag is turned on.")
+	flag.StringVar(&key, "key", "cert/key.pem", "https key file. valid only if -https flag is turned on.")
 	flag.Parse()
 
 	hashFile := "cert/cookie.hash"
 	blockFile := "cert/cookie.block"
-
-	if init {
-		// 기본 Self Signed Certificate는 항상 정해진 위치에 생성되어야 한다.
-		cert := "cert/cert.pem"
-		key := "cert/key.pem"
-		// 해당 위치에 이미 파일이 생성되어 있다면 건너 뛴다.
-		// 사용자가 직접 추가한 인증서 파일을 덮어쓰는 위험을 없애기 위함이다.
-		exist, err := anyFileExist(cert, key)
-		if err != nil {
-			log.Fatalf("error checking a certificate file %s: %s", cert, err)
-		}
-		if exist {
-			log.Print("already have certificate file. will not create.")
-		} else {
-			// cert와 key가 없다. 인증서 생성.
-			c := exec.Command("sh", "generate-self-signed-cert.sh")
-			c.Dir = "cert"
-			_, err := c.CombinedOutput()
-			if err != nil {
-				log.Fatal("error generating certificate files: ", err)
-			}
-		}
-
-		exist, err = anyFileExist(hashFile, blockFile)
-		if err != nil {
-			log.Fatalf("could not check cookie key file: %s", err)
-		}
-		if exist {
-			log.Print("already have cookie file. will not create.")
-		} else {
-			ioutil.WriteFile(hashFile, securecookie.GenerateRandomKey(64), 0600)
-			ioutil.WriteFile(blockFile, securecookie.GenerateRandomKey(32), 0600)
-		}
-		return
+	blockFileExist, err := anyFileExist(hashFile, blockFile)
+	if err != nil {
+		log.Fatalf("could not check cookie key file: %s", err)
+	}
+	if !blockFileExist {
+		ioutil.WriteFile(hashFile, securecookie.GenerateRandomKey(64), 0600)
+		ioutil.WriteFile(blockFile, securecookie.GenerateRandomKey(32), 0600)
 	}
 
 	db, err := roi.InitDB()
@@ -131,22 +116,51 @@ func main() {
 	mux.Handle("/thumbnail/", http.StripPrefix("/thumbnail/", thumbfs))
 
 	// Show https binding information
-	addrToShow := "https://"
-	addrs := strings.Split(https, ":")
-	if len(addrs) == 2 {
-		if addrs[0] == "" {
-			addrToShow += "localhost"
-		} else {
-			addrToShow += addrs[0]
+	addrs := strings.Split(addr, ":")
+
+	var protocol string
+	site := ""
+	httpPort := "80"
+	httpsPort := "443"
+	portForwarding := false
+	if https {
+		protocol = "https://"
+		site = addrs[0]
+		if len(addrs) == 3 {
+			portForwarding = true
+			httpPort = addrs[1]
+			httpsPort = addrs[2]
+		} else if len(addrs) == 2 {
+			httpsPort = addrs[1]
 		}
-		if addrs[1] != "443" {
-			addrToShow += ":" + addrs[1]
+	} else {
+		protocol = "http://"
+		site = addrs[0]
+		if len(addrs) == 2 {
+			httpPort = addrs[1]
 		}
+	}
+	if site == "" {
+		site = "localhost"
+	}
+
+	addrToShow := protocol + site + ":" + httpPort
+	if https {
+		addrToShow = protocol + site + ":" + httpsPort
 	}
 	fmt.Println()
 	log.Printf("roi is start to running. see %s", addrToShow)
 	fmt.Println()
 
 	// Bind
-	log.Fatal(http.ListenAndServeTLS(https, cert, key, mux))
+	if https {
+		if portForwarding {
+			go func() {
+				log.Fatal(http.ListenAndServe(site+":"+httpPort, http.HandlerFunc(redirectToHttps)))
+			}()
+		}
+		log.Fatal(http.ListenAndServeTLS(site+":"+httpsPort, cert, key, mux))
+	} else {
+		log.Fatal(http.ListenAndServe(site+":"+httpPort, mux))
+	}
 }
