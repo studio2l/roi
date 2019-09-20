@@ -13,7 +13,7 @@
 		{{$bg = dayColorInTimeline $numTasks}}
 	{{end}}
 	<!-- 날짜 타일 -->
-	<div style="flex:1;height:0.9rem;margin:4px 1px;border-radius:1px;background-color:{{$bg}};font-size:0.7rem;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="showTasks({{stringFromDate $day}})">
+	<div style="flex:1;height:0.9rem;margin:4px 1px;border-radius:1px;background-color:{{$bg}};font-size:0.7rem;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="showTasks({{$day}})">
 		{{if ne $numTasks 0}}
 			{{$numTasks}}
 		{{end}}
@@ -67,7 +67,7 @@ let taskFromID = {
 
 let tasksOfDay = {
 	{{range $day, $tasks := $.TasksOfDay -}}
-	"{{stringFromDate $day}}": [
+	"{{$day}}": [
 		{{range $id := $tasks -}}
 		"{{$id}}",
 		{{end}}
@@ -87,12 +87,12 @@ function showTasks(day) {
 	for (i = 0; i < els.length; i++) {
 		els[i].innerHTML = "";
 	}
-	let tasks = [];
+	tasks = [];
 	if (day == "") {
 		for (let id in taskFromID) {
 			tasks.push(id);
 		}
-	} else {
+	} else if (tasksOfDay[day]) {
 		tasks = tasksOfDay[day];
 	}
 	tasks.sort();
