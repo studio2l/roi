@@ -46,6 +46,8 @@ cp -i cockroach-v2.1.2.linux-amd64/cockroach /usr/local/bin
 
 ## 실행
 
+`~/roi`에 레포지터리가 설치된 것을 기준으로 이야기 하겠습니다.
+
 ```
 # DB 실행
 cd ~ # 또는 원하는 실행 장소에서
@@ -65,4 +67,26 @@ sudo ./roi
 cd ~/roi/cmd/roishot
 go build
 ./roishot ./testdata/test.xlsx
+```
+
+### 자가서명인증서 (Self-Signed Certificate) 생성
+
+https 프로토콜을 사용하고 싶으나, 비용 또는 여타 문제로
+인증서 구매/발급이 어려울 때 자가서명인증서를 사용하는 경우가 있습니다.
+
+이 때 제가 추천하는 프로그램은 mkcert 입니다.
+
+mkcert는 [여기](https://github.com/FiloSottile/mkcert)서 받을수 있습니다.
+
+```
+cd ~/roi/cmd/roi/cert
+mkcert -install
+mkcert -cert-file=cert.pem -key-file=key.pem localhost
+```
+
+### https 프로토콜 사용
+
+```
+cd ~/roi/cmd/roi
+sudo ./roi -https
 ```
