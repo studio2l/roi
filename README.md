@@ -17,12 +17,15 @@ roi는 아직 디자인이 끝나지 않았으며, 구현의 초기 단계입니
 
 ## 설치
 
-roi는 go1.11의 모듈 시스템을 사용합니다. go1.11 이상을 설치해 주세요.
+roi는 go1.13 이상의 버전에서 사용하는 것을 추천합니다.
 
-.bashrc에 다음 줄을 추가해 모듈 사용을 켜주세요.
+아래에서는 `~/roi` 를 레포지터리 루트로 하여 설치 및 실행하는 방법을 다룹니다.
 
 ```
-export GO111MODULE=on
+cd ~
+git clone https://github.com/studio2l/roi
+cd ~/roi/cmd/roi
+go build
 ```
 
 ### DB
@@ -31,43 +34,36 @@ roi는 [cockroach db](https://cockroachlabs.com) 를 사용합니다.
 
 cockroach db는 postgresql의 호환 문법을 사용하며, 쉽게 스케일을 키울수 있는 db입니다.
 
-cockroach db는 바이너리 파일로 배포하기 때문에 쉽게 설치하실 수 있습니다.
-
-다음은 cockroachdb 홈페이지에 나와있는 설치법입니다.
-
-v2.1.2는 현재 roi가 사용하는 버전입니다. 또는 [이 곳](https://www.cockroachlabs.com/docs/stable/install-cockroachdb.html)에서 최신 버전을 다운로드 받으실 수 있습니다.
-
-```
-wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.2.linux-amd64.tgz | tar  xvz
-cp -i cockroach-v2.1.2.linux-amd64/cockroach /usr/local/bin
-```
+[이 곳](https://www.cockroachlabs.com/docs/stable/install-cockroachdb.html)에서 최신 버전을 다운로드 받으실 수 있습니다.
 
 다운로드 받은 후 원하는 곳에서 실행하시면 그 아래에 cockroach-data 디렉토리가 생성되며 실행됩니다.
 
 ## 실행
 
-`~/roi`에 레포지터리가 설치된 것을 기준으로 이야기 하겠습니다.
+우선 DB를 실행합니다. 여기서는 cmd/roi 안에서 실행하겠습니다.
 
 ```
-# DB 실행
-cd ~ # 또는 원하는 실행 장소에서
-cockroach start --insecure &
+cd ~/roi/cmd/roi
+cockroach start --insecure
+```
 
+이제 새 터미널에서 roi를 실행합니다.
+
+```
 # 서버 실행
-export GO111MODULE=on # 혹시 빠뜨렸을 때에 대비해
-git clone https://github.com/studio2l/roi
-cd roi/cmd/roi
-go build
+cd ~/roi/cmd/roi
 sudo ./roi
 ```
 
-### Test DB 추가
+또 다른 터미널에서 테스트 데이터를 추가해 보겠습니다.
 
 ```
 cd ~/roi/cmd/roishot
 go build
 ./roishot ./testdata/test.xlsx
 ```
+
+이제 http://localhost 페이지를 살펴보세요.
 
 ### 자가서명인증서 (Self-Signed Certificate) 생성
 
