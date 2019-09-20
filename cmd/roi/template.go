@@ -87,9 +87,13 @@ func shortStringFromDate(t time.Time) string {
 	return t.Local().Format("01-02")
 }
 
-// timeFromString는 존 정보를 제외한 rfc3339 형식의 문자열에서 시간을 얻는다.
-// 받은 문자열이 형식에 맞지 않으면 에러를 반환한다.
+// timeFromString는 존 정보를 제외한 rfc3339 형식의 날짜 또는 시간 문자열에서
+// 시간을 얻는다. 받은 문자열이 형식에 맞지 않으면 에러를 반환한다.
 func timeFromString(s string) (time.Time, error) {
+	t, err := time.ParseInLocation("2006-01-02", s, time.Local)
+	if err == nil {
+		return t, nil
+	}
 	return time.ParseInLocation("2006-01-02T15:04:05", s, time.Local)
 }
 
