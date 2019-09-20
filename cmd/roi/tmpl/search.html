@@ -8,12 +8,12 @@
 	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;">
 		<div class="ui" style="width:288px;margin-right:22px;display:flex;align-items:end;">
 				<div style="display:flex;flex-direction:column;">
-					<div style="font-size:1.3rem;color:white;"><b>{{.Shot}}</b></div>
-					<div style="height:2px;border-radius:1px;background-color:var(--{{.Status.UIColor}});"></div>
+					<a href="/update-shot?project={{$.Project}}&shot={{.Shot}}" style="font-size:1.3rem;color:white;border-bottom:solid 1px var(--{{.Status.UIColor}});">
+						<b>{{.Shot}}</b>
+					</a>
 				</div>
 				<div style="width:1rem;display:inline-block;"></div>
 				<div style="flex:1;"></div>
-				<a style="font-size:0.7rem;color:#666666;" href="/update-shot?project={{$.Project}}&shot={{.Shot}}">수정</a>
 		</div>
 		<div style="flex:1;font-size:14px;"> {{.CGDescription}}</div>
 	</div>
@@ -37,10 +37,9 @@
 					<tr style="font-size:0.9rem;color:#AAAAAA">
 						<td class="ui one wide left aligned">
 							<div style="display:flex;padding:0 0.5rem;">
-								<div style="flex:1;display:inline-block;">
-									<a href="" style="color:white;">{{.Task}}</a>
-								</div>
-								<a style="font-size:0.7rem;color:#666666;" href="/update-task?project={{$.Project}}&shot={{.Shot}}&task={{.Task}}">수정</a>
+								<a href="/update-task?project={{$.Project}}&shot={{.Shot}}&task={{.Task}}" style="color:white;">
+									{{.Task}}
+								</a>
 							</div>
 						</td>
 						<td class="one wide center aligned">

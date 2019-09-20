@@ -7,12 +7,13 @@
 	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;">
 		<div class="ui" style="flex:1;margin-right:22px;display:flex;align-items:end;">
 				<div style="display:flex;flex-direction:column;">
-					<div style="font-size:1.3rem;color:white;"><b>{{.Project}}</b></div>
+					<a href="/update-project?id={{.Project}}" style="font-size:1.3rem;color:white;">
+						<b>{{.Project}}</b>
+					</a>
 					<div style="height:2px;border-radius:1px;background-color:var(--{{"blue"}});"></div>
 				</div>
 				<div> / {{.Status}}</div>
 				<div style="width:1rem;display:inline-block;"></div>
-				<a style="font-size:0.7rem;color:#666666;" href="/update-project?id={{.Project}}">수정</a>
 				<div style="flex:1;"></div>
 		</div>
 	</div>
