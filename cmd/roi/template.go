@@ -58,7 +58,11 @@ func hasThumbnail(prj, shot string) bool {
 }
 
 // isSunday는 해당일이 일요일인지를 검사한다.
-func isSunday(t time.Time) bool {
+func isSunday(day string) bool {
+	t, err := time.ParseInLocation("2006-01-02", day, time.Local)
+	if err != nil {
+		return false
+	}
 	wd := t.Weekday()
 	return wd == time.Sunday
 }

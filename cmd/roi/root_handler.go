@@ -49,21 +49,22 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		tid := t.Project + "." + t.Shot + "." + t.Task
 		taskFromID[tid] = t
 	}
-	tasksOfDay := make(map[time.Time][]string, 28)
+	tasksOfDay := make(map[string][]string, 28)
 	for _, t := range tasks {
-		if tasksOfDay[t.DueDate] == nil {
-			tasksOfDay[t.DueDate] = make([]string, 0)
+		due := stringFromDate(t.DueDate)
+		if tasksOfDay[due] == nil {
+			tasksOfDay[due] = make([]string, 0)
 		}
 		tid := t.Project + "." + t.Shot + "." + t.Task
-		tasksOfDay[t.DueDate] = append(tasksOfDay[t.DueDate], tid)
+		tasksOfDay[due] = append(tasksOfDay[due], tid)
 	}
 	// 앞으로 4주에 대한 태스크 정보를 보인다.
 	// 총 기간이나 단위는 추후 설정할 수 있도록 할 것.
-	timeline := make([]time.Time, 28)
+	timeline := make([]string, 28)
 	y, m, d := time.Now().Date()
-	today := time.Date(y, m, d, 23, 59, 59, 0, time.Local).UTC()
+	today := time.Date(y, m, d, 0, 0, 0, 0, time.Local)
 	for i := range timeline {
-		timeline[i] = today.Add(time.Duration(i) * 24 * time.Hour)
+		timeline[i] = stringFromDate(today.Add(time.Duration(i) * 24 * time.Hour))
 	}
 	numTasks := make(map[string]map[roi.TaskStatus]int)
 	for _, t := range tasks {
@@ -74,10 +75,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	recipt := struct {
 		LoggedInUser  string
-		Timeline      []time.Time
+		Timeline      []string
 		NumTasks      map[string]map[roi.TaskStatus]int
 		TaskFromID    map[string]*roi.Task
-		TasksOfDay    map[time.Time][]string
+		TasksOfDay    map[string][]string
 		AllTaskStatus []roi.TaskStatus
 	}{
 		LoggedInUser:  session["userid"],
