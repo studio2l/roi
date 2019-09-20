@@ -26,22 +26,7 @@
                 <option value="{{.}}" {{if eq . $.FilterTaskStatus}}selected{{end}}>{{.UIString}}</option>
                 {{end}}
             </select>
-            <div class="ui calendar" id="task_due_date-parent">
-                <div class="ui input left icon" style="width:150px;height:100%;">
-                    <i class="calendar icon"></i>
-                    <input type="text" name="task_due_date" value="{{with $.FilterTaskDueDate}}{{if not .IsZero}}{{.}}{{end}}{{end}}" placeholder="마감일">
-                </div>
-            </div>
-            <script>
-            $('#task_due_date-parent').calendar({
-                type: 'date',
-                formatter: {
-                    date: (date, settings) => {
-                        return rfc3339(date);
-                    }
-                }
-            });
-            </script>
+            <input style="color:#AAAAAA;" type="date" name="task_due_date" value="{{stringFromDate $.FilterTaskDueDate}}">
             <div style="border-left:solid 1px black;margin:0px 20px;">
             </div>
             <input class="ui grey button" type="submit" value="검색">

@@ -40,17 +40,8 @@
 				<input type="text" name="phone_number" value="{{$.User.PhoneNumber}}"/>
 			</div>
 			<div class="field"><label>입사일</label>
-				<div class="ui calendar" id="entrydate">
-					<div class="ui input left icon">
-						<i class="calendar icon"></i><input type="text" name="entry_date" value="{{$.User.EntryDate}}">
-					</div>
-				</div>
+				<input type="date" name="entry_date" value="{{$.User.EntryDate}}">
 			</div>
-			<script>
-			$('#entrydate').calendar({
-				type: 'date'
-			});
-			</script>
 
 			<!--버튼 : 설정 저장-->
 			<button class="ui button green" type="submit" value="Submit">설정 저장</button>

@@ -12,22 +12,8 @@
 			<input type="text" name="id" value="{{.Shot.Shot}}"/>
 		</div>
 		<div class="field"><label>마감일</label>
-			<div class="ui calendar" id="duedate">
-				<div class="ui input left icon">
-					<i class="calendar icon"></i><input type="text" name="due_date" value="{{with $.Shot.DueDate}}{{if not .IsZero}}{{.}}{{end}}{{end}}">
-				</div>
-			</div>
+			<input type="date" name="due_date" value="{{stringFromDate $.Shot.DueDate}}">
 		</div>
-		<script>
-		$('#duedate').calendar({
-			type: 'date',
-			formatter: {
-				date: (date, settings) => {
-					return rfc3339(date);
-				}
-			}
-		});
-		</script>
 		<div class="field"><label>상태</label>
 			<select type="text" name="status">
 				{{with $s := .Shot}}
@@ -84,22 +70,8 @@
 				<input id="task-{{$t.Task}}-assignee"  type="text" value="{{$t.Assignee}}" />
 			</div>
 			<div class="field"><label>마감일</label>
-				<div class="ui calendar" id="task-{{$t.Task}}-due_date-parent">
-					<div class="ui input left icon">
-						<i class="calendar icon"></i><input type="text" id="task-{{$t.Task}}-due_date" value="{{with $t.DueDate}}{{if not .IsZero}}{{.}}{{end}}{{end}}">
-					</div>
-				</div>
+				<input type="date" id="task-{{$t.Task}}-due_date" value="{{stringFromDate $t.DueDate}}">
 			</div>
-			<script>
-			$('#task-{{$t.Task}}-due_date-parent').calendar({
-				type: 'date',
-				formatter: {
-					date: (date, settings) => {
-						return rfc3339(date);
-					}
-				}
-			});
-			</script>
 			<button id="task-{{$t.Task}}-btn" class="ui button teal" onclick="updateTask('{{$t.Task}}')">수정</button>
 			<div id="task-{{$t.Task}}-update-result" class="ui"></div>
 		</div>

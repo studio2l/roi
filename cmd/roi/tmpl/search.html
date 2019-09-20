@@ -75,7 +75,7 @@
 			<div style="display:flex;">
 				<div>{{.Status.UIString}}</div>
 			</div>
-			{{if not .DueDate.IsZero}}<div class="detail">~{{stringFromDate .DueDate}}</div>{{end}}
+			{{if not .DueDate.IsZero}}<div class="detail">{{stringFromDate .DueDate}}</div>{{end}}
 		</div>
 		<div>
 			{{range $i, $v := .Tags -}}
