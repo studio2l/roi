@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/studio2l/roi"
@@ -34,16 +33,23 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/search/"+prjs[0], http.StatusSeeOther)
 		return
 	}
-	found := false
-	for _, p := range prjs {
-		if p == prj {
-			found = true
+	if prj != "" {
+		found := false
+		for _, p := range prjs {
+			if p == prj {
+				found = true
+				break
+			}
+		}
+		if !found {
+			http.Error(w, "project not found", http.StatusNotFound)
+			return
 		}
 	}
-	if !found {
-		fmt.Fprintf(os.Stderr, "not found project %s\n", prj)
-		return
-		// http.Error(w, fmt.Sprintf("not found project: %s", id), http.StatusNotFound)
+
+	if prj == "" {
+		// TODO: show empty page
+		// for now SearchShot will handle it properly, don't panic.
 	}
 
 	if err := r.ParseForm(); err != nil {
