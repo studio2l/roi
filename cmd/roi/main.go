@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gorilla/securecookie"
@@ -51,6 +53,14 @@ when no port is specified, default port for current protocol will be used.
 		log.Fatalf("could not check cookie key file: %s", err)
 	}
 	if !blockFileExist {
+		err = os.MkdirAll(filepath.Dir(hashFile), 0755)
+		if err != nil && !os.IsExist(err) {
+			log.Fatalf("could not create directory for cookie hash file: %s", err)
+		}
+		err = os.MkdirAll(filepath.Dir(blockFile), 0755)
+		if err != nil && !os.IsExist(err) {
+			log.Fatalf("could not create directory for cookie block file: %s", err)
+		}
 		ioutil.WriteFile(hashFile, securecookie.GenerateRandomKey(64), 0600)
 		ioutil.WriteFile(blockFile, securecookie.GenerateRandomKey(32), 0600)
 	}
