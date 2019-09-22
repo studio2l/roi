@@ -73,18 +73,18 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "POST" {
 		r.ParseForm()
-		id := r.Form.Get("id")
-		if id == "" {
-			http.Error(w, "need project 'id'", http.StatusBadRequest)
+		prj := r.Form.Get("project")
+		if prj == "" {
+			http.Error(w, "need 'project' form value", http.StatusBadRequest)
 			return
 		}
-		exist, err := roi.ProjectExist(db, id)
+		exist, err := roi.ProjectExist(db, prj)
 		if err != nil {
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
 		if exist {
-			http.Error(w, fmt.Sprintf("project '%s' exist", id), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("project '%s' exist", prj), http.StatusBadRequest)
 			return
 		}
 		timeForms, err := parseTimeForms(r.Form,
@@ -99,7 +99,7 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		p := &roi.Project{
-			Project:       id,
+			Project:       prj,
 			Name:          r.Form.Get("name"),
 			Status:        "waiting",
 			Client:        r.Form.Get("client"),
