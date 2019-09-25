@@ -30,20 +30,28 @@ func main() {
 	dev = true
 
 	var (
-		addr  string
-		https bool
-		cert  string
-		key   string
+		addr     string
+		insecure bool
+		cert     string
+		key      string
 	)
-	flag.StringVar(&addr, "addr", "localhost:80:443", `site address and it's http/https port.
+	flag.StringVar(&addr, "addr", "localhost:80:443", `binding address and it's http/https port.
+
 when two ports are specified, first port is for http and second is for https.
-with -https flag turned on, it will automatically forward http port to https port.
-when one port is specified, the port will be used for current protocol.
+and automatically forward http access to https, if using default https protocol.
+when -insecure flag is on, it will use only the first port.
+ex) localhost:80:443
+
+when only one port is specified, the port will be used for current protocol.
+ex) localhost:80, localhost:443
+
 when no port is specified, default port for current protocol will be used.
+ex) localhost
+
 `)
-	flag.BoolVar(&https, "https", false, "use https port.")
-	flag.StringVar(&cert, "cert", "cert/cert.pem", "https cert file. valid only if -https flag is turned on.")
-	flag.StringVar(&key, "key", "cert/key.pem", "https key file. valid only if -https flag is turned on.")
+	flag.BoolVar(&insecure, "insecure", false, "use insecure http protocol instead of https.")
+	flag.StringVar(&cert, "cert", "cert/cert.pem", "https cert file. need to use https protocol.")
+	flag.StringVar(&key, "key", "cert/key.pem", "https key file. need to use https protocol.")
 	flag.Parse()
 
 	hashFile := "cert/cookie.hash"
@@ -130,10 +138,18 @@ when no port is specified, default port for current protocol will be used.
 
 	var protocol string
 	site := ""
-	httpPort := "80"
-	httpsPort := "443"
+	defaultHttpPort := "80"
+	defaultHttpsPort := "443"
+	httpPort := defaultHttpPort
+	httpsPort := defaultHttpsPort
 	portForwarding := false
-	if https {
+	if insecure {
+		protocol = "http://"
+		site = addrs[0]
+		if len(addrs) == 2 {
+			httpPort = addrs[1]
+		}
+	} else {
 		protocol = "https://"
 		site = addrs[0]
 		if len(addrs) == 3 {
@@ -143,34 +159,36 @@ when no port is specified, default port for current protocol will be used.
 		} else if len(addrs) == 2 {
 			httpsPort = addrs[1]
 		}
-	} else {
-		protocol = "http://"
-		site = addrs[0]
-		if len(addrs) == 2 {
-			httpPort = addrs[1]
-		}
 	}
 	if site == "" {
 		site = "localhost"
 	}
 
-	addrToShow := protocol + site + ":" + httpPort
-	if https {
-		addrToShow = protocol + site + ":" + httpsPort
+	var addrToShow string
+	if insecure {
+		addrToShow = protocol + site
+		if httpPort != defaultHttpPort {
+			addrToShow += ":" + httpPort
+		}
+	} else {
+		addrToShow = protocol + site
+		if httpsPort != defaultHttpsPort {
+			addrToShow += ":" + httpsPort
+		}
 	}
 	fmt.Println()
 	log.Printf("roi is start to running. see %s", addrToShow)
 	fmt.Println()
 
 	// Bind
-	if https {
+	if insecure {
+		log.Fatal(http.ListenAndServe(site+":"+httpPort, mux))
+	} else {
 		if portForwarding {
 			go func() {
 				log.Fatal(http.ListenAndServe(site+":"+httpPort, http.HandlerFunc(redirectToHttps)))
 			}()
 		}
 		log.Fatal(http.ListenAndServeTLS(site+":"+httpsPort, cert, key, mux))
-	} else {
-		log.Fatal(http.ListenAndServe(site+":"+httpPort, mux))
 	}
 }
