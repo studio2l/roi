@@ -52,15 +52,14 @@ cockroach start --insecure
 ```
 # 서버 실행
 cd ~/roi/cmd/roi
-sudo ./roi
+sudo ./roi server -insecure
 ```
 
 또 다른 터미널에서 테스트 데이터를 추가해 보겠습니다.
 
 ```
-cd ~/roi/cmd/roishot
-go build
-./roishot ./testdata/test.xlsx
+cd ~/roi/cmd/roi
+./roi shot ./testdata/test.xlsx
 ```
 
 이제 http://localhost 페이지를 살펴보세요.
@@ -82,7 +81,9 @@ mkcert -cert-file=cert.pem -key-file=key.pem localhost
 
 ### https 프로토콜 사용
 
+-insecure 플래그를 제외하면 기본적으로 roi는 https 프로토콜을 사용합니다.
+
 ```
 cd ~/roi/cmd/roi
-sudo ./roi -https
+sudo ./roi server
 ```
