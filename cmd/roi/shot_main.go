@@ -18,21 +18,22 @@ import (
 	"github.com/360EntSecGroup-Skylar/excelize"
 )
 
-func main() {
+func shotMain(args []string) {
 	var (
 		prj   string
 		sheet string
 	)
-	flag.StringVar(&prj, "prj", "", "샷을 추가할 프로젝트, 없으면 엑셀 파일이름을 따른다.")
-	flag.StringVar(&sheet, "sheet", "Sheet1", "엑셀 시트명")
-	flag.Parse()
+	shotFlag := flag.NewFlagSet("shot", flag.ExitOnError)
+	shotFlag.StringVar(&prj, "prj", "", "샷을 추가할 프로젝트, 없으면 엑셀 파일이름을 따른다.")
+	shotFlag.StringVar(&sheet, "sheet", "Sheet1", "엑셀 시트명")
+	shotFlag.Parse(args)
 
-	if len(flag.Args()) != 1 {
+	if len(shotFlag.Args()) == 0 {
 		flag.PrintDefaults()
 		fmt.Fprintln(os.Stderr, "엑셀 파일 경로를 입력하세요.")
 		os.Exit(1)
 	}
-	f := flag.Arg(0)
+	f := shotFlag.Arg(0)
 
 	if prj == "" {
 		fname := filepath.Base(f)
