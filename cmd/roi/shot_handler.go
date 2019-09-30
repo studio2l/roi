@@ -61,7 +61,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, "/add-shot/?project="+prj, http.StatusSeeOther)
+		http.Redirect(w, r, r.RequestURI, http.StatusSeeOther)
 		return
 	}
 	p, err := roi.GetProject(db, prj)
@@ -121,7 +121,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			roi.AddTask(db, prj, shot, t)
 		}
-		http.Redirect(w, r, fmt.Sprintf("/shot/%s/%s", prj, shot), http.StatusSeeOther)
+		http.Redirect(w, r, r.RequestURI, http.StatusSeeOther)
 		return
 	}
 	recipt := struct {
