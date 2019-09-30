@@ -61,7 +61,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, r.RequestURI, http.StatusSeeOther)
+		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
 	p, err := roi.GetProject(db, prj)
@@ -121,7 +121,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			roi.AddTask(db, prj, shot, t)
 		}
-		http.Redirect(w, r, r.RequestURI, http.StatusSeeOther)
+		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
 	recipt := struct {
@@ -246,7 +246,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		http.Redirect(w, r, r.RequestURI, http.StatusSeeOther)
+		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
 	s, err := roi.GetShot(db, prj, shot)

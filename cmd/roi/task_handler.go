@@ -92,7 +92,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// 수정 페이지로 돌아간다.
 		r.Method = "GET"
-		http.Redirect(w, r, r.RequestURI, http.StatusSeeOther)
+		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
 	t, err := roi.GetTask(db, prj, shot, task)

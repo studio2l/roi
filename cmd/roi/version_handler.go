@@ -110,14 +110,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	v, err := roi.LastVersion(db, prj, shot, task)
-	if err != nil {
-		log.Printf("could not get last version of task '%s': %v", taskID, err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-	ver := v.Version
-	http.Redirect(w, r, fmt.Sprintf("/update-version?project=%s&shot=%s&task=%s&version=%d", prj, shot, task, ver), http.StatusSeeOther)
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 	return
 }
 
@@ -224,7 +217,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 			Created:     timeForms["created"],
 		}
 		roi.UpdateVersion(db, prj, shot, task, version, u)
-		http.Redirect(w, r, r.RequestURI, http.StatusSeeOther)
+		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
 	o, err := roi.GetVersion(db, prj, shot, task, version)
