@@ -5,78 +5,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/studio2l/roi"
 )
-
-// versionHandler는 /version/ 으로 사용자가 접근했을때 버전 정보가 담긴 페이지를 반환한다.
-func versionHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-	session, err := getSession(r)
-	if err != nil {
-		http.Error(w, "could not get session", http.StatusUnauthorized)
-		clearSession(w)
-		return
-	}
-	// 경로로 부터 버전 ID 추출
-	pth := r.URL.Path[len("/version/"):]
-	pths := strings.Split(pth, "/")
-	if len(pths) != 4 {
-		http.NotFound(w, r)
-		return
-	}
-	prj := pths[0]
-	shot := pths[1]
-	task := pths[2]
-	vstring := pths[3]
-	if vstring == "" {
-		msg := fmt.Sprintf("'version' field empty")
-		http.Error(w, msg, http.StatusBadRequest)
-		return
-	}
-	version, err := strconv.Atoi(vstring)
-	if err != nil || version <= 0 {
-		msg := fmt.Sprintf("bad version '%s'", pths[3])
-		http.Error(w, msg, http.StatusBadRequest)
-		return
-	}
-	id := prj + "." + shot + "." + task + fmt.Sprintf(".v%03d", version)
-
-	exist, err := roi.VersionExist(db, prj, shot, task, version)
-	if err != nil {
-		log.Printf("could not check version exist '%s': %v", id, err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-	if !exist {
-		e := fmt.Sprintf("version '%s' not exist", id)
-		http.Error(w, e, http.StatusBadRequest)
-		return
-	}
-	v, err := roi.GetVersion(db, prj, shot, task, version)
-	if err != nil {
-		log.Printf("could not get version '%s': %v", id, err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-	recipt := struct {
-		LoggedInUser string
-		Version      *roi.Version
-	}{
-		LoggedInUser: session["userid"],
-		Version:      v,
-	}
-	err = executeTemplate(w, "version.html", recipt)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := roi.DB()
@@ -179,7 +110,14 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/search/"+prj, http.StatusSeeOther)
+	v, err := roi.LastVersion(db, prj, shot, task)
+	if err != nil {
+		log.Printf("could not get last version of task '%s': %v", taskID, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	ver := v.Version
+	http.Redirect(w, r, fmt.Sprintf("/update-version?project=%s&shot=%s&task=%s&version=%d", prj, shot, task, ver), http.StatusSeeOther)
 	return
 }
 
@@ -286,7 +224,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 			Created:     timeForms["created"],
 		}
 		roi.UpdateVersion(db, prj, shot, task, version, u)
-		http.Redirect(w, r, "/search/"+prj, http.StatusSeeOther)
+		http.Redirect(w, r, r.RequestURI, http.StatusSeeOther)
 		return
 	}
 	o, err := roi.GetVersion(db, prj, shot, task, version)
