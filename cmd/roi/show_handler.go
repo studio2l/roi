@@ -226,11 +226,13 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	recipt := struct {
-		LoggedInUser string
-		Show         *roi.Show
+		LoggedInUser  string
+		Show          *roi.Show
+		AllShowStatus []roi.ShowStatus
 	}{
-		LoggedInUser: session["userid"],
-		Show:         p,
+		LoggedInUser:  session["userid"],
+		Show:          p,
+		AllShowStatus: roi.AllShowStatus,
 	}
 	err = executeTemplate(w, "update-show.html", recipt)
 	if err != nil {

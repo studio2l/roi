@@ -9,7 +9,11 @@
 			<input type="text" name="show" value="{{.Show.Show}}"/>
 		</div>
 		<div class="field"><label>상태</label>
-			<input type="text" name="status" value="{{.Show.Status}}"/>
+			<select type="text" name="status">
+				{{range $s := $.AllShowStatus}}
+				<option value="{{$s}}" {{if eq $s $.Show.Status}}selected{{end}}>{{$s.UIString}}</option>
+				{{end}}
+			</select>
 		</div>
 		<div class="field"><label>영문이름</label>
 			<input type="text" name="name" value="{{.Show.Name}}"/>
