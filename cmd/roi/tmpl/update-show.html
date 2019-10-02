@@ -6,19 +6,19 @@
 	<h2 class="ui dividing header">프로젝트 설정</h2>
 	<form method="post" class="ui form">
 		<div class="field disabled"><label>아이디</label>
-			<input type="text" name="project" value="{{.Project.Project}}"/>
+			<input type="text" name="show" value="{{.Show.Show}}"/>
 		</div>
 		<div class="field"><label>상태</label>
-			<input type="text" name="status" value="{{.Project.Status}}"/>
+			<input type="text" name="status" value="{{.Show.Status}}"/>
 		</div>
 		<div class="field"><label>영문이름</label>
-			<input type="text" name="name" value="{{.Project.Name}}"/>
+			<input type="text" name="name" value="{{.Show.Name}}"/>
 		</div>
 		<!--type 설정-->
 		<div class="field"><label>타입</label>
-			<select id="project-type" class="ui dropdown">
+			<select id="show-type" class="ui dropdown">
 				<!--목록을 시스템 설정에서 가져옵니다.-->
-				<option value="">Select Project Type</option>
+				<option value="">Select Show Type</option>
 				<option value="Feature Film">Feature Film</option>
 				<option value="Animation">Animation</option>
 				<option value="Commercial">Commercial</option>
@@ -28,46 +28,46 @@
 			  </select>
 		</div>
 		<div class="field"><label>클라이언트</label>
-			<input type="text" name="client" value="{{.Project.Client}}"/>
+			<input type="text" name="client" value="{{.Show.Client}}"/>
 		</div>
 		<div class="field"><label>감독</label>
-			<input type="text" name="director" value="{{.Project.Director}}"/>
+			<input type="text" name="director" value="{{.Show.Director}}"/>
 		</div>
 		<div class="field"><label>PD</label>
-			<input type="text" name="producer" value="{{.Project.Producer}}"/>
+			<input type="text" name="producer" value="{{.Show.Producer}}"/>
 		</div>
 		<div class="field"><label>VFX 수퍼바이저</label>
-			<input type="text" name="vfx_supervisor" value="{{.Project.VFXSupervisor}}"/>
+			<input type="text" name="vfx_supervisor" value="{{.Show.VFXSupervisor}}"/>
 		</div>
 		<div class="field"><label>VFX 매니저</label>
-			<input type="text" name="vfx_manager" value="{{.Project.VFXManager}}"/>
+			<input type="text" name="vfx_manager" value="{{.Show.VFXManager}}"/>
 		</div>
 		<div class="field"><label>CG 수퍼바이저</label>
-			<input type="text" name="cg_supervisor" value="{{.Project.CGSupervisor}}"/>
+			<input type="text" name="cg_supervisor" value="{{.Show.CGSupervisor}}"/>
 		</div>
 		<div class="field"><label>크랭크 인</label>
-			<input type="date" name="crank_in" value="{{stringFromTime .Project.CrankIn}}"/>
+			<input type="date" name="crank_in" value="{{stringFromTime .Show.CrankIn}}"/>
 		</div>
 		<div class="field"><label>크랭크 업</label>
-			<input type="date" name="crank_up" value="{{stringFromTime .Project.CrankUp}}"/>
+			<input type="date" name="crank_up" value="{{stringFromTime .Show.CrankUp}}"/>
 		</div>
 		<div class="field"><label>시작일</label>
-			<input type="date" name="start_date" value="{{stringFromTime .Project.StartDate}}"/>
+			<input type="date" name="start_date" value="{{stringFromTime .Show.StartDate}}"/>
 		</div>
 		<div class="field"><label>종료일</label>
-			<input type="date" name="release_date" value="{{stringFromTime .Project.ReleaseDate}}"/>
+			<input type="date" name="release_date" value="{{stringFromTime .Show.ReleaseDate}}"/>
 		</div>
 		<div class="field"><label>VFX 종료일</label>
-			<input type="date" name="vfx_due_date" value="{{stringFromTime .Project.VFXDueDate}}"/>
+			<input type="date" name="vfx_due_date" value="{{stringFromTime .Show.VFXDueDate}}"/>
 		</div>
 		<div class="field"><label>아웃풋 사이즈</label>
-			<input type="text" name="output_size" value="{{.Project.OutputSize}}"/>
+			<input type="text" name="output_size" value="{{.Show.OutputSize}}"/>
 		</div>
 		<div class="field"><label>View Lut 경로</label>
-			<input type="text" name="view_lut" value="{{.Project.ViewLUT}}"/>
+			<input type="text" name="view_lut" value="{{.Show.ViewLUT}}"/>
 		</div>
 		<div class="field"><label>기본 태스크</label>
-			<input type="text" name="default_tasks" value="{{join .Project.DefaultTasks ", "}}"/>
+			<input type="text" name="default_tasks" value="{{join .Show.DefaultTasks ", "}}"/>
 		</div>
 		<button class="ui button green" type="submit" value="Submit">수정</button>
 	</form>

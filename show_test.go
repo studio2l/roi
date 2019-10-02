@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-var testProject = &Project{
-	Project:       "TEST",
+var testShow = &Show{
+	Show:          "TEST",
 	Name:          "테스트 프로젝트",
 	Status:        "waiting",
 	Client:        "레이지 픽처스",
@@ -25,46 +25,46 @@ var testProject = &Project{
 	ViewLUT:       "some/place/aces.lut",
 }
 
-func TestProject(t *testing.T) {
-	want := testProject
+func TestShow(t *testing.T) {
+	want := testShow
 
 	db, err := testDB()
 	if err != nil {
 		t.Fatalf("could not connect to database: %v", err)
 	}
-	err = AddProject(db, want)
+	err = AddShow(db, want)
 	if err != nil {
 		t.Fatalf("could not add project to projects table: %s", err)
 	}
-	exist, err := ProjectExist(db, want.Project)
+	exist, err := ShowExist(db, want.Show)
 	if err != nil {
 		t.Fatalf("could not check project existence from projects table: %s", err)
 	}
 	if !exist {
-		t.Fatalf("project not found from projects table: %s", want.Project)
+		t.Fatalf("project not found from projects table: %s", want.Show)
 	}
-	got, err := GetProject(db, want.Project)
+	got, err := GetShow(db, want.Show)
 	if err != nil {
 		t.Fatalf("could not get project from projects table: %s", err)
 	}
-	if !IsValidProject(got.Project) {
+	if !IsValidShow(got.Show) {
 		if err != nil {
 			t.Fatalf("find project with invalid id from projects table: %s", err)
 		}
 	}
-	gotAll, err := AllProjects(db)
+	gotAll, err := AllShows(db)
 	if err != nil {
 		t.Fatalf("could not get all projects from projects table: %s", err)
 	}
-	wantAll := []*Project{want}
+	wantAll := []*Show{want}
 	if !reflect.DeepEqual(gotAll, wantAll) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
-	err = UpdateProject(db, want.Project, UpdateProjectParam{})
+	err = UpdateShow(db, want.Show, UpdateShowParam{})
 	if err != nil {
 		t.Fatalf("could not clear(update) project: %s", err)
 	}
-	err = DeleteProject(db, want.Project)
+	err = DeleteShow(db, want.Show)
 	if err != nil {
 		t.Fatalf("could not delete project: %s", err)
 	}

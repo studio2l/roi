@@ -6,7 +6,7 @@
 	<h2 class="ui dividing header">샷 수정</h2>
 	<form method="post" class="ui form">
 		<div class="field disabled"><label>프로젝트</label>
-			<input type="text" name="project" value="{{.Shot.Project}}"/>
+			<input type="text" name="show" value="{{.Shot.Show}}"/>
 		</div>
 		<div class="field disabled"><label>아이디</label>
 			<input type="text" name="shot" value="{{.Shot.Shot}}"/>
@@ -88,7 +88,7 @@ function updateTask(name) {
 	let assignee = document.getElementById("task-" + name + "-assignee").value;
 	let due = encodeURIComponent(document.getElementById("task-" + name + "-due_date").value);
 	let param = new Array(
-		"project={{$.Shot.Project}}",
+		"show={{$.Shot.Show}}",
 		"shot={{$.Shot.Shot}}",
 		"task=" + name,
 		"status=" + status,

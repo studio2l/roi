@@ -38,19 +38,19 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		_ = u
 	}
 	r.ParseForm()
-	prj := r.Form.Get("project")
-	if prj == "" {
-		http.Error(w, "need 'project'", http.StatusBadRequest)
+	show := r.Form.Get("show")
+	if show == "" {
+		http.Error(w, "need 'show'", http.StatusBadRequest)
 		return
 	}
-	exist, err := roi.ProjectExist(db, prj)
+	exist, err := roi.ShowExist(db, show)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	if !exist {
-		http.Error(w, fmt.Sprintf("project '%s' not exist", prj), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("show '%s' not exist", show), http.StatusBadRequest)
 		return
 	}
 	shot := r.Form.Get("shot")
@@ -63,9 +63,9 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "need 'task'", http.StatusBadRequest)
 		return
 	}
-	taskID := prj + "." + shot + "." + task
+	taskID := show + "." + shot + "." + task
 	if r.Method == "POST" {
-		exist, err = roi.TaskExist(db, prj, shot, task)
+		exist, err = roi.TaskExist(db, show, shot, task)
 		if err != nil {
 			log.Printf("could not check task '%s' exist: %v", taskID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -84,7 +84,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 			Assignee: r.Form.Get("assignee"),
 			DueDate:  tforms["due_date"],
 		}
-		err = roi.UpdateTask(db, prj, shot, task, upd)
+		err = roi.UpdateTask(db, show, shot, task, upd)
 		if err != nil {
 			log.Printf("could not update task '%s': %v", taskID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -95,7 +95,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
-	t, err := roi.GetTask(db, prj, shot, task)
+	t, err := roi.GetTask(db, show, shot, task)
 	if err != nil {
 		log.Printf("could not get task '%s': %v", taskID, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)

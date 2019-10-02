@@ -8,8 +8,8 @@ import (
 	"github.com/studio2l/roi"
 )
 
-// projectsHandler는 /project 페이지로 사용자가 접속했을때 페이지를 반환한다.
-func projectsHandler(w http.ResponseWriter, r *http.Request) {
+// showsHandler는 /show 페이지로 사용자가 접속했을때 페이지를 반환한다.
+func showsHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := roi.DB()
 	if err != nil {
 		log.Printf("could not connect to database: %v", err)
@@ -17,9 +17,9 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prjs, err := roi.AllProjects(db)
+	shows, err := roi.AllShows(db)
 	if err != nil {
-		log.Print(fmt.Sprintf("error while getting projects: %s", err))
+		log.Print(fmt.Sprintf("error while getting shows: %s", err))
 		return
 	}
 
@@ -31,20 +31,20 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 
 	recipt := struct {
 		LoggedInUser string
-		Projects     []*roi.Project
+		Shows        []*roi.Show
 	}{
 		LoggedInUser: session["userid"],
-		Projects:     prjs,
+		Shows:        shows,
 	}
-	err = executeTemplate(w, "projects.html", recipt)
+	err = executeTemplate(w, "shows.html", recipt)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-// addProjectHandler는 /add-project 페이지로 사용자가 접속했을때 페이지를 반환한다.
+// addShowHandler는 /add-show 페이지로 사용자가 접속했을때 페이지를 반환한다.
 // 만일 POST로 프로젝트 정보가 오면 프로젝트를 생성한다.
-func addProjectHandler(w http.ResponseWriter, r *http.Request) {
+func addShowHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := roi.DB()
 	if err != nil {
 		log.Printf("could not connect to database: %v", err)
@@ -73,18 +73,18 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "POST" {
 		r.ParseForm()
-		prj := r.Form.Get("project")
-		if prj == "" {
-			http.Error(w, "need 'project' form value", http.StatusBadRequest)
+		show := r.Form.Get("show")
+		if show == "" {
+			http.Error(w, "need 'show' form value", http.StatusBadRequest)
 			return
 		}
-		exist, err := roi.ProjectExist(db, prj)
+		exist, err := roi.ShowExist(db, show)
 		if err != nil {
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
 		if exist {
-			http.Error(w, fmt.Sprintf("project '%s' exist", prj), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("show '%s' exist", show), http.StatusBadRequest)
 			return
 		}
 		timeForms, err := parseTimeForms(r.Form,
@@ -98,8 +98,8 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		p := &roi.Project{
-			Project:       prj,
+		p := &roi.Show{
+			Show:          show,
 			Name:          r.Form.Get("name"),
 			Status:        "waiting",
 			Client:        r.Form.Get("client"),
@@ -117,9 +117,9 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 			ViewLUT:       r.Form.Get("view_lut"),
 			DefaultTasks:  fields(r.Form.Get("default_tasks"), ","),
 		}
-		err = roi.AddProject(db, p)
+		err = roi.AddShow(db, p)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("could not add project '%s'", p), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("could not add show '%s'", p), http.StatusInternalServerError)
 			return
 		}
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
@@ -130,15 +130,15 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		LoggedInUser: session["userid"],
 	}
-	err = executeTemplate(w, "add-project.html", recipt)
+	err = executeTemplate(w, "add-show.html", recipt)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-// updateProjectHandler는 /update-project 페이지로 사용자가 접속했을때 페이지를 반환한다.
+// updateShowHandler는 /update-show 페이지로 사용자가 접속했을때 페이지를 반환한다.
 // 만일 POST로 프로젝트 정보가 오면 프로젝트 정보를 수정한다.
-func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
+func updateShowHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := roi.DB()
 	if err != nil {
 		log.Printf("could not connect to database: %v", err)
@@ -165,16 +165,16 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	id := r.Form.Get("id")
 	if id == "" {
-		http.Error(w, "need project 'id'", http.StatusBadRequest)
+		http.Error(w, "need show 'id'", http.StatusBadRequest)
 		return
 	}
-	exist, err := roi.ProjectExist(db, id)
+	exist, err := roi.ShowExist(db, id)
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	if !exist {
-		http.Error(w, fmt.Sprintf("project '%s' not exist", id), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("show '%s' not exist", id), http.StatusBadRequest)
 		return
 	}
 	timeForms, err := parseTimeForms(r.Form,
@@ -189,7 +189,7 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "POST" {
-		upd := roi.UpdateProjectParam{
+		upd := roi.UpdateShowParam{
 			Name:          r.Form.Get("name"),
 			Status:        r.Form.Get("status"),
 			Client:        r.Form.Get("client"),
@@ -207,32 +207,32 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			ViewLUT:       r.Form.Get("view_lut"),
 			DefaultTasks:  fields(r.Form.Get("default_tasks"), ","),
 		}
-		err = roi.UpdateProject(db, id, upd)
+		err = roi.UpdateShow(db, id, upd)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, fmt.Sprintf("could not add project '%s'", id), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("could not add show '%s'", id), http.StatusInternalServerError)
 			return
 		}
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
-	p, err := roi.GetProject(db, id)
+	p, err := roi.GetShow(db, id)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("could not get project: %s", id), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("could not get show: %s", id), http.StatusInternalServerError)
 		return
 	}
 	if p == nil {
-		http.Error(w, fmt.Sprintf("could not get project: %s", id), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("could not get show: %s", id), http.StatusBadRequest)
 		return
 	}
 	recipt := struct {
 		LoggedInUser string
-		Project      *roi.Project
+		Show         *roi.Show
 	}{
 		LoggedInUser: session["userid"],
-		Project:      p,
+		Show:         p,
 	}
-	err = executeTemplate(w, "update-project.html", recipt)
+	err = executeTemplate(w, "update-show.html", recipt)
 	if err != nil {
 		log.Fatal(err)
 	}

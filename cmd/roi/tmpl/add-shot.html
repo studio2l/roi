@@ -6,7 +6,7 @@
 	<h2 class="ui dividing header">샷 추가</h2>
 	<form method="post" class="ui form">
 		<div class="field disabled"><label>프로젝트</label>
-			<input type="text" name="project" value="{{.Project.Project}}"/>
+			<input type="text" name="show" value="{{.Show.Show}}"/>
 		</div>
 		<div class="field"><label>아이디</label>
 			<input type="text" name="shot" value=""/>
@@ -33,7 +33,7 @@
 			<input type="text" name="tags" value=""/>
 		</div>
 		<div class="field"><label>태스크</label>
-			<input type="text" name="working_tasks" value="{{join .Project.DefaultTasks ", "}}"/>
+			<input type="text" name="working_tasks" value="{{join .Show.DefaultTasks ", "}}"/>
 		</div>
 		<button class="ui button green" type="submit" value="Submit">추가</button>
 	</form>

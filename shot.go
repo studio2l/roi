@@ -131,8 +131,8 @@ func (s ShotStatus) UIColor() string {
 }
 
 type Shot struct {
-	Project string
-	Shot    string
+	Show string
+	Shot string
 
 	// 샷 정보
 	Status        ShotStatus
@@ -169,7 +169,7 @@ func (s *Shot) dbValues() []interface{} {
 		s.WorkingTasks = make([]string, 0)
 	}
 	return []interface{}{
-		s.Project,
+		s.Show,
 		s.Shot,
 		s.Status,
 		s.EditOrder,
@@ -188,7 +188,7 @@ func (s *Shot) dbValues() []interface{} {
 
 var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	project STRING NOT NULL CHECK (length(project) > 0) CHECK (project NOT LIKE '% %'),
+	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
 	shot STRING NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %'),
 	status STRING NOT NULL CHECK (length(status) > 0),
 	edit_order INT NOT NULL,
@@ -202,11 +202,11 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	start_date TIMESTAMPTZ NOT NULL,
 	end_date TIMESTAMPTZ NOT NULL,
 	due_date TIMESTAMPTZ NOT NULL,
-	UNIQUE(project, shot)
+	UNIQUE(show, shot)
 )`
 
 var ShotTableKeys = []string{
-	"project",
+	"show",
 	"shot",
 	"status",
 	"edit_order",
@@ -227,7 +227,7 @@ var ShotTableIndices = dbIndices(ShotTableKeys)
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
 func AddShot(db *sql.DB, prj string, s *Shot) error {
 	if prj == "" {
-		return fmt.Errorf("project code not specified")
+		return fmt.Errorf("show code not specified")
 	}
 	if s == nil {
 		return errors.New("nil Shot is invalid")
@@ -252,7 +252,7 @@ func AddShot(db *sql.DB, prj string, s *Shot) error {
 
 // ShotExist는 db에 해당 샷이 존재하는지를 검사한다.
 func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
-	stmt := "SELECT shot FROM shots WHERE project=$1 AND shot=$2 LIMIT 1"
+	stmt := "SELECT shot FROM shots WHERE show=$1 AND shot=$2 LIMIT 1"
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
 		return false, err
@@ -264,7 +264,7 @@ func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
 func shotFromRows(rows *sql.Rows) (*Shot, error) {
 	s := &Shot{}
 	err := rows.Scan(
-		&s.Project, &s.Shot, &s.Status,
+		&s.Show, &s.Shot, &s.Status,
 		&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
 		&s.Duration, pq.Array(&s.Tags), pq.Array(&s.WorkingTasks),
 		&s.StartDate, &s.EndDate, &s.DueDate,
@@ -279,7 +279,7 @@ func shotFromRows(rows *sql.Rows) (*Shot, error) {
 // 만일 그 이름의 샷이 없다면 nil이 반환된다.
 func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 	keystr := strings.Join(ShotTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM shots WHERE project=$1 AND shot=$2 LIMIT 1", keystr)
+	stmt := fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND shot=$2 LIMIT 1", keystr)
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
 		return nil, err
@@ -306,7 +306,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 	vals := make([]interface{}, 0)
 	i := 1 // 인덱스가 1부터 시작이다.
 	stmt := fmt.Sprintf("SELECT %s FROM shots", keystr)
-	where = append(where, fmt.Sprintf("shots.project=$%d", i))
+	where = append(where, fmt.Sprintf("shots.show=$%d", i))
 	vals = append(vals, prj)
 	i++
 	if shot != "" {
@@ -325,7 +325,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 		i++
 	}
 	if assignee != "" || task_status != "" || !task_due_date.IsZero() {
-		stmt += " JOIN tasks ON (tasks.project = shots.project AND tasks.shot = shots.shot)"
+		stmt += " JOIN tasks ON (tasks.show = shots.show AND tasks.shot = shots.shot)"
 	}
 	if assignee != "" {
 		where = append(where, fmt.Sprintf("tasks.assignee=$%d", i))
@@ -432,7 +432,7 @@ func (u UpdateShotParam) values() []interface{} {
 // UpdateShot은 db에서 해당 샷을 수정한다.
 func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 	if prj == "" {
-		return fmt.Errorf("project code not specified")
+		return fmt.Errorf("show code not specified")
 	}
 	if shot == "" {
 		return errors.New("shot id empty")
@@ -442,7 +442,7 @@ func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 	}
 	keystr := strings.Join(upd.keys(), ", ")
 	idxstr := strings.Join(upd.indices(), ", ")
-	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE project='%s' AND shot='%s'", keystr, idxstr, prj, shot)
+	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", keystr, idxstr, prj, shot)
 	if _, err := db.Exec(stmt, upd.values()...); err != nil {
 		return err
 	}
@@ -458,13 +458,13 @@ func DeleteShot(db *sql.DB, prj, shot string) error {
 		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	if _, err := tx.Exec("DELETE FROM shots WHERE project=$1 AND shot=$2", prj, shot); err != nil {
+	if _, err := tx.Exec("DELETE FROM shots WHERE show=$1 AND shot=$2", prj, shot); err != nil {
 		return fmt.Errorf("could not delete data from 'shots' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM tasks WHERE project=$1 AND shot=$2", prj, shot); err != nil {
+	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1 AND shot=$2", prj, shot); err != nil {
 		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM versions WHERE project=$1 AND shot=$2", prj, shot); err != nil {
+	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1 AND shot=$2", prj, shot); err != nil {
 		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
 	}
 	return tx.Commit()

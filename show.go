@@ -11,15 +11,15 @@ import (
 	"github.com/lib/pq"
 )
 
-var reValidProject = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+var reValidShow = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 
-func IsValidProject(id string) bool {
-	return reValidProject.MatchString(id)
+func IsValidShow(id string) bool {
+	return reValidShow.MatchString(id)
 }
 
-type Project struct {
-	// 프로젝트 아이디. 로이 내에서 고유해야 한다.
-	Project string
+type Show struct {
+	// 쇼 아이디. 로이 내에서 고유해야 한다.
+	Show string
 
 	Name   string
 	Status string
@@ -42,15 +42,15 @@ type Project struct {
 	DefaultTasks []string
 }
 
-func (p *Project) dbValues() []interface{} {
+func (p *Show) dbValues() []interface{} {
 	if p == nil {
-		p = &Project{}
+		p = &Show{}
 	}
 	if p.DefaultTasks == nil {
 		p.DefaultTasks = []string{}
 	}
 	vals := []interface{}{
-		p.Project,
+		p.Show,
 		p.Name,
 		p.Status,
 		p.Client,
@@ -71,8 +71,8 @@ func (p *Project) dbValues() []interface{} {
 	return vals
 }
 
-var ProjectTableKeys = []string{
-	"project",
+var ShowTableKeys = []string{
+	"show",
 	"name",
 	"status",
 	"client",
@@ -91,14 +91,14 @@ var ProjectTableKeys = []string{
 	"default_tasks",
 }
 
-var ProjectTableIndices = []string{
+var ShowTableIndices = []string{
 	"$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9", "$10",
 	"$11", "$12", "$13", "$14", "$15", "$16", "$17",
 }
 
-var CreateTableIfNotExistsProjectsStmt = `CREATE TABLE IF NOT EXISTS projects (
+var CreateTableIfNotExistsShowsStmt = `CREATE TABLE IF NOT EXISTS shows (
 	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	project STRING NOT NULL UNIQUE CHECK (LENGTH(project) > 0) CHECK (project NOT LIKE '% %'),
+	show STRING NOT NULL UNIQUE CHECK (LENGTH(show) > 0) CHECK (show NOT LIKE '% %'),
 	name STRING NOT NULL,
 	status STRING NOT NULL,
 	client STRING NOT NULL,
@@ -117,26 +117,26 @@ var CreateTableIfNotExistsProjectsStmt = `CREATE TABLE IF NOT EXISTS projects (
 	default_tasks STRING[] NOT NULL
 )`
 
-// AddProject는 db에 프로젝트를 추가한다.
-func AddProject(db *sql.DB, p *Project) error {
+// AddShow는 db에 쇼를 추가한다.
+func AddShow(db *sql.DB, p *Show) error {
 	if p == nil {
-		return errors.New("nil Project is invalid")
+		return errors.New("nil Show is invalid")
 	}
-	if !IsValidProject(p.Project) {
-		return fmt.Errorf("Project id is invalid: %s", p.Project)
+	if !IsValidShow(p.Show) {
+		return fmt.Errorf("Show id is invalid: %s", p.Show)
 	}
-	keystr := strings.Join(ProjectTableKeys, ", ")
-	idxstr := strings.Join(ProjectTableIndices, ", ")
-	stmt := fmt.Sprintf("INSERT INTO projects (%s) VALUES (%s)", keystr, idxstr)
+	keystr := strings.Join(ShowTableKeys, ", ")
+	idxstr := strings.Join(ShowTableIndices, ", ")
+	stmt := fmt.Sprintf("INSERT INTO shows (%s) VALUES (%s)", keystr, idxstr)
 	if _, err := db.Exec(stmt, p.dbValues()...); err != nil {
 		return err
 	}
 	return nil
 }
 
-// UpdateProjectParam은 Project에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
-// UpdateProject에서 사용한다.
-type UpdateProjectParam struct {
+// UpdateShowParam은 Show에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
+// UpdateShow에서 사용한다.
+type UpdateShowParam struct {
 	Name          string
 	Status        string
 	Client        string
@@ -155,7 +155,7 @@ type UpdateProjectParam struct {
 	DefaultTasks  []string
 }
 
-func (u UpdateProjectParam) keys() []string {
+func (u UpdateShowParam) keys() []string {
 	return []string{
 		"name",
 		"status",
@@ -176,11 +176,11 @@ func (u UpdateProjectParam) keys() []string {
 	}
 }
 
-func (u UpdateProjectParam) indices() []string {
+func (u UpdateShowParam) indices() []string {
 	return dbIndices(u.keys())
 }
 
-func (u UpdateProjectParam) values() []interface{} {
+func (u UpdateShowParam) values() []interface{} {
 	if u.DefaultTasks == nil {
 		u.DefaultTasks = []string{}
 	}
@@ -204,34 +204,34 @@ func (u UpdateProjectParam) values() []interface{} {
 	}
 }
 
-// UpdateProject는 db의 프로젝트 정보를 수정한다.
-func UpdateProject(db *sql.DB, prj string, upd UpdateProjectParam) error {
-	if !IsValidProject(prj) {
-		return fmt.Errorf("Project id is invalid: %s", prj)
+// UpdateShow는 db의 쇼 정보를 수정한다.
+func UpdateShow(db *sql.DB, prj string, upd UpdateShowParam) error {
+	if !IsValidShow(prj) {
+		return fmt.Errorf("Show id is invalid: %s", prj)
 	}
 	keystr := strings.Join(upd.keys(), ", ")
 	idxstr := strings.Join(upd.indices(), ", ")
-	stmt := fmt.Sprintf("UPDATE projects SET (%s) = (%s) WHERE project='%s'", keystr, idxstr, prj)
+	stmt := fmt.Sprintf("UPDATE shows SET (%s) = (%s) WHERE show='%s'", keystr, idxstr, prj)
 	if _, err := db.Exec(stmt, upd.values()...); err != nil {
 		return err
 	}
 	return nil
 }
 
-// ProjectExist는 db에 해당 프로젝트가 존재하는지를 검사한다.
-func ProjectExist(db *sql.DB, prj string) (bool, error) {
-	rows, err := db.Query("SELECT project FROM projects WHERE project=$1 LIMIT 1", prj)
+// ShowExist는 db에 해당 쇼가 존재하는지를 검사한다.
+func ShowExist(db *sql.DB, prj string) (bool, error) {
+	rows, err := db.Query("SELECT show FROM shows WHERE show=$1 LIMIT 1", prj)
 	if err != nil {
 		return false, err
 	}
 	return rows.Next(), nil
 }
 
-// projectFromRows는 테이블의 한 열에서 프로젝트를 받아온다.
-func projectFromRows(rows *sql.Rows) (*Project, error) {
-	p := &Project{}
+// showFromRows는 테이블의 한 열에서 쇼를 받아온다.
+func showFromRows(rows *sql.Rows) (*Show, error) {
+	p := &Show{}
 	err := rows.Scan(
-		&p.Project, &p.Name, &p.Status, &p.Client,
+		&p.Show, &p.Name, &p.Status, &p.Client,
 		&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CGSupervisor,
 		&p.CrankIn, &p.CrankUp, &p.StartDate, &p.ReleaseDate, &p.VFXDueDate, &p.OutputSize,
 		&p.ViewLUT, pq.Array(&p.DefaultTasks),
@@ -242,11 +242,11 @@ func projectFromRows(rows *sql.Rows) (*Project, error) {
 	return p, nil
 }
 
-// GetProject는 db에서 특정 프로젝트 정보를 부른다.
-// 해당 프로젝트가 없다면 nil이 반환된다.
-func GetProject(db *sql.DB, prj string) (*Project, error) {
-	keystr := strings.Join(ProjectTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM projects WHERE project=$1", keystr)
+// GetShow는 db에서 특정 쇼 정보를 부른다.
+// 해당 쇼가 없다면 nil이 반환된다.
+func GetShow(db *sql.DB, prj string) (*Show, error) {
+	keystr := strings.Join(ShowTableKeys, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM shows WHERE show=$1", keystr)
 	rows, err := db.Query(stmt, prj)
 	if err != nil {
 		return nil, err
@@ -254,25 +254,25 @@ func GetProject(db *sql.DB, prj string) (*Project, error) {
 	if !rows.Next() {
 		return nil, nil
 	}
-	p, err := projectFromRows(rows)
+	p, err := showFromRows(rows)
 	if err != nil {
 		return nil, err
 	}
 	return p, nil
 }
 
-// AllProjects는 db에서 모든 프로젝트 정보를 가져온다.
+// AllShows는 db에서 모든 쇼 정보를 가져온다.
 // 검색 중 문제가 있으면 nil, error를 반환한다.
-func AllProjects(db *sql.DB) ([]*Project, error) {
-	fields := strings.Join(ProjectTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM projects", fields)
+func AllShows(db *sql.DB) ([]*Show, error) {
+	fields := strings.Join(ShowTableKeys, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM shows", fields)
 	rows, err := db.Query(stmt)
 	if err != nil {
 		return nil, err
 	}
-	prjs := make([]*Project, 0)
+	prjs := make([]*Show, 0)
 	for rows.Next() {
-		p, err := projectFromRows(rows)
+		p, err := showFromRows(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -284,25 +284,25 @@ func AllProjects(db *sql.DB) ([]*Project, error) {
 	return prjs, nil
 }
 
-// DeleteProject는 해당 프로젝트와 그 하위의 모든 데이터를 db에서 지운다.
-// 해당 프로젝트가 없어도 에러를 내지 않기 때문에 검사를 원한다면 ProjectExist를 사용해야 한다.
+// DeleteShow는 해당 쇼와 그 하위의 모든 데이터를 db에서 지운다.
+// 해당 쇼가 없어도 에러를 내지 않기 때문에 검사를 원한다면 ShowExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
-func DeleteProject(db *sql.DB, prj string) error {
+func DeleteShow(db *sql.DB, prj string) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	if _, err := tx.Exec("DELETE FROM projects WHERE project=$1", prj); err != nil {
-		return fmt.Errorf("could not delete data from 'projects' table: %v", err)
+	if _, err := tx.Exec("DELETE FROM shows WHERE show=$1", prj); err != nil {
+		return fmt.Errorf("could not delete data from 'shows' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM shots WHERE project=$1", prj); err != nil {
+	if _, err := tx.Exec("DELETE FROM shots WHERE show=$1", prj); err != nil {
 		return fmt.Errorf("could not delete data from 'shots' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM tasks WHERE project=$1", prj); err != nil {
+	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1", prj); err != nil {
 		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM versions WHERE project=$1", prj); err != nil {
+	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1", prj); err != nil {
 		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
 	}
 	return tx.Commit()

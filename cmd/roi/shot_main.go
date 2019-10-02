@@ -20,11 +20,11 @@ import (
 
 func shotMain(args []string) {
 	var (
-		prj   string
+		show  string
 		sheet string
 	)
 	shotFlag := flag.NewFlagSet("shot", flag.ExitOnError)
-	shotFlag.StringVar(&prj, "prj", "", "샷을 추가할 프로젝트, 없으면 엑셀 파일이름을 따른다.")
+	shotFlag.StringVar(&show, "show", "", "샷을 추가할 프로젝트, 없으면 엑셀 파일이름을 따른다.")
 	shotFlag.StringVar(&sheet, "sheet", "Sheet1", "엑셀 시트명")
 	shotFlag.Parse(args)
 
@@ -35,12 +35,12 @@ func shotMain(args []string) {
 	}
 	f := shotFlag.Arg(0)
 
-	if prj == "" {
+	if show == "" {
 		fname := filepath.Base(f)
-		prj = strings.TrimSuffix(fname, filepath.Ext(fname))
+		show = strings.TrimSuffix(fname, filepath.Ext(fname))
 	}
-	if !roi.IsValidProject(prj) {
-		fmt.Fprintln(os.Stderr, prj, "이 프로젝트 아이디로 적절치 않습니다.")
+	if !roi.IsValidShow(show) {
+		fmt.Fprintln(os.Stderr, show, "이 프로젝트 아이디로 적절치 않습니다.")
 		os.Exit(1)
 	}
 
@@ -62,12 +62,12 @@ func shotMain(args []string) {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
 		InsecureSkipVerify: true,
 	}
-	_, err = http.PostForm("https://localhost/api/v1/project/add", url.Values{
-		"project":       []string{"test"},
+	_, err = http.PostForm("https://localhost/api/v1/show/add", url.Values{
+		"show":          []string{"test"},
 		"default_tasks": []string{"fx, lit"},
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not add project: %v", err)
+		fmt.Fprintf(os.Stderr, "could not add show: %v", err)
 	}
 	for _, row := range rows[1:] {
 		formData := url.Values{}
@@ -77,7 +77,7 @@ func shotMain(args []string) {
 		if formData.Get("shot") == "" {
 			continue
 		}
-		formData.Set("project", prj)
+		formData.Set("show", show)
 		formData.Set("shot", formData.Get("shot"))
 		resp, err := http.PostForm("https://localhost/api/v1/shot/add", formData)
 		if err != nil {

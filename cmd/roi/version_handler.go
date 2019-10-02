@@ -39,19 +39,19 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		_ = u
 	}
 	r.ParseForm()
-	prj := r.Form.Get("project")
-	if prj == "" {
-		http.Error(w, "need 'project'", http.StatusBadRequest)
+	show := r.Form.Get("show")
+	if show == "" {
+		http.Error(w, "need 'show'", http.StatusBadRequest)
 		return
 	}
-	exist, err := roi.ProjectExist(db, prj)
+	exist, err := roi.ShowExist(db, show)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	if !exist {
-		http.Error(w, fmt.Sprintf("project '%s' not exist", prj), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("show '%s' not exist", show), http.StatusBadRequest)
 		return
 	}
 	shot := r.Form.Get("shot")
@@ -88,8 +88,8 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "does not accept 'created'", http.StatusBadRequest)
 		return
 	}
-	taskID := fmt.Sprintf("%s.%s.%s", prj, shot, task)
-	t, err := roi.GetTask(db, prj, shot, task)
+	taskID := fmt.Sprintf("%s.%s.%s", show, shot, task)
+	t, err := roi.GetTask(db, show, shot, task)
 	if err != nil {
 		log.Printf("could not get task '%s': %v", taskID, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -100,11 +100,11 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	o := &roi.Version{
-		Project: prj,
-		Shot:    shot,
-		Task:    task,
+		Show: show,
+		Shot: shot,
+		Task: task,
 	}
-	err = roi.AddVersion(db, prj, shot, task, o)
+	err = roi.AddVersion(db, show, shot, task, o)
 	if err != nil {
 		log.Printf("could not add version to task '%s': %v", taskID, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -144,19 +144,19 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 		_ = u
 	}
 	r.ParseForm()
-	prj := r.Form.Get("project")
-	if prj == "" {
-		http.Error(w, "need 'project'", http.StatusBadRequest)
+	show := r.Form.Get("show")
+	if show == "" {
+		http.Error(w, "need 'show'", http.StatusBadRequest)
 		return
 	}
-	exist, err := roi.ProjectExist(db, prj)
+	exist, err := roi.ShowExist(db, show)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	if !exist {
-		http.Error(w, fmt.Sprintf("project '%s' not exist", prj), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("show '%s' not exist", show), http.StatusBadRequest)
 		return
 	}
 	shot := r.Form.Get("shot")
@@ -179,8 +179,8 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "'version' is not a number", http.StatusBadRequest)
 		return
 	}
-	taskID := fmt.Sprintf("%s.%s.%s", prj, shot, task)
-	t, err := roi.GetTask(db, prj, shot, task)
+	taskID := fmt.Sprintf("%s.%s.%s", show, shot, task)
+	t, err := roi.GetTask(db, show, shot, task)
 	if err != nil {
 		log.Printf("could not get task '%s': %v", taskID, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -190,9 +190,9 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
 		return
 	}
-	versionID := fmt.Sprintf("%s.%s.%s.v%v03d", prj, shot, task, version)
+	versionID := fmt.Sprintf("%s.%s.%s.v%v03d", show, shot, task, version)
 	if r.Method == "POST" {
-		exist, err := roi.VersionExist(db, prj, shot, task, version)
+		exist, err := roi.VersionExist(db, show, shot, task, version)
 		if err != nil {
 			log.Printf("could not check version '%s' exist: %v", versionID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -216,11 +216,11 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 			WorkFile:    r.Form.Get("work_file"),
 			Created:     timeForms["created"],
 		}
-		roi.UpdateVersion(db, prj, shot, task, version, u)
+		roi.UpdateVersion(db, show, shot, task, version, u)
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
-	o, err := roi.GetVersion(db, prj, shot, task, version)
+	o, err := roi.GetVersion(db, show, shot, task, version)
 	if err != nil {
 		log.Printf("could not get version '%s': %v", versionID, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
