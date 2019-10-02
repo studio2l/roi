@@ -122,7 +122,7 @@ func addProjectHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("could not add project '%s'", p), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, "/projects", http.StatusSeeOther)
+		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
 	recipt := struct {
@@ -213,7 +213,7 @@ func updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("could not add project '%s'", id), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, "/projects", http.StatusSeeOther)
+		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
 	p, err := roi.GetProject(db, id)

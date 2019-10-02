@@ -124,7 +124,6 @@ ex) localhost
 	mux.HandleFunc("/add-shot/", addShotHandler)
 	mux.HandleFunc("/update-shot", updateShotHandler)
 	mux.HandleFunc("/update-task", updateTaskHandler)
-	mux.HandleFunc("/version/", versionHandler)
 	mux.HandleFunc("/add-version", addVersionHandler)
 	mux.HandleFunc("/update-version", updateVersionHandler)
 	mux.HandleFunc("/api/v1/project/add", addProjectApiHandler)
