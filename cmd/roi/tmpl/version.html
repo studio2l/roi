@@ -2,9 +2,9 @@
 {{template "nav.html" $}}
 <div style="padding:30px 30px;display:flex;justify-content:space-between;align-items:center;">
 	<div style="font-size:2rem;color:white;">
-	<b>{{$.Version.Project}} / {{$.Version.Shot}} / {{$.Version.Task}} / {{$.Version.Version}}</b>
+	<b>{{$.Version.Show}} / {{$.Version.Shot}} / {{$.Version.Task}} / {{$.Version.Version}}</b>
 	</div>
-	<a href="/update-version?project={{$.Version.Project}}&shot={{$.Version.Shot}}&task={{$.Version.Task}}&version={{$.Version.Version}}" class="ui right floated mini button" style="font-size:12px;">수정</a>
+	<a href="/update-version?show={{$.Version.Show}}&shot={{$.Version.Shot}}&task={{$.Version.Task}}&version={{$.Version.Version}}" class="ui right floated mini button" style="font-size:12px;">수정</a>
 </div>
 <div class="ui inverted segment">
 	<div class="ui container center aligned">

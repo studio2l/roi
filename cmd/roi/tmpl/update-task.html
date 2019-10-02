@@ -6,7 +6,7 @@
 	<h2 class="ui dividing header">태스크 수정</h2>
 	<form method="post" class="ui form">
 		<div class="field disabled"><label>프로젝트</label>
-			<input type="text" name="project" value="{{.Task.Project}}"/>
+			<input type="text" name="show" value="{{.Task.Show}}"/>
 		</div>
 		<div class="field disabled"><label>샷</label>
 			<input type="text" name="shot" value="{{.Task.Shot}}"/>
@@ -36,11 +36,11 @@
 
 	<h2 class="ui dividing header">
 		버전
-		<a href="/add-version?project={{$.Task.Project}}&shot={{$.Task.Shot}}&task={{$.Task.Task}}" class="ui right floated mini basic inverted button">추가</a>
+		<a href="/add-version?show={{$.Task.Show}}&shot={{$.Task.Shot}}&task={{$.Task.Task}}" class="ui right floated mini basic inverted button">추가</a>
 	</h2>
 	<div class="ui container">
 		{{range $v := $.Versions}}
-		<a href="/update-version?project={{$.Task.Project}}&shot={{$.Task.Shot}}&task={{$.Task.Task}}&version={{$v}}" class="ui label">{{printf "v%d" $v}}</a>
+		<a href="/update-version?show={{$.Task.Show}}&shot={{$.Task.Shot}}&task={{$.Task.Task}}&version={{$v}}" class="ui label">{{printf "v%d" $v}}</a>
 		{{end}}
 	</div>
 </div>

@@ -29,25 +29,25 @@
 </div>
 
 <div class="ui small header">태스크</div>
-{{range $prj, $nInStatus := $.NumTasks}}
+{{range $show, $nInStatus := $.NumTasks}}
 <div class="ui inverted segment">
 	<div class="ui grid">
 		<div class="ui four wide column">
-			<a href="/search/{{$prj}}?assignee={{$.LoggedInUser}}">
-				<div class="ui blue large header">{{$prj}}</div>
+			<a href="/search/{{$show}}?assignee={{$.LoggedInUser}}">
+				<div class="ui blue large header">{{$show}}</div>
 			</a>
 		</div>
 		<div class="ui twelve wide column right aligned">
 			{{range $status := $.AllTaskStatus}}
-			<a href="/search/{{$prj}}?assignee={{$.LoggedInUser}}&task_status={{$status}}">
-				<div class="ui grey small image label">{{$status.UIString}}<div id="project-{{$prj}}-status-{{$status}}" class="detail">0</div></div>
+			<a href="/search/{{$show}}?assignee={{$.LoggedInUser}}&task_status={{$status}}">
+				<div class="ui grey small image label">{{$status.UIString}}<div id="show-{{$show}}-status-{{$status}}" class="detail">0</div></div>
 			</a>
 			{{end}}
 		</div>
 	</div>
 	<div class="ui divider">
 	</div>
-	<div id="project-{{$prj}}-tasks-of-day" class="tasks-of-day ui grey inverted segment">
+	<div id="show-{{$show}}-tasks-of-day" class="tasks-of-day ui grey inverted segment">
 	</div>
 </div>
 {{end}}
@@ -57,7 +57,7 @@
 let taskFromID = {
 	{{range $id, $t := $.TaskFromID -}}
 	"{{$id}}": {
-		"project": "{{$t.Project}}",
+		"show": "{{$t.Show}}",
 		"shot": "{{$t.Shot}}",
 		"name": "{{$t.Task}}",
 		"status": "{{$t.Status}}",
@@ -99,9 +99,9 @@ function showTasks(day) {
 	// 태스크 링크 추가
 	for (i = 0; i < tasks.length; i++) {
 		let t = taskFromID[tasks[i]];
-		let el = document.getElementById("project-" + t.project + "-tasks-of-day");
+		let el = document.getElementById("show-" + t.show + "-tasks-of-day");
 		let label = document.createElement("a");
-		label.setAttribute("href", "/search/" + t.project + "?shot=" + t.shot);
+		label.setAttribute("href", "/search/" + t.show + "?shot=" + t.shot);
 		label.setAttribute("class", "ui small label");
 		label.innerHTML = t.shot;
 		detail = document.createElement("div");
@@ -111,28 +111,28 @@ function showTasks(day) {
 		el.append(label);
 	}
 	// 프로젝트별 태스크 상태 수정
-	let numTaskStatusPerProject = {}; // [project][status]int
+	let numTaskStatusPerShow = {}; // [show][status]int
 	for (let task in taskFromID) {
 		let t = taskFromID[task];
-		if (numTaskStatusPerProject[t.project] == null) {
-			numTaskStatusPerProject[t.project] = {};
+		if (numTaskStatusPerShow[t.show] == null) {
+			numTaskStatusPerShow[t.show] = {};
 		}
 	}
-	for (let prj in numTaskStatusPerProject) {
+	for (let show in numTaskStatusPerShow) {
 		for (i = 0; i < allTaskStatus.length; i++) {
 			let status = allTaskStatus[i];
-			numTaskStatusPerProject[prj][status] = 0;
+			numTaskStatusPerShow[show][status] = 0;
 		}
 	}
 	for (i = 0; i < tasks.length; i++) {
 		let t = taskFromID[tasks[i]];
-		numTaskStatusPerProject[t.project][t.status] += 1;
+		numTaskStatusPerShow[t.show][t.status] += 1;
 	}
-	for (let prj in numTaskStatusPerProject) {
-		let numTaskStatus = numTaskStatusPerProject[prj]
+	for (let show in numTaskStatusPerShow) {
+		let numTaskStatus = numTaskStatusPerShow[show]
 		for (let status in numTaskStatus) {
 			let n = numTaskStatus[status];
-			let el = document.getElementById("project-" + prj + "-status-" + status);
+			let el = document.getElementById("show-" + show + "-status-" + status);
 			el.innerHTML = n;
 		}
 	}

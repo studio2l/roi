@@ -39,9 +39,9 @@ func apiBadRequest(w http.ResponseWriter, err error) {
 	http.Error(w, string(resp), http.StatusInternalServerError)
 }
 
-// addProjectApiHander는 사용자가 api를 통해 프로젝트를 생성할수 있도록 한다.
+// addShowApiHander는 사용자가 api를 통해 프로젝트를 생성할수 있도록 한다.
 // 결과는 roi.APIResponse의 json 형식으로 반환된다.
-func addProjectApiHandler(w http.ResponseWriter, r *http.Request) {
+func addShowApiHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	db, err := roi.DB()
 	if err != nil {
@@ -50,33 +50,33 @@ func addProjectApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prj := r.PostFormValue("project")
-	if prj == "" {
+	show := r.PostFormValue("show")
+	if show == "" {
 		apiBadRequest(w, fmt.Errorf("'id' not specified"))
 		return
 	}
-	exist, err := roi.ProjectExist(db, prj)
+	exist, err := roi.ShowExist(db, show)
 	if err != nil {
-		log.Printf("could not check project %q exist: %v", prj, err)
+		log.Printf("could not check show %q exist: %v", show, err)
 		apiInternalServerError(w)
 		return
 	}
 	if exist {
-		apiBadRequest(w, fmt.Errorf("project '%s' already exists", prj))
+		apiBadRequest(w, fmt.Errorf("show '%s' already exists", show))
 		return
 	}
 	tasks := fields(r.Form.Get("default_tasks"), ",")
-	p := &roi.Project{
-		Project:      prj,
+	p := &roi.Show{
+		Show:         show,
 		DefaultTasks: tasks,
 	}
-	err = roi.AddProject(db, p)
+	err = roi.AddShow(db, p)
 	if err != nil {
-		log.Printf("could not add project: %v", err)
+		log.Printf("could not add show: %v", err)
 		apiInternalServerError(w)
 		return
 	}
-	apiOK(w, fmt.Sprintf("successfully add a project: '%s'", prj))
+	apiOK(w, fmt.Sprintf("successfully add a show: '%s'", show))
 }
 
 // addShotApiHander는 사용자가 api를 통해 샷을 생성할수 있도록 한다.
@@ -90,19 +90,19 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prj := r.PostFormValue("project")
-	if prj == "" {
-		apiBadRequest(w, fmt.Errorf("'project' not specified"))
+	show := r.PostFormValue("show")
+	if show == "" {
+		apiBadRequest(w, fmt.Errorf("'show' not specified"))
 		return
 	}
-	exist, err := roi.ProjectExist(db, prj)
+	exist, err := roi.ShowExist(db, show)
 	if err != nil {
-		log.Printf("could not check project %q exist: %v", prj, err)
+		log.Printf("could not check show %q exist: %v", show, err)
 		apiInternalServerError(w)
 		return
 	}
 	if !exist {
-		apiBadRequest(w, fmt.Errorf("project '%s' not exists", prj))
+		apiBadRequest(w, fmt.Errorf("show '%s' not exists", show))
 		return
 	}
 
@@ -115,7 +115,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("shot id '%s' is not valid", shot))
 		return
 	}
-	exist, err = roi.ShotExist(db, prj, shot)
+	exist, err = roi.ShotExist(db, show, shot)
 	if err != nil {
 		log.Printf("could not check shot '%s' exist: %v", shot, err)
 		apiInternalServerError(w)
@@ -158,16 +158,16 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tasks := fields(r.Form.Get("working_tasks"), ",")
 	if len(tasks) == 0 {
-		p, err := roi.GetProject(db, prj)
+		p, err := roi.GetShow(db, show)
 		if err != nil {
-			log.Printf("could not get project: %v", err)
+			log.Printf("could not get show: %v", err)
 			apiInternalServerError(w)
 			return
 		}
 		tasks = p.DefaultTasks
 	}
 	s := &roi.Shot{
-		Project:       prj,
+		Show:          show,
 		Shot:          shot,
 		Status:        roi.ShotStatus(status),
 		EditOrder:     editOrder,
@@ -179,7 +179,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		Tags:          strings.Split(r.PostFormValue("tags"), ","),
 		WorkingTasks:  tasks,
 	}
-	err = roi.AddShot(db, prj, s)
+	err = roi.AddShot(db, show, s)
 	if err != nil {
 		log.Printf("could not add shot: %v", err)
 		apiInternalServerError(w)
@@ -187,13 +187,13 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, task := range tasks {
 		t := &roi.Task{
-			Project: prj,
+			Show:    show,
 			Shot:    shot,
 			Task:    task,
 			Status:  roi.TaskNotSet,
 			DueDate: time.Time{},
 		}
-		err := roi.AddTask(db, prj, shot, t)
+		err := roi.AddTask(db, show, shot, t)
 		if err != nil {
 			log.Printf("could not add task for shot: %v", err)
 			apiInternalServerError(w)

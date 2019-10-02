@@ -11,7 +11,7 @@ import (
 
 // searchHandler는 /search/ 하위 페이지로 사용자가 접속했을때 페이지를 반환한다.
 func searchHandler(w http.ResponseWriter, r *http.Request) {
-	prj := r.URL.Path[len("/search/"):]
+	show := r.URL.Path[len("/search/"):]
 
 	db, err := roi.DB()
 	if err != nil {
@@ -20,34 +20,34 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ps, err := roi.AllProjects(db)
+	ps, err := roi.AllShows(db)
 	if err != nil {
-		log.Printf("could not get project list: %v", err)
+		log.Printf("could not get show list: %v", err)
 	}
-	prjs := make([]string, len(ps))
+	shows := make([]string, len(ps))
 	for i, p := range ps {
-		prjs[i] = p.Project
+		shows[i] = p.Show
 	}
-	if prj == "" && len(prjs) != 0 {
+	if show == "" && len(shows) != 0 {
 		// 할일: 추후 사용자가 마지막으로 선택했던 프로젝트로 이동
-		http.Redirect(w, r, "/search/"+prjs[0], http.StatusSeeOther)
+		http.Redirect(w, r, "/search/"+shows[0], http.StatusSeeOther)
 		return
 	}
-	if prj != "" {
+	if show != "" {
 		found := false
-		for _, p := range prjs {
-			if p == prj {
+		for _, p := range shows {
+			if p == show {
 				found = true
 				break
 			}
 		}
 		if !found {
-			http.Error(w, "project not found", http.StatusNotFound)
+			http.Error(w, "show not found", http.StatusNotFound)
 			return
 		}
 	}
 
-	if prj == "" {
+	if show == "" {
 		// TODO: show empty page
 		// for now SearchShot will handle it properly, don't panic.
 	}
@@ -66,13 +66,13 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	taskDueDateFilter := tforms["task_due_date"]
-	shots, err := roi.SearchShots(db, prj, shotFilter, tagFilter, statusFilter, assigneeFilter, taskStatusFilter, taskDueDateFilter)
+	shots, err := roi.SearchShots(db, show, shotFilter, tagFilter, statusFilter, assigneeFilter, taskStatusFilter, taskDueDateFilter)
 	if err != nil {
 		log.Fatal(err)
 	}
 	tasks := make(map[string]map[string]*roi.Task)
 	for _, s := range shots {
-		ts, err := roi.ShotTasks(db, prj, s.Shot)
+		ts, err := roi.ShotTasks(db, show, s.Shot)
 		if err != nil {
 			log.Printf("could not get all tasks of shot '%s'", s.Shot)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -93,8 +93,8 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	recipt := struct {
 		LoggedInUser      string
-		Projects          []string
-		Project           string
+		Shows             []string
+		Show              string
 		Shots             []*roi.Shot
 		AllShotStatus     []roi.ShotStatus
 		Tasks             map[string]map[string]*roi.Task
@@ -107,8 +107,8 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		FilterTaskDueDate time.Time
 	}{
 		LoggedInUser:      session["userid"],
-		Projects:          prjs,
-		Project:           prj,
+		Shows:             shows,
+		Show:              show,
 		Shots:             shots,
 		AllShotStatus:     roi.AllShotStatus,
 		Tasks:             tasks,

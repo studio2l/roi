@@ -5,7 +5,7 @@ import (
 )
 
 var testTaskA = &Task{
-	Project:  testShotA.Project,
+	Show:     testShotA.Show,
 	Shot:     testShotA.Shot,
 	Task:     "fx_fire",
 	Status:   TaskNotSet,
@@ -17,19 +17,19 @@ func TestTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not connect to database: %v", err)
 	}
-	err = AddProject(db, testProject)
+	err = AddShow(db, testShow)
 	if err != nil {
 		t.Fatalf("could not add project: %s", err)
 	}
-	err = AddShot(db, testTaskA.Project, testShotA)
+	err = AddShot(db, testTaskA.Show, testShotA)
 	if err != nil {
 		t.Fatalf("could not add shot: %s", err)
 	}
-	err = AddTask(db, testTaskA.Project, testTaskA.Shot, testTaskA)
+	err = AddTask(db, testTaskA.Show, testTaskA.Shot, testTaskA)
 	if err != nil {
 		t.Fatalf("could not add task: %s", err)
 	}
-	exist, err := TaskExist(db, testTaskA.Project, testTaskA.Shot, testTaskA.Task)
+	exist, err := TaskExist(db, testTaskA.Show, testTaskA.Shot, testTaskA.Task)
 	if err != nil {
 		t.Fatalf("could not check task exist: %s", err)
 	}
@@ -44,11 +44,11 @@ func TestTask(t *testing.T) {
 	if len(tasks) != 0 {
 		t.Fatalf("invalid number of user tasks: want 0, got %d", len(tasks))
 	}
-	err = DeleteTask(db, testTaskA.Project, testTaskA.Shot, testTaskA.Task)
+	err = DeleteTask(db, testTaskA.Show, testTaskA.Shot, testTaskA.Task)
 	if err != nil {
 		t.Fatalf("could not delete task: %s", err)
 	}
-	exist, err = TaskExist(db, testTaskA.Project, testTaskA.Shot, testTaskA.Task)
+	exist, err = TaskExist(db, testTaskA.Show, testTaskA.Shot, testTaskA.Task)
 	if err != nil {
 		t.Fatalf("could not check task exist: %s", err)
 	}
@@ -56,11 +56,11 @@ func TestTask(t *testing.T) {
 		t.Fatalf("deleted task exist")
 	}
 
-	err = DeleteShot(db, testTaskA.Project, testTaskA.Shot)
+	err = DeleteShot(db, testTaskA.Show, testTaskA.Shot)
 	if err != nil {
 		t.Fatalf("could not delete shot: %s", err)
 	}
-	err = DeleteProject(db, testTaskA.Project)
+	err = DeleteShow(db, testTaskA.Show)
 	if err != nil {
 		t.Fatalf("could not delete project: %s", err)
 	}

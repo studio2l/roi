@@ -46,8 +46,8 @@ func parseTemplate() {
 // 주의: 만일 썸네일 파일 검사시 에러가 나면 이 함수는 썸네일이 있다고 판단한다.
 // 이 함수는 템플릿 안에서 쓰이기 때문에 프론트 엔드에서 한번 더 검사하게
 // 만들기 위해서이다.
-func hasThumbnail(prj, shot string) bool {
-	_, err := os.Stat(fmt.Sprintf("roi-userdata/thumbnail/%s/%s.png", prj, shot))
+func hasThumbnail(show, shot string) bool {
+	_, err := os.Stat(fmt.Sprintf("roi-userdata/thumbnail/%s/%s.png", show, shot))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false
