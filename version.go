@@ -257,22 +257,6 @@ func TaskVersions(db *sql.DB, prj, shot, task string) ([]*Version, error) {
 	return versions, nil
 }
 
-// LastVersion은 db에서 특정 태스크의 마지막 버전을 검색해 반환한다.
-func LastVersion(db *sql.DB, prj, shot, task string) (*Version, error) {
-	keystr := strings.Join(VersionTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE project=$1 AND shot=$2 AND task=$3 ORDER BY version DESC LIMIT 1", keystr)
-	rows, err := db.Query(stmt, prj, shot, task)
-	if err != nil {
-		return nil, err
-	}
-	rows.Next()
-	v, err := versionFromRows(rows)
-	if err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
 // ShotVersions는 db에서 특정 샷의 버전 전체를 검색해 반환한다.
 func ShotVersions(db *sql.DB, prj, shot string) ([]*Version, error) {
 	keystr := strings.Join(VersionTableKeys, ", ")
