@@ -11,7 +11,7 @@ var testVersionA = &Version{
 	Shot: testShotA.Shot,
 	Task: testTaskA.Task,
 
-	Version:     "v001", // DB에 Version을 추가할 때는 Version이 지정되어 있으면 안된다.
+	Version:     "v001",
 	OutputFiles: []string{"/project/test/FOO_0010/scene/test.v001.abc"},
 	Images: []string{
 		"/project/test/FOO_0010/render/test.v001.0001.jpg",
@@ -53,7 +53,7 @@ func TestVersion(t *testing.T) {
 		t.Fatalf("added version not exist")
 	}
 	want := testVersionA
-	want.Version = "v001" // DB에 들어가면서 버전 번호가 추가되어야 한다.
+	want.Version = "v001"
 	got, err := GetVersion(db, testVersionA.Show, testVersionA.Shot, testVersionA.Task, want.Version)
 	if err != nil {
 		t.Fatalf("could not get version: %v", err)
