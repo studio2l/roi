@@ -36,6 +36,9 @@ func initDB(addr string) (*sql.DB, error) {
 	if _, err := tx.Exec("GRANT ALL ON DATABASE roi TO roiuser"); err != nil {
 		log.Fatal("could not grant 'roi' to 'roiuser': ", err)
 	}
+	if _, err := tx.Exec(CreateTableIfNotExistsSiteStmt); err != nil {
+		return nil, fmt.Errorf("could not create 'site' table: %v", err)
+	}
 	if _, err := tx.Exec(CreateTableIfNotExistsShowsStmt); err != nil {
 		return nil, fmt.Errorf("could not create 'projects' table: %v", err)
 	}
