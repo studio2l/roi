@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
+	"time"
 
 	"github.com/studio2l/roi"
 )
@@ -64,53 +64,72 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "need 'task'", http.StatusBadRequest)
 		return
 	}
-	// addVersion은 새 버전을 추가하는 역할만 하고 값을 넣는 역할은 하지 않는다.
-	// 만일 인수를 받았다면 에러를 낼 것.
-	version := r.Form.Get("version")
-	if version != "" {
-		// 버전은 db에 기록된 마지막 버전을 기준으로 하지 여기서 받아들이지 않는다.
-		http.Error(w, "'version' should not be specified", http.StatusBadRequest)
+
+	if r.Method == "POST" {
+		version := r.Form.Get("version")
+		if version == "" {
+			http.Error(w, "need 'version'", http.StatusBadRequest)
+			return
+		}
+
+		files := fields(r.Form.Get("output_files"), ",")
+		work_file := r.Form.Get("work_file")
+		mov := r.Form.Get("mov")
+		created, err := timeFromString(r.Form.Get("created"))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("invalid 'create' field: %v", r.Form.Get("created")), http.StatusBadRequest)
+			return
+		}
+		taskID := fmt.Sprintf("%s.%s.%s", show, shot, task)
+		t, err := roi.GetTask(db, show, shot, task)
+		if err != nil {
+			log.Printf("could not get task '%s': %v", taskID, err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		if t == nil {
+			http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
+			return
+		}
+		v := &roi.Version{
+			Show:        show,
+			Shot:        shot,
+			Task:        task,
+			Version:     version,
+			OutputFiles: files,
+			Mov:         mov,
+			WorkFile:    work_file,
+			Created:     created,
+		}
+		err = roi.AddVersion(db, show, shot, task, v)
+		if err != nil {
+			log.Printf("could not add version to task '%s': %v", taskID, err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, fmt.Sprintf("/update-version?show=%s&shot=%s&task=%s&version=%s", show, shot, task, version), http.StatusSeeOther)
 		return
 	}
-	if r.Form.Get("files") != "" {
-		http.Error(w, "does not accept 'files'", http.StatusBadRequest)
-		return
+	now := time.Now()
+	v := &roi.Version{
+		Show:    show,
+		Shot:    shot,
+		Task:    task,
+		Created: now,
 	}
-	if r.Form.Get("mov") != "" {
-		http.Error(w, "does not accept 'mov'", http.StatusBadRequest)
-		return
+	recipt := struct {
+		PageType     string
+		LoggedInUser string
+		Version      *roi.Version
+	}{
+		PageType:     "add",
+		LoggedInUser: session["userid"],
+		Version:      v,
 	}
-	if r.Form.Get("work_file") != "" {
-		http.Error(w, "does not accept 'work_file'", http.StatusBadRequest)
-		return
-	}
-	if r.Form.Get("created") != "" {
-		http.Error(w, "does not accept 'created'", http.StatusBadRequest)
-		return
-	}
-	taskID := fmt.Sprintf("%s.%s.%s", show, shot, task)
-	t, err := roi.GetTask(db, show, shot, task)
+	err = executeTemplate(w, "update-version.html", recipt)
 	if err != nil {
-		log.Printf("could not get task '%s': %v", taskID, err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
+		log.Fatal(err)
 	}
-	if t == nil {
-		http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
-		return
-	}
-	o := &roi.Version{
-		Show: show,
-		Shot: shot,
-		Task: task,
-	}
-	err = roi.AddVersion(db, show, shot, task, o)
-	if err != nil {
-		log.Printf("could not add version to task '%s': %v", taskID, err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 	return
 }
 
@@ -169,14 +188,9 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "need 'task'", http.StatusBadRequest)
 		return
 	}
-	v := r.Form.Get("version")
-	if v == "" {
+	version := r.Form.Get("version")
+	if version == "" {
 		http.Error(w, "need 'version'", http.StatusBadRequest)
-		return
-	}
-	version, err := strconv.Atoi(v)
-	if err != nil {
-		http.Error(w, "'version' is not a number", http.StatusBadRequest)
 		return
 	}
 	taskID := fmt.Sprintf("%s.%s.%s", show, shot, task)
@@ -220,22 +234,24 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
-	o, err := roi.GetVersion(db, show, shot, task, version)
+	v, err := roi.GetVersion(db, show, shot, task, version)
 	if err != nil {
 		log.Printf("could not get version '%s': %v", versionID, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	if o == nil {
+	if v == nil {
 		http.Error(w, fmt.Sprintf("version '%s' not exist", versionID), http.StatusBadRequest)
 		return
 	}
 	recipt := struct {
+		PageType     string
 		LoggedInUser string
 		Version      *roi.Version
 	}{
+		PageType:     "update",
 		LoggedInUser: session["userid"],
-		Version:      o,
+		Version:      v,
 	}
 	err = executeTemplate(w, "update-version.html", recipt)
 	if err != nil {

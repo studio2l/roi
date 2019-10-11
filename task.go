@@ -71,13 +71,13 @@ type Task struct {
 	Shot string
 
 	// 태스크 정보
-	Task              string // 이름은 타입 또는 타입_요소로 구성된다. 예) fx, fx_fire
-	Status            TaskStatus
-	Assignee          string
-	LastOutputVersion int
-	StartDate         time.Time
-	EndDate           time.Time
-	DueDate           time.Time
+	Task        string // 이름은 타입 또는 타입_요소로 구성된다. 예) fx, fx_fire
+	Status      TaskStatus
+	Assignee    string
+	LastVersion string
+	StartDate   time.Time
+	EndDate     time.Time
+	DueDate     time.Time
 }
 
 func (t *Task) dbValues() []interface{} {
@@ -90,7 +90,7 @@ func (t *Task) dbValues() []interface{} {
 		t.Task,
 		t.Status,
 		t.Assignee,
-		t.LastOutputVersion,
+		t.LastVersion,
 		t.StartDate,
 		t.EndDate,
 		t.DueDate,
@@ -104,7 +104,7 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	task STRING NOT NULL CHECK (length(task) > 0) CHECK (task NOT LIKE '% %'),
 	status STRING NOT NULL CHECK (length(status) > 0),
 	assignee STRING NOT NULL,
-	last_output_version INT NOT NULL,
+	last_version STRING NOT NULL,
 	start_date TIMESTAMPTZ NOT NULL,
 	end_date TIMESTAMPTZ NOT NULL,
 	due_date TIMESTAMPTZ NOT NULL,
@@ -117,7 +117,7 @@ var TaskTableKeys = []string{
 	"task",
 	"status",
 	"assignee",
-	"last_output_version",
+	"last_version",
 	"start_date",
 	"end_date",
 	"due_date",
@@ -217,7 +217,7 @@ func taskFromRows(rows *sql.Rows) (*Task, error) {
 	t := &Task{}
 	err := rows.Scan(
 		&t.Show, &t.Shot,
-		&t.Task, &t.Status, &t.Assignee, &t.LastOutputVersion,
+		&t.Task, &t.Status, &t.Assignee, &t.LastVersion,
 		&t.StartDate, &t.EndDate, &t.DueDate,
 	)
 	if err != nil {
