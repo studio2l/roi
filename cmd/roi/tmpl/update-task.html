@@ -40,7 +40,7 @@
 	</h2>
 	<div class="ui container">
 		{{range $v := $.Versions}}
-		<a href="/update-version?show={{$.Task.Show}}&shot={{$.Task.Shot}}&task={{$.Task.Task}}&version={{$v}}" class="ui label">{{printf "v%d" $v}}</a>
+		<a href="/update-version?show={{$v.Show}}&shot={{$v.Shot}}&task={{$v.Task}}&version={{$v.Version}}" class="ui label">{{$v.Version}}</a>
 		{{end}}
 	</div>
 </div>

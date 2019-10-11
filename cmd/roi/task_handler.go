@@ -105,15 +105,17 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
 		return
 	}
-	vers := make([]int, t.LastOutputVersion)
-	for i := range vers {
-		vers[i] = t.LastOutputVersion - i
+	vers, err := roi.TaskVersions(db, show, shot, task)
+	if err != nil {
+		log.Printf("could not get versions of '%s': %v", taskID, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
 	}
 	recipt := struct {
 		LoggedInUser  string
 		Task          *roi.Task
 		AllTaskStatus []roi.TaskStatus
-		Versions      []int // 역순
+		Versions      []*roi.Version // 역순
 	}{
 		LoggedInUser:  session["userid"],
 		Task:          t,
