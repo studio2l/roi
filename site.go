@@ -3,6 +3,7 @@ package roi
 import "github.com/lib/pq"
 
 type Site struct {
+	Site            string
 	VFXSupervisors  []string
 	VFXProducers    []string
 	CGSupervisors   []string
@@ -47,22 +48,23 @@ func (s *Site) dbValues() []interface{} {
 	return vals
 }
 
-var SiteTableKeys = []string{
-	"supervisors",
-	"producers",
+var SitesTableKeys = []string{
+	"site",
+	"vfx_supervisors",
+	"vfx_producers",
 	"cg_supervisors",
 	"project_managers",
 	"tasks",
 	"leads",
 }
 
-var SiteTableIndices = dbIndices(SiteTableKeys)
+var SitesTableIndices = dbIndices(SitesTableKeys)
 
-var CreateTableIfNotExistsSiteStmt = `CREATE TABLE IF NOT EXISTS site (
+var CreateTableIfNotExistsSitesStmt = `CREATE TABLE IF NOT EXISTS sites (
 	vfx_supervisors STRING[] NOT NULL,
 	vfx_producers STRING[] NOT NULL,
 	cg_supervisors STRING[] NOT NULL,
 	project_managers STRING[] NOT NULL,
 	tasks STRING[] NOT NULL,
-	leads STRING[] NOT NULL,
+	leads STRING[] NOT NULL
 )`
