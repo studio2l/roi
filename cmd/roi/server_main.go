@@ -117,6 +117,7 @@ ex) localhost
 	mux.HandleFunc("/settings/profile", profileHandler)
 	mux.HandleFunc("/update-password", updatePasswordHandler)
 	mux.HandleFunc("/signup", signupHandler)
+	mux.HandleFunc("/site", siteHandler)
 	mux.HandleFunc("/shows", showsHandler)
 	mux.HandleFunc("/add-show", addShowHandler)
 	mux.HandleFunc("/update-show", updateShowHandler)
