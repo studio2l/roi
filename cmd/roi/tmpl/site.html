@@ -1,0 +1,29 @@
+{{template "head.html"}}
+{{template "nav.html" $}}
+<!--상단 고정 메뉴로 인해 위치 조정-->
+<div style="padding-top: 2rem;"></div>
+<div class="ui raised very padded text container grey inverted segment">
+	<h2 class="ui dividing header">사이트 설정</h2>
+	<form method="post" class="ui form">
+		<div class="field"><label>VFX 수퍼바이저</label>
+			<input type="text" name="vfx_supervisors" value="{{join .Site.VFXSupervisors ", "}}"/>
+		</div>
+		<div class="field"><label>VFX 프로듀서</label>
+			<input type="text" name="vfx_producers" value="{{join .Site.VFXProducers ", "}}"/>
+		</div>
+		<div class="field"><label>CG 수퍼바이저</label>
+			<input type="text" name="cg_supervisors" value="{{join .Site.CGSupervisors ", "}}"/>
+		</div>
+		<div class="field"><label>프로젝트 매니저</label>
+			<input type="text" name="project_managers" value="{{join .Site.ProjectManagers ", "}}"/>
+		</div>
+		<div class="field"><label>태스크</label>
+			<input type="text" name="tasks" value="{{join .Site.Tasks ", "}}"/>
+		</div>
+		<div class="field"><label>리드</label>
+			<input type="text" name="leads" value="{{join .Site.Leads ", "}}"/>
+		</div>
+		<button class="ui button green" type="submit" value="Submit">수정</button>
+	</form>
+</div>
+{{template "footer.html"}}
