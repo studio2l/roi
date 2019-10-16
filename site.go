@@ -10,10 +10,8 @@ import (
 )
 
 // Site는 현재 스튜디오를 뜻한다.
-//
-// 할일: 만일 로이가 여러 사이트를 관리하게 하려면 이름을 추가한다.
 type Site struct {
-	Site            string
+	Site            string // 현재로서는 only라는 하나의 사이트만 존재
 	VFXSupervisors  []string
 	VFXProducers    []string
 	CGSupervisors   []string
