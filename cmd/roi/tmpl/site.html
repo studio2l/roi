@@ -6,22 +6,22 @@
 	<h2 class="ui dividing header">사이트 설정</h2>
 	<form method="post" class="ui form">
 		<div class="field"><label>VFX 수퍼바이저</label>
-			<input type="text" name="vfx_supervisors" value="{{.Site.VFXSupervisors}}"/>
+			<input type="text" name="vfx_supervisors" value="{{join .Site.VFXSupervisors ", "}}"/>
 		</div>
 		<div class="field"><label>VFX 프로듀서</label>
-			<input type="text" name="vfx_producers" value="{{.Site.VFXProducers}}"/>
+			<input type="text" name="vfx_producers" value="{{join .Site.VFXProducers ", "}}"/>
 		</div>
 		<div class="field"><label>CG 수퍼바이저</label>
-			<input type="text" name="cg_supervisors" value="{{.Site.CGSupervisors}}"/>
+			<input type="text" name="cg_supervisors" value="{{join .Site.CGSupervisors ", "}}"/>
 		</div>
 		<div class="field"><label>프로젝트 매니저</label>
-			<input type="text" name="project_managers" value="{{.Site.ProjectManagers}}"/>
+			<input type="text" name="project_managers" value="{{join .Site.ProjectManagers ", "}}"/>
 		</div>
 		<div class="field"><label>태스크</label>
-			<input type="date" name="tasks" value="{{stringFromTime .Site.Tasks}}"/>
+			<input type="text" name="tasks" value="{{join .Site.Tasks ", "}}"/>
 		</div>
 		<div class="field"><label>리드</label>
-			<input type="date" name="leads" value="{{stringFromTime .Site.Leads}}"/>
+			<input type="text" name="leads" value="{{join .Site.Leads ", "}}"/>
 		</div>
 		<button class="ui button green" type="submit" value="Submit">수정</button>
 	</form>

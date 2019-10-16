@@ -88,6 +88,10 @@ ex) localhost
 			log.Fatalf("could not create admin user: %v", err)
 		}
 	}
+	err = roi.AddSite(db)
+	if err != nil {
+		log.Fatalf("could not create site: %v", err)
+	}
 	parseTemplate()
 
 	hashKey, err := ioutil.ReadFile(hashFile)
