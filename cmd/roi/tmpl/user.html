@@ -2,6 +2,8 @@
 {{template "nav.html" $}}
 <div style="padding:15px 10px 15px 10px;z-index:0;">
 
+<h2 class="ui dividing header">{{$.User}}</h2>
+
 <div class="ui small header">타임라인</div>
 <!-- semantic-ui를 이용하기 어려운 부분이라 html5의 flex를 이용함 -->
 <div style="display:flex;border:solid 1px #1b1c1d;border-radius:2px;padding:0px 4px;background-color:#1b1c1d">
@@ -33,13 +35,13 @@
 <div class="ui inverted segment">
 	<div class="ui grid">
 		<div class="ui four wide column">
-			<a href="/search/{{$show}}?assignee={{$.LoggedInUser}}">
+			<a href="/search/{{$show}}?assignee={{$.User}}">
 				<div class="ui blue large header">{{$show}}</div>
 			</a>
 		</div>
 		<div class="ui twelve wide column right aligned">
 			{{range $status := $.AllTaskStatus}}
-			<a href="/search/{{$show}}?assignee={{$.LoggedInUser}}&task_status={{$status}}">
+			<a href="/search/{{$show}}?assignee={{$.User}}&task_status={{$status}}">
 				<div class="ui grey small image label">{{$status.UIString}}<div id="show-{{$show}}-status-{{$status}}" class="detail">0</div></div>
 			</a>
 			{{end}}
