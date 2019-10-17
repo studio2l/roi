@@ -27,6 +27,7 @@ func siteHandler(w http.ResponseWriter, r *http.Request) {
 			CGSupervisors:   fields(r.Form.Get("cg_supervisors")),
 			ProjectManagers: fields(r.Form.Get("project_managers")),
 			Tasks:           fields(r.Form.Get("tasks")),
+			DefaultTasks:    fields(r.Form.Get("default_tasks")),
 			Leads:           fields(r.Form.Get("leads")),
 		}
 		err = roi.UpdateSite(db, s)

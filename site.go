@@ -17,6 +17,7 @@ type Site struct {
 	CGSupervisors   []string
 	ProjectManagers []string
 	Tasks           []string
+	DefaultTasks    []string // 샷이 생성될 때 기본적으로 생겨야 하는 태스크
 	// Leads는 task:name 형식이고 한 파트에 여러명이 등록될 수 있다.
 	// 이 때 [... rnd:kybin rnd:kaycho ...] 처럼 등록한다.
 	// 형식이 맞지 않거나 Tasks에 없는 태스크명을 쓰면 에러를 낸다.
@@ -43,6 +44,9 @@ func (s *Site) dbValues() []interface{} {
 	if s.Tasks == nil {
 		s.Tasks = []string{}
 	}
+	if s.DefaultTasks == nil {
+		s.DefaultTasks = []string{}
+	}
 	if s.Leads == nil {
 		s.Leads = []string{}
 	}
@@ -53,6 +57,7 @@ func (s *Site) dbValues() []interface{} {
 		pq.Array(s.CGSupervisors),
 		pq.Array(s.ProjectManagers),
 		pq.Array(s.Tasks),
+		pq.Array(s.DefaultTasks),
 		pq.Array(s.Leads),
 	}
 	return vals
@@ -65,6 +70,7 @@ var SitesTableKeys = []string{
 	"cg_supervisors",
 	"project_managers",
 	"tasks",
+	"default_tasks",
 	"leads",
 }
 
@@ -77,6 +83,7 @@ var CreateTableIfNotExistsSitesStmt = `CREATE TABLE IF NOT EXISTS sites (
 	cg_supervisors STRING[] NOT NULL,
 	project_managers STRING[] NOT NULL,
 	tasks STRING[] NOT NULL,
+	default_tasks STRING[] NOT NULL,
 	leads STRING[] NOT NULL
 )`
 
@@ -115,6 +122,7 @@ func siteFromRows(rows *sql.Rows) (*Site, error) {
 		pq.Array(&s.CGSupervisors),
 		pq.Array(&s.ProjectManagers),
 		pq.Array(&s.Tasks),
+		pq.Array(&s.DefaultTasks),
 		pq.Array(&s.Leads),
 	)
 	if err != nil {
