@@ -131,6 +131,8 @@ ex) localhost
 	mux.HandleFunc("/update-task", updateTaskHandler)
 	mux.HandleFunc("/add-version", addVersionHandler)
 	mux.HandleFunc("/update-version", updateVersionHandler)
+	mux.HandleFunc("/user/", userHandler)
+	mux.HandleFunc("/users", usersHandler)
 	mux.HandleFunc("/api/v1/show/add", addShowApiHandler)
 	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
 	fs := http.FileServer(http.Dir("static"))

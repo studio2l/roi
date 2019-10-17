@@ -117,6 +117,27 @@ func UserExist(db *sql.DB, id string) (bool, error) {
 	return rows.Next(), rows.Err()
 }
 
+func Users(db *sql.DB) ([]*User, error) {
+	keystr := strings.Join(UserTableKeys, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM users", keystr)
+	rows, err := db.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	us := make([]*User, 0)
+	for rows.Next() {
+		u := &User{}
+		if err := rows.Scan(&u.ID, &u.KorName, &u.Name, &u.Team, &u.Role, &u.Email, &u.PhoneNumber, &u.EntryDate); err != nil {
+			return nil, err
+		}
+		us = append(us, u)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("could not scan user: %v", err)
+	}
+	return us, nil
+}
+
 // GetUser는 db에서 사용자를 검색한다.
 // 해당 유저를 찾지 못하면 nil이 반환된다.
 func GetUser(db *sql.DB, id string) (*User, error) {

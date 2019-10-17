@@ -75,6 +75,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	recipt := struct {
 		LoggedInUser  string
+		User          string
 		Timeline      []string
 		NumTasks      map[string]map[roi.TaskStatus]int
 		TaskFromID    map[string]*roi.Task
@@ -82,13 +83,14 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		AllTaskStatus []roi.TaskStatus
 	}{
 		LoggedInUser:  session["userid"],
+		User:          session["userid"],
 		Timeline:      timeline,
 		NumTasks:      numTasks,
 		TaskFromID:    taskFromID,
 		TasksOfDay:    tasksOfDay,
 		AllTaskStatus: roi.AllTaskStatus,
 	}
-	err = executeTemplate(w, "index.html", recipt)
+	err = executeTemplate(w, "user.html", recipt)
 	if err != nil {
 		log.Fatal(err)
 	}

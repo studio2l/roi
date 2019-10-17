@@ -10,11 +10,12 @@
 
 		<a class="item" href="/search/" title="샷을 검색하는 페이지입니다.">Search</a>
 		<a class="item" href="/overview/">Overview</a>
+		<a class="item" href="/users">Users</a>
 		<div class="right menu">
 			{{if eq $.LoggedInUser ""}}
 			<a class="item" href="/login/">Log-in</a>
 			<a class="item" href="/signup/">Sign-Up</a>
-		 	{{else}}
+			{{else}}
 			<a class="item" href="/" title="자신의 Task들을 확인하는 페이지입니다.">My Tasks</a>
 			<a class="item" href="/" title="소속팀에 대한 현황 페이지입니다.">Team</a>
 			<a class="item" href="/" title="알림 정보 페이지입니다."><i class="icon red inbox"></i></a>
@@ -28,7 +29,7 @@
 				</div>
 			</div>
 			<div id="user-menu" class="ui dropdown item" title="개인계정과 설정을 위한 페이지입니다.">
-				<i class="user circle icon"> </i>  
+				<i class="user circle icon"></i>
 				<div class="menu">
 					<div class="ui header">{{$.LoggedInUser}}</div>
 						<a class="item" href="/settings/profile">Profile</a>
