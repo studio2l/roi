@@ -9,9 +9,9 @@ import (
 	"github.com/studio2l/roi"
 )
 
-// searchHandler는 /search/ 하위 페이지로 사용자가 접속했을때 페이지를 반환한다.
-func searchHandler(w http.ResponseWriter, r *http.Request) {
-	show := r.URL.Path[len("/search/"):]
+// shotsHandler는 /shots/ 페이지로 사용자가 접속했을때 페이지를 반환한다.
+func shotsHandler(w http.ResponseWriter, r *http.Request) {
+	show := r.URL.Path[len("/shots/"):]
 
 	db, err := roi.DB()
 	if err != nil {
@@ -30,7 +30,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if show == "" && len(shows) != 0 {
 		// 할일: 추후 사용자가 마지막으로 선택했던 프로젝트로 이동
-		http.Redirect(w, r, "/search/"+shows[0], http.StatusSeeOther)
+		http.Redirect(w, r, "/shots/"+shows[0], http.StatusSeeOther)
 		return
 	}
 	if show != "" {
@@ -120,7 +120,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		FilterTaskStatus:  taskStatusFilter,
 		FilterTaskDueDate: taskDueDateFilter,
 	}
-	err = executeTemplate(w, "search.html", recipt)
+	err = executeTemplate(w, "shots.html", recipt)
 	if err != nil {
 		log.Fatal(err)
 	}
