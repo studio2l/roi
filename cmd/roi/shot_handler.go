@@ -91,7 +91,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "shot '%s' already exist", http.StatusBadRequest)
 			return
 		}
-		tasks := fields(r.Form.Get("working_tasks"), ",")
+		tasks := fields(r.Form.Get("working_tasks"))
 		s := &roi.Shot{
 			Shot:          shot,
 			Show:          show,
@@ -102,7 +102,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			TimecodeIn:    r.Form.Get("timecode_in"),
 			TimecodeOut:   r.Form.Get("timecode_out"),
 			Duration:      atoi(r.Form.Get("duration")),
-			Tags:          fields(r.Form.Get("tags"), ","),
+			Tags:          fields(r.Form.Get("tags")),
 			WorkingTasks:  tasks,
 		}
 		err = roi.AddShot(db, show, s)
@@ -198,7 +198,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("shot '%s' not exist", shot), http.StatusBadRequest)
 			return
 		}
-		tasks := fields(r.Form.Get("working_tasks"), ",")
+		tasks := fields(r.Form.Get("working_tasks"))
 		tforms, err := parseTimeForms(r.Form, "due_date")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -211,7 +211,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			TimecodeIn:    r.Form.Get("timecode_in"),
 			TimecodeOut:   r.Form.Get("timecode_out"),
 			Duration:      atoi(r.Form.Get("duration")),
-			Tags:          fields(r.Form.Get("tags"), ","),
+			Tags:          fields(r.Form.Get("tags")),
 			WorkingTasks:  tasks,
 			DueDate:       tforms["due_date"],
 		}

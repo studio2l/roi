@@ -115,7 +115,7 @@ func addShowHandler(w http.ResponseWriter, r *http.Request) {
 			VFXDueDate:    timeForms["vfx_due_date"],
 			OutputSize:    r.Form.Get("output_size"),
 			ViewLUT:       r.Form.Get("view_lut"),
-			DefaultTasks:  fields(r.Form.Get("default_tasks"), ","),
+			DefaultTasks:  fields(r.Form.Get("default_tasks")),
 		}
 		err = roi.AddShow(db, p)
 		if err != nil {
@@ -205,7 +205,7 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request) {
 			VFXDueDate:    timeForms["vfx_due_date"],
 			OutputSize:    r.Form.Get("output_size"),
 			ViewLUT:       r.Form.Get("view_lut"),
-			DefaultTasks:  fields(r.Form.Get("default_tasks"), ","),
+			DefaultTasks:  fields(r.Form.Get("default_tasks")),
 		}
 		err = roi.UpdateShow(db, id, upd)
 		if err != nil {

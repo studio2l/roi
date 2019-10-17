@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/studio2l/roi"
@@ -65,7 +64,7 @@ func addShowApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("show '%s' already exists", show))
 		return
 	}
-	tasks := fields(r.Form.Get("default_tasks"), ",")
+	tasks := fields(r.Form.Get("default_tasks"))
 	p := &roi.Show{
 		Show:         show,
 		DefaultTasks: tasks,
@@ -156,7 +155,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		duration = int(f)
 	}
-	tasks := fields(r.Form.Get("working_tasks"), ",")
+	tasks := fields(r.Form.Get("working_tasks"))
 	if len(tasks) == 0 {
 		p, err := roi.GetShow(db, show)
 		if err != nil {
@@ -176,7 +175,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		TimecodeIn:    r.PostFormValue("timecode_in"),
 		TimecodeOut:   r.PostFormValue("timecode_out"),
 		Duration:      duration,
-		Tags:          strings.Split(r.PostFormValue("tags"), ","),
+		Tags:          fields(r.PostFormValue("tags")),
 		WorkingTasks:  tasks,
 	}
 	err = roi.AddShot(db, show, s)
