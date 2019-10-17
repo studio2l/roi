@@ -125,10 +125,20 @@ func addShowHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
+	si, err := roi.GetSite(db)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+	}
+	s := &roi.Show{
+		DefaultTasks: si.DefaultTasks,
+	}
 	recipt := struct {
 		LoggedInUser string
+		Show         *roi.Show
 	}{
 		LoggedInUser: session["userid"],
+		Show:         s,
 	}
 	err = executeTemplate(w, "add-show.html", recipt)
 	if err != nil {

@@ -61,7 +61,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+		http.Redirect(w, r, "/add-shot?show="+show, http.StatusSeeOther)
 		return
 	}
 	sw, err := roi.GetShow(db, show)
