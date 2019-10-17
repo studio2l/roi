@@ -72,7 +72,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		files := fields(r.Form.Get("output_files"), ",")
+		files := fields(r.Form.Get("output_files"))
 		work_file := r.Form.Get("work_file")
 		mov := r.Form.Get("mov")
 		created, err := timeFromString(r.Form.Get("created"))
@@ -224,8 +224,8 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		u := roi.UpdateVersionParam{
-			OutputFiles: fields(r.Form.Get("output_files"), ","),
-			Images:      fields(r.Form.Get("images"), ","),
+			OutputFiles: fields(r.Form.Get("output_files")),
+			Images:      fields(r.Form.Get("images")),
 			Mov:         r.Form.Get("mov"),
 			WorkFile:    r.Form.Get("work_file"),
 			Created:     timeForms["created"],

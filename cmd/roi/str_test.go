@@ -13,17 +13,15 @@ func TestFields(t *testing.T) {
 	}{
 		{
 			s:    ", a, b, c, ",
-			sep:  ",",
 			want: []string{"a", "b", "c"},
 		},
 		{
 			s:    "a,  , , b, , c, ",
-			sep:  ",",
 			want: []string{"a", "b", "c"},
 		},
 	}
 	for _, c := range cases {
-		got := fields(c.s, c.sep)
+		got := fields(c.s)
 		if !reflect.DeepEqual(got, c.want) {
 			t.Fatalf("fleids: got: %v, want: %v", got, c.want)
 		}

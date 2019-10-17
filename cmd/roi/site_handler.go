@@ -22,12 +22,12 @@ func siteHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		r.ParseForm()
 		s := &roi.Site{
-			VFXSupervisors:  fields(r.Form.Get("vfx_supervisors"), ","),
-			VFXProducers:    fields(r.Form.Get("vfx_producers"), ","),
-			CGSupervisors:   fields(r.Form.Get("cg_supervisors"), ","),
-			ProjectManagers: fields(r.Form.Get("project_managers"), ","),
-			Tasks:           fields(r.Form.Get("tasks"), ","),
-			Leads:           fields(r.Form.Get("leads"), ","),
+			VFXSupervisors:  fields(r.Form.Get("vfx_supervisors")),
+			VFXProducers:    fields(r.Form.Get("vfx_producers")),
+			CGSupervisors:   fields(r.Form.Get("cg_supervisors")),
+			ProjectManagers: fields(r.Form.Get("project_managers")),
+			Tasks:           fields(r.Form.Get("tasks")),
+			Leads:           fields(r.Form.Get("leads")),
 		}
 		err = roi.UpdateSite(db, s)
 		if err != nil {
