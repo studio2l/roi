@@ -79,7 +79,7 @@
 		</div>
 		<div>
 			{{range $i, $v := .Tags -}}
-			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="?s=tag%3A{{.}}">{{.}}</a>
+			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="?q=tag%3A{{.}}">{{.}}</a>
 			{{- end}}
 		</div>
 	</div>
