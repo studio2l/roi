@@ -124,14 +124,14 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser string
 		Show         *roi.Show
 	}{
 		LoggedInUser: session["userid"],
 		Show:         sw,
 	}
-	err = executeTemplate(w, "add-shot.html", recipt)
+	err = executeTemplate(w, "add-shot.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -269,7 +269,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 	for _, t := range ts {
 		tm[t.Task] = t
 	}
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser  string
 		Shot          *roi.Shot
 		AllShotStatus []roi.ShotStatus
@@ -282,7 +282,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		Tasks:         tm,
 		AllTaskStatus: roi.AllTaskStatus,
 	}
-	err = executeTemplate(w, "update-shot.html", recipt)
+	err = executeTemplate(w, "update-shot.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}

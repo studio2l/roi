@@ -73,7 +73,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		numTasks[t.Show][t.Status] += 1
 	}
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser  string
 		User          string
 		Timeline      []string
@@ -90,7 +90,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		TasksOfDay:    tasksOfDay,
 		AllTaskStatus: roi.AllTaskStatus,
 	}
-	err = executeTemplate(w, "user.html", recipt)
+	err = executeTemplate(w, "user.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}

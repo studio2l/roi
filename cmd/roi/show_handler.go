@@ -29,14 +29,14 @@ func showsHandler(w http.ResponseWriter, r *http.Request) {
 		clearSession(w)
 	}
 
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser string
 		Shows        []*roi.Show
 	}{
 		LoggedInUser: session["userid"],
 		Shows:        shows,
 	}
-	err = executeTemplate(w, "shows.html", recipt)
+	err = executeTemplate(w, "shows.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -133,14 +133,14 @@ func addShowHandler(w http.ResponseWriter, r *http.Request) {
 	s := &roi.Show{
 		DefaultTasks: si.DefaultTasks,
 	}
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser string
 		Show         *roi.Show
 	}{
 		LoggedInUser: session["userid"],
 		Show:         s,
 	}
-	err = executeTemplate(w, "add-show.html", recipt)
+	err = executeTemplate(w, "add-show.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -235,7 +235,7 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("could not get show: %s", id), http.StatusBadRequest)
 		return
 	}
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser  string
 		Show          *roi.Show
 		AllShowStatus []roi.ShowStatus
@@ -244,7 +244,7 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request) {
 		Show:          p,
 		AllShowStatus: roi.AllShowStatus,
 	}
-	err = executeTemplate(w, "update-show.html", recipt)
+	err = executeTemplate(w, "update-show.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}

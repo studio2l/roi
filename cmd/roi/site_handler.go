@@ -45,14 +45,14 @@ func siteHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser string
 		Site         *roi.Site
 	}{
 		LoggedInUser: session["userid"],
 		Site:         s,
 	}
-	err = executeTemplate(w, "site.html", recipt)
+	err = executeTemplate(w, "site.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}

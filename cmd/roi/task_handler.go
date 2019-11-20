@@ -111,7 +111,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser  string
 		Task          *roi.Task
 		AllTaskStatus []roi.TaskStatus
@@ -122,7 +122,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		AllTaskStatus: roi.AllTaskStatus,
 		Versions:      vers,
 	}
-	err = executeTemplate(w, "update-task.html", recipt)
+	err = executeTemplate(w, "update-task.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}

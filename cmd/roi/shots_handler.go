@@ -96,7 +96,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request) {
 		clearSession(w)
 	}
 
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser  string
 		Shows         []string
 		Show          string
@@ -115,7 +115,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request) {
 		AllTaskStatus: roi.AllTaskStatus,
 		Query:         query,
 	}
-	err = executeTemplate(w, "shots.html", recipt)
+	err = executeTemplate(w, "shots.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}
