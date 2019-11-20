@@ -117,7 +117,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		Task:    task,
 		Created: now,
 	}
-	recipt := struct {
+	recipe := struct {
 		PageType     string
 		LoggedInUser string
 		Version      *roi.Version
@@ -126,7 +126,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedInUser: session["userid"],
 		Version:      v,
 	}
-	err = executeTemplate(w, "update-version.html", recipt)
+	err = executeTemplate(w, "update-version.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -244,7 +244,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("version '%s' not exist", versionID), http.StatusBadRequest)
 		return
 	}
-	recipt := struct {
+	recipe := struct {
 		PageType     string
 		LoggedInUser string
 		Version      *roi.Version
@@ -253,7 +253,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedInUser: session["userid"],
 		Version:      v,
 	}
-	err = executeTemplate(w, "update-version.html", recipt)
+	err = executeTemplate(w, "update-version.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}

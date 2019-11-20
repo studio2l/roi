@@ -56,12 +56,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		log.Print(fmt.Sprintf("could not get session: %s", err))
 		clearSession(w)
 	}
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser string
 	}{
 		LoggedInUser: session["userid"],
 	}
-	err = executeTemplate(w, "login.html", recipt)
+	err = executeTemplate(w, "login.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -124,12 +124,12 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 		log.Print(fmt.Sprintf("could not get session: %s", err))
 		clearSession(w)
 	}
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser string
 	}{
 		LoggedInUser: session["userid"],
 	}
-	err = executeTemplate(w, "signup.html", recipt)
+	err = executeTemplate(w, "signup.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -175,14 +175,14 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(u)
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser string
 		User         *roi.User
 	}{
 		LoggedInUser: session["userid"],
 		User:         u,
 	}
-	err = executeTemplate(w, "profile.html", recipt)
+	err = executeTemplate(w, "profile.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -300,7 +300,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		numTasks[t.Show][t.Status] += 1
 	}
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser  string
 		User          string
 		Timeline      []string
@@ -317,7 +317,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		TasksOfDay:    tasksOfDay,
 		AllTaskStatus: roi.AllTaskStatus,
 	}
-	err = executeTemplate(w, "user.html", recipt)
+	err = executeTemplate(w, "user.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -341,14 +341,14 @@ func usersHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	recipt := struct {
+	recipe := struct {
 		LoggedInUser string
 		Users        []*roi.User
 	}{
 		LoggedInUser: session["userid"],
 		Users:        us,
 	}
-	err = executeTemplate(w, "users.html", recipt)
+	err = executeTemplate(w, "users.html", recipe)
 	if err != nil {
 		log.Fatal(err)
 	}
