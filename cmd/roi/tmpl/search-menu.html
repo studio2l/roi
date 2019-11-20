@@ -1,35 +1,13 @@
-<div style="z-index:1;position:sticky;top:40px;width:100%;height:48px;background-color:rgb(48, 48, 48);padding:5px;font-size:18px;">
-    <div class="ui action mini input">
-        <select class="ui compact selection dropdown" style="background-color: darkgrey;margin-right:10px;" id="show-select" onchange="showChanged()">
-            {{range $.Shows}}
-            <option value={{.}} {{if eq . $.Show}}selected{{end}}>{{.}}</option>
-            {{end}}
-        </select>
-        <form class="ui mini input">
-            <input type="text" name="shot" placeholder="샷" value="{{$.FilterShot}}">
-            <input type="text" name="tag" placeholder="태그" value="{{$.FilterTag}}">
-            <select class="ui compact selection dropdown" style="background-color: darkgrey;" id="status-select" name="status">
-                <option value="" {{if eq $.FilterStatus ""}}selected{{end}}>모든 상태</option>
-                {{range $.AllShotStatus}}
-                <option value="{{.}}" {{if eq . $.FilterStatus}}selected{{end}}>{{.UIString}}</option>
+<div style="width:100%;background-color:rgb(48, 48, 48);padding:15px;">
+    <div style="display:flex;">
+        <form style="flex:1;display:flex;">
+            <select style="width:8rem;" id="show-select" onchange="showChanged()">
+                {{range $.Shows}}
+                <option value={{.}} {{if eq . $.Show}}selected{{end}}>{{.}}</option>
                 {{end}}
             </select>
-            <div style="border-left:solid 1px black;margin:0px 20px;">
-            </div>
-            <div style="display:flex;align-items:center;justify-content:middle;margin-right:10px;">
-                <h4 class="ui grey inverted header">태스크</h4>
-            </div>
-            <input type="text" name="assignee" placeholder="담당자" value="{{$.FilterAssignee}}">
-            <select class="ui compact selection dropdown" style="background-color: darkgrey;" id="task-status-select" name="task_status">
-                <option value="" {{if eq $.FilterStatus ""}}selected{{end}}>모든 상태</option>
-                {{range $.AllTaskStatus}}
-                <option value="{{.}}" {{if eq . $.FilterTaskStatus}}selected{{end}}>{{.UIString}}</option>
-                {{end}}
-            </select>
-            <input style="color:#AAAAAA;" type="date" name="task_due_date" value="{{stringFromDate $.FilterTaskDueDate}}">
-            <div style="border-left:solid 1px black;margin:0px 20px;">
-            </div>
-            <input class="ui grey button" type="submit" value="검색">
+            <input type="text" name="q" style="flex:1;margin:0 1rem;" placeholder="" value="{{$.Query}}">
+            <input type="submit" value="검색">
         </form>
     </div>
 </div>

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/studio2l/roi"
@@ -55,18 +56,22 @@ func shotsHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Fatal(err)
 	}
-	shotFilter := r.Form.Get("shot")
-	tagFilter := r.Form.Get("tag")
-	statusFilter := r.Form.Get("status")
-	assigneeFilter := r.Form.Get("assignee")
-	taskStatusFilter := r.Form.Get("task_status")
-	tforms, err := parseTimeForms(r.Form, "task_due_date")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	query := r.Form.Get("q")
+	f := make(map[string]string)
+	for _, v := range strings.Fields(query) {
+		kv := strings.Split(v, ":")
+		if len(kv) == 1 {
+			f["shot"] = v
+		} else {
+			f[kv[0]] = kv[1]
+		}
 	}
-	taskDueDateFilter := tforms["task_due_date"]
-	shots, err := roi.SearchShots(db, show, shotFilter, tagFilter, statusFilter, assigneeFilter, taskStatusFilter, taskDueDateFilter)
+	// toTime은 문자열을 time.Time으로 변경하되 에러가 나면 버린다.
+	toTime := func(s string) time.Time {
+		t, _ := timeFromString(s)
+		return t
+	}
+	shots, err := roi.SearchShots(db, show, f["shot"], f["tag"], f["status"], f["assignee"], f["task-status"], toTime(f["task-due"]))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -92,33 +97,23 @@ func shotsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	recipt := struct {
-		LoggedInUser      string
-		Shows             []string
-		Show              string
-		Shots             []*roi.Shot
-		AllShotStatus     []roi.ShotStatus
-		Tasks             map[string]map[string]*roi.Task
-		AllTaskStatus     []roi.TaskStatus
-		FilterShot        string
-		FilterTag         string
-		FilterStatus      string
-		FilterAssignee    string
-		FilterTaskStatus  string
-		FilterTaskDueDate time.Time
+		LoggedInUser  string
+		Shows         []string
+		Show          string
+		Shots         []*roi.Shot
+		AllShotStatus []roi.ShotStatus
+		Tasks         map[string]map[string]*roi.Task
+		AllTaskStatus []roi.TaskStatus
+		Query         string
 	}{
-		LoggedInUser:      session["userid"],
-		Shows:             shows,
-		Show:              show,
-		Shots:             shots,
-		AllShotStatus:     roi.AllShotStatus,
-		Tasks:             tasks,
-		AllTaskStatus:     roi.AllTaskStatus,
-		FilterShot:        shotFilter,
-		FilterTag:         tagFilter,
-		FilterStatus:      statusFilter,
-		FilterAssignee:    assigneeFilter,
-		FilterTaskStatus:  taskStatusFilter,
-		FilterTaskDueDate: taskDueDateFilter,
+		LoggedInUser:  session["userid"],
+		Shows:         shows,
+		Show:          show,
+		Shots:         shots,
+		AllShotStatus: roi.AllShotStatus,
+		Tasks:         tasks,
+		AllTaskStatus: roi.AllTaskStatus,
+		Query:         query,
 	}
 	err = executeTemplate(w, "shots.html", recipt)
 	if err != nil {
