@@ -37,30 +37,11 @@
 					<tr style="font-size:0.9rem;color:#AAAAAA">
 						<td class="ui one wide left aligned">
 							<div style="display:flex;padding:0 0.5rem;">
-								<a href="/update-task?show={{$.Show}}&shot={{.Shot}}&task={{.Task}}" style="color:white;">
-									{{.Task}}
-								</a>
-							</div>
-						</td>
-						<td class="one wide center aligned">
-							<div>{{.Status.UIString}}</div>
-						</td>
-						<td class="one wide center aligned">
-							<div>{{shortStringFromDate .DueDate}}</div>
-						</td>
-						<td class="one wide center aligned">
-							<div>{{.Assignee}}</div>
-						</td>
-						<td class="one wide center aligned">
-								{{if .LastVersion}}
-									<a href="/update-version?show={{.Show}}&shot={{.Shot}}&task={{.Task}}&version={{.LastVersion}}" style="color:#AAAAAA;">{{.LastVersion}}</a>
-								{{end}}
-						</td>
-						<td class="one wide right aligned">
-							<div style="display:flex;padding:0 0.5rem;justify-content:end;">
-								<i class="copy outline icon"></i>
-								<div style="display:inline-block;width:0.5rem;"></div>
-								<i class="comment icon"></i> 0
+								<div style="flex:1;"><a href="/update-task?show={{$.Show}}&shot={{.Shot}}&task={{.Task}}" style="color:white;flex:1;">{{.Task}}</a></div>
+								<div style="flex:1;"><a href="/user/{{.Assignee}}" style="color:#AAAAAA;">{{.Assignee}}</a></div>
+								<div style="flex:1;"><a href="/update-version?show={{.Show}}&shot={{.Shot}}&task={{.Task}}&version={{.LastVersion}}" style="color:#AAAAAA;">{{.LastVersion}}</a></div>
+								<div style="flex:1;">{{.Status.UIString}}</div>
+								<div style="flex:1;">{{shortStringFromDate .DueDate}}</div>
 							</div>
 						</td>
 					</tr>
