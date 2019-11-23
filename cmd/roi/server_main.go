@@ -137,8 +137,8 @@ ex) localhost
 	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-	thumbfs := http.FileServer(http.Dir("roi-userdata/thumbnail"))
-	mux.Handle("/thumbnail/", http.StripPrefix("/thumbnail/", thumbfs))
+	thumbfs := http.FileServer(http.Dir("data"))
+	mux.Handle("/data/", http.StripPrefix("/data/", thumbfs))
 
 	// Show https binding information
 	addrs := strings.Split(addr, ":")
