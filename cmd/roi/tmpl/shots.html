@@ -20,7 +20,7 @@
 	<div class="shot-main" style="display:flex;margin-bottom:6px;">
 		<div style="width:288px;margin-right:22px;">
 			{{if hasThumbnail $.Show .Shot}}
-			<img style="width:288px;height:162px;" src="/thumbnail/{{$.Show}}/{{.Shot}}.png" />
+			<img style="width:288px;height:162px;" src="/data/show/{{$.Show}}/{{.Shot}}/thumbnail.png" />
 			{{else}}
 			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;">{{.Description}}</div>
 			{{end}}
