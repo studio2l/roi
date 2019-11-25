@@ -9,19 +9,13 @@ import (
 )
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
 	session, err := getSession(r)
 	if err != nil {
 		http.Error(w, "could not get session", http.StatusUnauthorized)
 		clearSession(w)
 		return
 	}
-	u, err := roi.GetUser(db, session["userid"])
+	u, err := roi.GetUser(DB, session["userid"])
 	if err != nil {
 		http.Error(w, "could not get user information", http.StatusInternalServerError)
 		clearSession(w)
@@ -43,7 +37,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "need 'show'", http.StatusBadRequest)
 		return
 	}
-	exist, err := roi.ShowExist(db, show)
+	exist, err := roi.ShowExist(DB, show)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -65,7 +59,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	taskID := show + "." + shot + "." + task
 	if r.Method == "POST" {
-		exist, err = roi.TaskExist(db, show, shot, task)
+		exist, err = roi.TaskExist(DB, show, shot, task)
 		if err != nil {
 			log.Printf("could not check task '%s' exist: %v", taskID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -84,7 +78,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 			Assignee: r.Form.Get("assignee"),
 			DueDate:  tforms["due_date"],
 		}
-		err = roi.UpdateTask(db, show, shot, task, upd)
+		err = roi.UpdateTask(DB, show, shot, task, upd)
 		if err != nil {
 			log.Printf("could not update task '%s': %v", taskID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -95,7 +89,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
-	t, err := roi.GetTask(db, show, shot, task)
+	t, err := roi.GetTask(DB, show, shot, task)
 	if err != nil {
 		log.Printf("could not get task '%s': %v", taskID, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -105,7 +99,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
 		return
 	}
-	vers, err := roi.TaskVersions(db, show, shot, task)
+	vers, err := roi.TaskVersions(DB, show, shot, task)
 	if err != nil {
 		log.Printf("could not get versions of '%s': %v", taskID, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)

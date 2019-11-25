@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -15,8 +16,14 @@ import (
 	"github.com/studio2l/roi"
 )
 
-// dev는 현재 개발모드인지를 나타낸다.
-var dev bool
+var (
+	// dev는 현재 개발모드인지를 나타낸다.
+	dev bool
+
+	// DB는 http 핸들러 안에서 사용할 DB 커넥션 풀이다.
+	// 동시에 여러 고루틴에서 사용해도 안전하다.
+	DB *sql.DB
+)
 
 func redirectToHttps(w http.ResponseWriter, r *http.Request) {
 	to := "https://" + strings.Split(r.Host, ":")[0] + r.URL.Path
@@ -74,21 +81,22 @@ ex) localhost
 		ioutil.WriteFile(blockFile, securecookie.GenerateRandomKey(32), 0600)
 	}
 
-	db, err := roi.InitDB()
+	DB, err = roi.InitDB()
 	if err != nil {
 		log.Fatalf("could not initialize database: %v", err)
 	}
-	exist, err := roi.UserExist(db, "admin")
+
+	exist, err := roi.UserExist(DB, "admin")
 	if err != nil {
 		log.Fatalf("could not check admin user exist: %v", err)
 	}
 	if !exist {
-		err := roi.AddUser(db, "admin", "password1!")
+		err := roi.AddUser(DB, "admin", "password1!")
 		if err != nil {
 			log.Fatalf("could not create admin user: %v", err)
 		}
 	}
-	err = roi.AddSite(db)
+	err = roi.AddSite(DB)
 	if err != nil {
 		log.Fatalf("could not create site: %v", err)
 	}
