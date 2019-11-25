@@ -12,19 +12,13 @@ import (
 )
 
 func addVersionHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
 	session, err := getSession(r)
 	if err != nil {
 		http.Error(w, "could not get session", http.StatusUnauthorized)
 		clearSession(w)
 		return
 	}
-	u, err := roi.GetUser(db, session["userid"])
+	u, err := roi.GetUser(DB, session["userid"])
 	if err != nil {
 		http.Error(w, "could not get user information", http.StatusInternalServerError)
 		clearSession(w)
@@ -46,7 +40,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "need 'show'", http.StatusBadRequest)
 		return
 	}
-	exist, err := roi.ShowExist(db, show)
+	exist, err := roi.ShowExist(DB, show)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -87,7 +81,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		taskID := fmt.Sprintf("%s.%s.%s", show, shot, task)
-		t, err := roi.GetTask(db, show, shot, task)
+		t, err := roi.GetTask(DB, show, shot, task)
 		if err != nil {
 			log.Printf("could not get task '%s': %v", taskID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -137,7 +131,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 			WorkFile:    work_file,
 			Created:     created,
 		}
-		err = roi.AddVersion(db, show, shot, task, v)
+		err = roi.AddVersion(DB, show, shot, task, v)
 		if err != nil {
 			log.Printf("could not add version to task '%s': %v", taskID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -170,19 +164,13 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
 	session, err := getSession(r)
 	if err != nil {
 		http.Error(w, "could not get session", http.StatusUnauthorized)
 		clearSession(w)
 		return
 	}
-	u, err := roi.GetUser(db, session["userid"])
+	u, err := roi.GetUser(DB, session["userid"])
 	if err != nil {
 		http.Error(w, "could not get user information", http.StatusInternalServerError)
 		clearSession(w)
@@ -204,7 +192,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "need 'show'", http.StatusBadRequest)
 		return
 	}
-	exist, err := roi.ShowExist(db, show)
+	exist, err := roi.ShowExist(DB, show)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -230,7 +218,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	taskID := fmt.Sprintf("%s.%s.%s", show, shot, task)
-	t, err := roi.GetTask(db, show, shot, task)
+	t, err := roi.GetTask(DB, show, shot, task)
 	if err != nil {
 		log.Printf("could not get task '%s': %v", taskID, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -247,7 +235,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		exist, err := roi.VersionExist(db, show, shot, task, version)
+		exist, err := roi.VersionExist(DB, show, shot, task, version)
 		if err != nil {
 			log.Printf("could not check version '%s' exist: %v", versionID, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -301,11 +289,11 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 			WorkFile:    r.Form.Get("work_file"),
 			Created:     timeForms["created"],
 		}
-		roi.UpdateVersion(db, show, shot, task, version, u)
+		roi.UpdateVersion(DB, show, shot, task, version, u)
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
-	v, err := roi.GetVersion(db, show, shot, task, version)
+	v, err := roi.GetVersion(DB, show, shot, task, version)
 	if err != nil {
 		log.Printf("could not get version '%s': %v", versionID, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)

@@ -25,13 +25,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "password field emtpy", http.StatusBadRequest)
 			return
 		}
-		db, err := roi.DB()
-		if err != nil {
-			log.Printf("could not connect to database: %v", err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
-		}
-		match, err := roi.UserPasswordMatch(db, id, pw)
+		match, err := roi.UserPasswordMatch(DB, id, pw)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -97,13 +91,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "passwords are not matched", http.StatusBadRequest)
 			return
 		}
-		db, err := roi.DB()
-		if err != nil {
-			log.Printf("could not connect to database: %v", err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
-		}
-		err = roi.AddUser(db, id, pw)
+		err := roi.AddUser(DB, id, pw)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not add user: %s", err), http.StatusBadRequest)
 			return
@@ -144,12 +132,6 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login/", http.StatusSeeOther)
 		return
 	}
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
 	if r.Method == "POST" {
 		r.ParseForm()
 		upd := roi.UpdateUserParam{
@@ -161,7 +143,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 			PhoneNumber: r.Form.Get("phone_number"),
 			EntryDate:   r.Form.Get("entry_date"),
 		}
-		err = roi.UpdateUser(db, session["userid"], upd)
+		err = roi.UpdateUser(DB, session["userid"], upd)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not set user: %s", err), http.StatusInternalServerError)
 			return
@@ -169,7 +151,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/settings/profile", http.StatusSeeOther)
 		return
 	}
-	u, err := roi.GetUser(db, session["userid"])
+	u, err := roi.GetUser(DB, session["userid"])
 	if err != nil {
 		http.Error(w, fmt.Sprintf("could not get user: %s", err.Error()), http.StatusInternalServerError)
 		return
@@ -218,14 +200,8 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "passwords are not matched", http.StatusBadRequest)
 		return
 	}
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
 	id := session["userid"]
-	match, err := roi.UserPasswordMatch(db, id, oldpw)
+	match, err := roi.UserPasswordMatch(DB, id, oldpw)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -234,7 +210,7 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "entered password is not correct", http.StatusBadRequest)
 		return
 	}
-	err = roi.UpdateUserPassword(db, id, newpw)
+	err = roi.UpdateUserPassword(DB, id, newpw)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("could not change user password: %s", err), http.StatusInternalServerError)
 		return
@@ -250,13 +226,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		clearSession(w)
 	}
 	user := r.URL.Path[len("/user/"):]
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-	tasks, err := roi.UserTasks(db, user)
+	tasks, err := roi.UserTasks(DB, user)
 	if err != nil {
 		log.Printf("could not get user tasks: %v", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -324,18 +294,12 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func usersHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
 	session, err := getSession(r)
 	if err != nil {
 		log.Printf("could not get session: %s", err)
 		clearSession(w)
 	}
-	us, err := roi.Users(db)
+	us, err := roi.Users(DB)
 	if err != nil {
 		log.Printf("could not get users: %v", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)

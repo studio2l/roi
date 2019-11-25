@@ -10,19 +10,13 @@ import (
 )
 
 func addShotHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
 	session, err := getSession(r)
 	if err != nil {
 		http.Error(w, "could not get session", http.StatusUnauthorized)
 		clearSession(w)
 		return
 	}
-	u, err := roi.GetUser(db, session["userid"])
+	u, err := roi.GetUser(DB, session["userid"])
 	if err != nil {
 		http.Error(w, "could not get user information", http.StatusInternalServerError)
 		clearSession(w)
@@ -45,7 +39,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		// 할일: 현재 GUI 디자인으로는 프로젝트를 선택하기 어렵기 때문에
 		// 일단 첫번째 프로젝트로 이동한다. 나중에는 에러가 나야 한다.
 		// 관련 이슈: #143
-		showRows, err := db.Query("SELECT show FROM shows")
+		showRows, err := DB.Query("SELECT show FROM shows")
 		if err != nil {
 			log.Print("could not select the first show:", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -64,7 +58,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/add-shot?show="+show, http.StatusSeeOther)
 		return
 	}
-	sw, err := roi.GetShow(db, show)
+	sw, err := roi.GetShow(DB, show)
 	if err != nil {
 		log.Printf("could not get show '%s': %v", show, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -81,7 +75,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "need 'shot'", http.StatusBadRequest)
 			return
 		}
-		exist, err := roi.ShotExist(db, show, shot)
+		exist, err := roi.ShotExist(DB, show, shot)
 		if err != nil {
 			log.Printf("could not check shot '%s' exist", shot)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -105,7 +99,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			Tags:          fields(r.Form.Get("tags")),
 			WorkingTasks:  tasks,
 		}
-		err = roi.AddShot(db, show, s)
+		err = roi.AddShot(DB, show, s)
 		if err != nil {
 			log.Printf("could not add shot '%s': %v", show+"."+shot, err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -119,7 +113,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  roi.TaskNotSet,
 				DueDate: time.Time{},
 			}
-			roi.AddTask(db, show, shot, t)
+			roi.AddTask(DB, show, shot, t)
 		}
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
@@ -138,19 +132,13 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateShotHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
 	session, err := getSession(r)
 	if err != nil {
 		http.Error(w, "could not get session", http.StatusUnauthorized)
 		clearSession(w)
 		return
 	}
-	u, err := roi.GetUser(db, session["userid"])
+	u, err := roi.GetUser(DB, session["userid"])
 	if err != nil {
 		http.Error(w, "could not get user information", http.StatusInternalServerError)
 		clearSession(w)
@@ -172,7 +160,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "need 'show'", http.StatusBadRequest)
 		return
 	}
-	exist, err := roi.ShowExist(db, show)
+	exist, err := roi.ShowExist(DB, show)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -188,7 +176,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "POST" {
-		exist, err = roi.ShotExist(db, show, shot)
+		exist, err = roi.ShotExist(DB, show, shot)
 		if err != nil {
 			log.Print(err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -215,7 +203,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			WorkingTasks:  tasks,
 			DueDate:       tforms["due_date"],
 		}
-		err = roi.UpdateShot(db, show, shot, upd)
+		err = roi.UpdateShot(DB, show, shot, upd)
 		if err != nil {
 			log.Print(err)
 			http.Error(w, fmt.Sprintf("could not update shot '%s'", shot), http.StatusInternalServerError)
@@ -231,14 +219,14 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 				DueDate: time.Time{},
 			}
 			tid := show + "." + shot + "." + task
-			exist, err := roi.TaskExist(db, show, shot, task)
+			exist, err := roi.TaskExist(DB, show, shot, task)
 			if err != nil {
 				log.Printf("could not check task '%s' exist: %v", tid, err)
 				http.Error(w, "internal error", http.StatusInternalServerError)
 				return
 			}
 			if !exist {
-				err := roi.AddTask(db, show, shot, t)
+				err := roi.AddTask(DB, show, shot, t)
 				if err != nil {
 					log.Printf("could not add task '%s': %v", tid, err)
 					http.Error(w, "internal error", http.StatusInternalServerError)
@@ -249,7 +237,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
-	s, err := roi.GetShot(db, show, shot)
+	s, err := roi.GetShot(DB, show, shot)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -259,7 +247,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("shot '%s' not exist", shot), http.StatusBadRequest)
 		return
 	}
-	ts, err := roi.ShotTasks(db, show, shot)
+	ts, err := roi.ShotTasks(DB, show, shot)
 	if err != nil {
 		log.Printf("could not get all tasks of shot '%s': %v", show+"."+shot, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)

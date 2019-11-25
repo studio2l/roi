@@ -42,19 +42,13 @@ func apiBadRequest(w http.ResponseWriter, err error) {
 // 결과는 roi.APIResponse의 json 형식으로 반환된다.
 func addShowApiHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to db: %v", err)
-		apiInternalServerError(w)
-		return
-	}
 
 	show := r.PostFormValue("show")
 	if show == "" {
 		apiBadRequest(w, fmt.Errorf("'id' not specified"))
 		return
 	}
-	exist, err := roi.ShowExist(db, show)
+	exist, err := roi.ShowExist(DB, show)
 	if err != nil {
 		log.Printf("could not check show %q exist: %v", show, err)
 		apiInternalServerError(w)
@@ -69,7 +63,7 @@ func addShowApiHandler(w http.ResponseWriter, r *http.Request) {
 		Show:         show,
 		DefaultTasks: tasks,
 	}
-	err = roi.AddShow(db, p)
+	err = roi.AddShow(DB, p)
 	if err != nil {
 		log.Printf("could not add show: %v", err)
 		apiInternalServerError(w)
@@ -82,19 +76,13 @@ func addShowApiHandler(w http.ResponseWriter, r *http.Request) {
 // 결과는 roi.APIResponse의 json 형식으로 반환된다.
 func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to db: %v", err)
-		apiInternalServerError(w)
-		return
-	}
 
 	show := r.PostFormValue("show")
 	if show == "" {
 		apiBadRequest(w, fmt.Errorf("'show' not specified"))
 		return
 	}
-	exist, err := roi.ShowExist(db, show)
+	exist, err := roi.ShowExist(DB, show)
 	if err != nil {
 		log.Printf("could not check show %q exist: %v", show, err)
 		apiInternalServerError(w)
@@ -114,7 +102,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("shot id '%s' is not valid", shot))
 		return
 	}
-	exist, err = roi.ShotExist(db, show, shot)
+	exist, err = roi.ShotExist(DB, show, shot)
 	if err != nil {
 		log.Printf("could not check shot '%s' exist: %v", shot, err)
 		apiInternalServerError(w)
@@ -157,7 +145,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tasks := fields(r.Form.Get("working_tasks"))
 	if len(tasks) == 0 {
-		p, err := roi.GetShow(db, show)
+		p, err := roi.GetShow(DB, show)
 		if err != nil {
 			log.Printf("could not get show: %v", err)
 			apiInternalServerError(w)
@@ -178,7 +166,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		Tags:          fields(r.PostFormValue("tags")),
 		WorkingTasks:  tasks,
 	}
-	err = roi.AddShot(db, show, s)
+	err = roi.AddShot(DB, show, s)
 	if err != nil {
 		log.Printf("could not add shot: %v", err)
 		apiInternalServerError(w)
@@ -192,7 +180,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 			Status:  roi.TaskNotSet,
 			DueDate: time.Time{},
 		}
-		err := roi.AddTask(db, show, shot, t)
+		err := roi.AddTask(DB, show, shot, t)
 		if err != nil {
 			log.Printf("could not add task for shot: %v", err)
 			apiInternalServerError(w)

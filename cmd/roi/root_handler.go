@@ -23,13 +23,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := session["userid"]
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-	tasks, err := roi.UserTasks(db, user)
+	tasks, err := roi.UserTasks(DB, user)
 	if err != nil {
 		log.Printf("could not get user tasks: %v", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)

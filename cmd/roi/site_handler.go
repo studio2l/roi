@@ -8,12 +8,6 @@ import (
 )
 
 func siteHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
 	session, err := getSession(r)
 	if err != nil {
 		log.Printf("could not get session: %s", err)
@@ -30,7 +24,7 @@ func siteHandler(w http.ResponseWriter, r *http.Request) {
 			DefaultTasks:    fields(r.Form.Get("default_tasks")),
 			Leads:           fields(r.Form.Get("leads")),
 		}
-		err = roi.UpdateSite(db, s)
+		err = roi.UpdateSite(DB, s)
 		if err != nil {
 			log.Printf("could not update site: %v", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -39,7 +33,7 @@ func siteHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
-	s, err := roi.GetSite(db)
+	s, err := roi.GetSite(DB)
 	if err != nil {
 		log.Printf("could not get site: %v", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)

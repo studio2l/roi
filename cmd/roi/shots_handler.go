@@ -14,14 +14,7 @@ import (
 func shotsHandler(w http.ResponseWriter, r *http.Request) {
 	show := r.URL.Path[len("/shots/"):]
 
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-
-	ps, err := roi.AllShows(db)
+	ps, err := roi.AllShows(DB)
 	if err != nil {
 		log.Printf("could not get show list: %v", err)
 	}
@@ -71,13 +64,13 @@ func shotsHandler(w http.ResponseWriter, r *http.Request) {
 		t, _ := timeFromString(s)
 		return t
 	}
-	shots, err := roi.SearchShots(db, show, f["shot"], f["tag"], f["status"], f["assignee"], f["task-status"], toTime(f["task-due"]))
+	shots, err := roi.SearchShots(DB, show, f["shot"], f["tag"], f["status"], f["assignee"], f["task-status"], toTime(f["task-due"]))
 	if err != nil {
 		log.Fatal(err)
 	}
 	tasks := make(map[string]map[string]*roi.Task)
 	for _, s := range shots {
-		ts, err := roi.ShotTasks(db, show, s.Shot)
+		ts, err := roi.ShotTasks(DB, show, s.Shot)
 		if err != nil {
 			log.Printf("couldn't get shot tasks: %v", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)

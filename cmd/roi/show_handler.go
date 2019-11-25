@@ -10,14 +10,7 @@ import (
 
 // showsHandler는 /show 페이지로 사용자가 접속했을때 페이지를 반환한다.
 func showsHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-
-	shows, err := roi.AllShows(db)
+	shows, err := roi.AllShows(DB)
 	if err != nil {
 		log.Print(fmt.Sprintf("error while getting shows: %s", err))
 		return
@@ -45,19 +38,13 @@ func showsHandler(w http.ResponseWriter, r *http.Request) {
 // addShowHandler는 /add-show 페이지로 사용자가 접속했을때 페이지를 반환한다.
 // 만일 POST로 프로젝트 정보가 오면 프로젝트를 생성한다.
 func addShowHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
 	session, err := getSession(r)
 	if err != nil {
 		http.Error(w, "could not get session", http.StatusUnauthorized)
 		clearSession(w)
 		return
 	}
-	u, err := roi.GetUser(db, session["userid"])
+	u, err := roi.GetUser(DB, session["userid"])
 	if err != nil {
 		http.Error(w, "could not get user information", http.StatusInternalServerError)
 		clearSession(w)
@@ -78,7 +65,7 @@ func addShowHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "need 'show' form value", http.StatusBadRequest)
 			return
 		}
-		exist, err := roi.ShowExist(db, show)
+		exist, err := roi.ShowExist(DB, show)
 		if err != nil {
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
@@ -117,7 +104,7 @@ func addShowHandler(w http.ResponseWriter, r *http.Request) {
 			ViewLUT:       r.Form.Get("view_lut"),
 			DefaultTasks:  fields(r.Form.Get("default_tasks")),
 		}
-		err = roi.AddShow(db, p)
+		err = roi.AddShow(DB, p)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not add show '%s'", p), http.StatusInternalServerError)
 			return
@@ -125,7 +112,7 @@ func addShowHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
-	si, err := roi.GetSite(db)
+	si, err := roi.GetSite(DB)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -149,19 +136,13 @@ func addShowHandler(w http.ResponseWriter, r *http.Request) {
 // updateShowHandler는 /update-show 페이지로 사용자가 접속했을때 페이지를 반환한다.
 // 만일 POST로 프로젝트 정보가 오면 프로젝트 정보를 수정한다.
 func updateShowHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := roi.DB()
-	if err != nil {
-		log.Printf("could not connect to database: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
 	session, err := getSession(r)
 	if err != nil {
 		http.Error(w, "could not get session", http.StatusUnauthorized)
 		clearSession(w)
 		return
 	}
-	u, err := roi.GetUser(db, session["userid"])
+	u, err := roi.GetUser(DB, session["userid"])
 	if err != nil {
 		http.Error(w, "could not get user information", http.StatusInternalServerError)
 		clearSession(w)
@@ -178,7 +159,7 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "need show 'id'", http.StatusBadRequest)
 		return
 	}
-	exist, err := roi.ShowExist(db, id)
+	exist, err := roi.ShowExist(DB, id)
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
@@ -217,7 +198,7 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request) {
 			ViewLUT:       r.Form.Get("view_lut"),
 			DefaultTasks:  fields(r.Form.Get("default_tasks")),
 		}
-		err = roi.UpdateShow(db, id, upd)
+		err = roi.UpdateShow(DB, id, upd)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, fmt.Sprintf("could not add show '%s'", id), http.StatusInternalServerError)
@@ -226,7 +207,7 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return
 	}
-	p, err := roi.GetShow(db, id)
+	p, err := roi.GetShow(DB, id)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("could not get show: %s", id), http.StatusInternalServerError)
 		return
