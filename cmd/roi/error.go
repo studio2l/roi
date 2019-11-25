@@ -1,19 +1,27 @@
 package main
 
-import "net/http"
+import (
+	"log"
+	"net/http"
+)
 
 type httpError struct {
-	err  string
+	msg  string
 	code int
 }
 
 func (e httpError) Error() string {
-	return e.err
+	return e.msg
 }
 
-func responseError(w http.ResponseWriter, err error) {
+func handleError(w http.ResponseWriter, err error) {
 	if e, ok := err.(httpError); ok {
-		http.Error(w, e.err, e.code)
+		if e.code == http.StatusInternalServerError {
+			log.Print(e.msg)
+			http.Error(w, "internal error", e.code)
+			return
+		}
+		http.Error(w, e.msg, e.code)
 		return
 	}
 	http.Error(w, err.Error(), http.StatusBadRequest)
