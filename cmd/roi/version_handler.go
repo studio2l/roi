@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/studio2l/roi"
@@ -66,6 +68,11 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "POST" {
+		err = r.ParseMultipartForm(1 << 20)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		version := r.Form.Get("version")
 		if version == "" {
 			http.Error(w, "need 'version'", http.StatusBadRequest)
@@ -74,7 +81,6 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 
 		files := fields(r.Form.Get("output_files"))
 		work_file := r.Form.Get("work_file")
-		mov := r.Form.Get("mov")
 		created, err := timeFromString(r.Form.Get("created"))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("invalid 'create' field: %v", r.Form.Get("created")), http.StatusBadRequest)
@@ -91,13 +97,43 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
 			return
 		}
+		src, mov, err := r.FormFile("mov")
+		if err != nil {
+			if err != http.ErrMissingFile {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		} else {
+			defer src.Close()
+			if mov.Size > (32 << 20) {
+				http.Error(w, fmt.Sprintf("mov: file size too big (got %dMB, maximum 32MB)", mov.Size>>20), http.StatusBadRequest)
+				return
+			}
+			data, err := ioutil.ReadAll(src)
+			if err != nil {
+				http.Error(w, "could not get mov file data", http.StatusBadRequest)
+				return
+			}
+			err = os.MkdirAll(fmt.Sprintf("data/show/%s/%s/%s/%s", show, shot, task, version), 0755)
+			if err != nil {
+				log.Printf("could not create mov directory: %v", err)
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
+			}
+			dst := fmt.Sprintf("data/show/%s/%s/%s/%s/1.mov", show, shot, task, version)
+			err = ioutil.WriteFile(dst, data, 0755)
+			if err != nil {
+				log.Printf("could not save mov file data: %v", err)
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
+			}
+		}
 		v := &roi.Version{
 			Show:        show,
 			Shot:        shot,
 			Task:        task,
 			Version:     version,
 			OutputFiles: files,
-			Mov:         mov,
 			WorkFile:    work_file,
 			Created:     created,
 		}
@@ -206,6 +242,11 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	versionID := fmt.Sprintf("%s.%s.%s.v%v03d", show, shot, task, version)
 	if r.Method == "POST" {
+		err = r.ParseMultipartForm(1 << 20)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		exist, err := roi.VersionExist(db, show, shot, task, version)
 		if err != nil {
 			log.Printf("could not check version '%s' exist: %v", versionID, err)
@@ -223,10 +264,40 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		src, mov, err := r.FormFile("mov")
+		if err != nil {
+			if err != http.ErrMissingFile {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		} else {
+			defer src.Close()
+			if mov.Size > (32 << 20) {
+				http.Error(w, fmt.Sprintf("mov: file size too big (got %dMB, maximum 32MB)", mov.Size>>20), http.StatusBadRequest)
+				return
+			}
+			data, err := ioutil.ReadAll(src)
+			if err != nil {
+				http.Error(w, "could not get mov file data", http.StatusBadRequest)
+				return
+			}
+			err = os.MkdirAll(fmt.Sprintf("data/show/%s/%s/%s/%s", show, shot, task, version), 0755)
+			if err != nil {
+				log.Printf("could not create mov directory: %v", err)
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
+			}
+			dst := fmt.Sprintf("data/show/%s/%s/%s/%s/1.mov", show, shot, task, version)
+			err = ioutil.WriteFile(dst, data, 0755)
+			if err != nil {
+				log.Printf("could not save mov file data: %v", err)
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
+			}
+		}
 		u := roi.UpdateVersionParam{
 			OutputFiles: fields(r.Form.Get("output_files")),
 			Images:      fields(r.Form.Get("images")),
-			Mov:         r.Form.Get("mov"),
 			WorkFile:    r.Form.Get("work_file"),
 			Created:     timeForms["created"],
 		}
