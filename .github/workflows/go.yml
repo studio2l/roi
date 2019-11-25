@@ -20,9 +20,9 @@ jobs:
       run: |
         wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.2.linux-amd64.tgz | tar  xvz
         mv cockroach-v2.1.2.linux-amd64/cockroach .
-        export PATH=$PWD:$PATH
         go get -v -t -d ./...
     - name: Test
       run: |
+        export PATH=$PWD:$PATH
         go test -race -coverprofile=coverage.txt -covermode=atomic ./...
         go vet ./...
