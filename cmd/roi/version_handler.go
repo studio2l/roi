@@ -123,7 +123,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 			dst := fmt.Sprintf("data/show/%s/%s/%s/%s/1.mov", show, shot, task, version)
 			err = ioutil.WriteFile(dst, data, 0755)
 			if err != nil {
-				log.Printf("could not save mov file data : %v", taskID, err)
+				log.Printf("could not save mov file data: %v", err)
 				http.Error(w, "internal error", http.StatusInternalServerError)
 				return
 			}
@@ -283,14 +283,14 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			err = os.MkdirAll(fmt.Sprintf("data/show/%s/%s/%s/%s", show, shot, task, version), 0755)
 			if err != nil {
-				log.Printf("could not create mov directory : %v", taskID, err)
+				log.Printf("could not create mov directory: %v", err)
 				http.Error(w, "internal error", http.StatusInternalServerError)
 				return
 			}
 			dst := fmt.Sprintf("data/show/%s/%s/%s/%s/1.mov", show, shot, task, version)
 			err = ioutil.WriteFile(dst, data, 0755)
 			if err != nil {
-				log.Printf("could not save mov file data : %v", taskID, err)
+				log.Printf("could not save mov file data: %v", err)
 				http.Error(w, "internal error", http.StatusInternalServerError)
 				return
 			}
