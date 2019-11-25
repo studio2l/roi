@@ -1,0 +1,29 @@
+name: Go
+on: [push]
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.13
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+
+    - name: Get dependencies
+      run: |
+        wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.2.linux-amd64.tgz | tar  xvz
+        mv cockroach-v2.1.2.linux-amd64/cockroach .
+        go get -v -t -d ./...
+    - name: Test
+      run: |
+        export PATH=$PWD:$PATH
+        go vet ./...
+        go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+        bash <(curl -s https://codecov.io/bash)
