@@ -59,8 +59,7 @@ func addShowHandler(w http.ResponseWriter, r *http.Request) {
 		// 할일: admin이 아닌 사람은 프로젝트를 생성할 수 없도록 하기
 	}
 	if r.Method == "POST" {
-		r.ParseForm()
-		show := r.Form.Get("show")
+		show := r.FormValue("show")
 		if show == "" {
 			http.Error(w, "need 'show' form value", http.StatusBadRequest)
 			return
@@ -87,22 +86,22 @@ func addShowHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		p := &roi.Show{
 			Show:          show,
-			Name:          r.Form.Get("name"),
+			Name:          r.FormValue("name"),
 			Status:        "waiting",
-			Client:        r.Form.Get("client"),
-			Director:      r.Form.Get("director"),
-			Producer:      r.Form.Get("producer"),
-			VFXSupervisor: r.Form.Get("vfx_supervisor"),
-			VFXManager:    r.Form.Get("vfx_manager"),
-			CGSupervisor:  r.Form.Get("cg_supervisor"),
+			Client:        r.FormValue("client"),
+			Director:      r.FormValue("director"),
+			Producer:      r.FormValue("producer"),
+			VFXSupervisor: r.FormValue("vfx_supervisor"),
+			VFXManager:    r.FormValue("vfx_manager"),
+			CGSupervisor:  r.FormValue("cg_supervisor"),
 			StartDate:     timeForms["start_date"],
 			ReleaseDate:   timeForms["release_date"],
 			CrankIn:       timeForms["crank_in"],
 			CrankUp:       timeForms["crank_up"],
 			VFXDueDate:    timeForms["vfx_due_date"],
-			OutputSize:    r.Form.Get("output_size"),
-			ViewLUT:       r.Form.Get("view_lut"),
-			DefaultTasks:  fields(r.Form.Get("default_tasks")),
+			OutputSize:    r.FormValue("output_size"),
+			ViewLUT:       r.FormValue("view_lut"),
+			DefaultTasks:  fields(r.FormValue("default_tasks")),
 		}
 		err = roi.AddShow(DB, p)
 		if err != nil {
@@ -153,8 +152,7 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request) {
 		// 이 정보를 수정할 수 있도록 하기.
 		_ = u
 	}
-	r.ParseForm()
-	id := r.Form.Get("id")
+	id := r.FormValue("id")
 	if id == "" {
 		http.Error(w, "need show 'id'", http.StatusBadRequest)
 		return
@@ -181,22 +179,22 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "POST" {
 		upd := roi.UpdateShowParam{
-			Name:          r.Form.Get("name"),
-			Status:        r.Form.Get("status"),
-			Client:        r.Form.Get("client"),
-			Director:      r.Form.Get("director"),
-			Producer:      r.Form.Get("producer"),
-			VFXSupervisor: r.Form.Get("vfx_supervisor"),
-			VFXManager:    r.Form.Get("vfx_manager"),
-			CGSupervisor:  r.Form.Get("cg_supervisor"),
+			Name:          r.FormValue("name"),
+			Status:        r.FormValue("status"),
+			Client:        r.FormValue("client"),
+			Director:      r.FormValue("director"),
+			Producer:      r.FormValue("producer"),
+			VFXSupervisor: r.FormValue("vfx_supervisor"),
+			VFXManager:    r.FormValue("vfx_manager"),
+			CGSupervisor:  r.FormValue("cg_supervisor"),
 			StartDate:     timeForms["start_date"],
 			ReleaseDate:   timeForms["release_date"],
 			CrankIn:       timeForms["crank_in"],
 			CrankUp:       timeForms["crank_up"],
 			VFXDueDate:    timeForms["vfx_due_date"],
-			OutputSize:    r.Form.Get("output_size"),
-			ViewLUT:       r.Form.Get("view_lut"),
-			DefaultTasks:  fields(r.Form.Get("default_tasks")),
+			OutputSize:    r.FormValue("output_size"),
+			ViewLUT:       r.FormValue("view_lut"),
+			DefaultTasks:  fields(r.FormValue("default_tasks")),
 		}
 		err = roi.UpdateShow(DB, id, upd)
 		if err != nil {

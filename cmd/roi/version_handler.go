@@ -31,11 +31,6 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 			handleError(w, err)
 		}
 		version := r.FormValue("version")
-		err = r.ParseMultipartForm(1 << 20)
-		if err != nil {
-			handleError(w, httpError{msg: err.Error(), code: http.StatusBadRequest})
-			return
-		}
 		timeForms, err := parseTimeForms(r.Form, "created")
 		if err != nil {
 			handleError(w, err)

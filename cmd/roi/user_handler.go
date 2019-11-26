@@ -14,13 +14,12 @@ import (
 // loginHandler는 /login 페이지로 사용자가 접속했을때 로그인 페이지를 반환한다.
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		r.ParseForm()
-		id := r.Form.Get("id")
+		id := r.FormValue("id")
 		if id == "" {
 			http.Error(w, "id field emtpy", http.StatusBadRequest)
 			return
 		}
-		pw := r.Form.Get("password")
+		pw := r.FormValue("password")
 		if pw == "" {
 			http.Error(w, "password field emtpy", http.StatusBadRequest)
 			return
@@ -70,13 +69,12 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 // signupHandler는 /signup 페이지로 사용자가 접속했을때 가입 페이지를 반환한다.
 func signupHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		r.ParseForm()
-		id := r.Form.Get("id")
+		id := r.FormValue("id")
 		if id == "" {
 			http.Error(w, "id field emtpy", http.StatusBadRequest)
 			return
 		}
-		pw := r.Form.Get("password")
+		pw := r.FormValue("password")
 		if pw == "" {
 			http.Error(w, "password field emtpy", http.StatusBadRequest)
 			return
@@ -86,7 +84,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// 할일: password에 대한 컨펌은 프론트 엔드에서 하여야 함
-		pwc := r.Form.Get("password_confirm")
+		pwc := r.FormValue("password_confirm")
 		if pw != pwc {
 			http.Error(w, "passwords are not matched", http.StatusBadRequest)
 			return
@@ -133,15 +131,14 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "POST" {
-		r.ParseForm()
 		upd := roi.UpdateUserParam{
-			KorName:     r.Form.Get("kor_name"),
-			Name:        r.Form.Get("name"),
-			Team:        r.Form.Get("team"),
-			Role:        r.Form.Get("position"),
-			Email:       r.Form.Get("email"),
-			PhoneNumber: r.Form.Get("phone_number"),
-			EntryDate:   r.Form.Get("entry_date"),
+			KorName:     r.FormValue("kor_name"),
+			Name:        r.FormValue("name"),
+			Team:        r.FormValue("team"),
+			Role:        r.FormValue("position"),
+			Email:       r.FormValue("email"),
+			PhoneNumber: r.FormValue("phone_number"),
+			EntryDate:   r.FormValue("entry_date"),
 		}
 		err = roi.UpdateUser(DB, session["userid"], upd)
 		if err != nil {
@@ -179,13 +176,12 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		clearSession(w)
 		return
 	}
-	r.ParseForm()
-	oldpw := r.Form.Get("old_password")
+	oldpw := r.FormValue("old_password")
 	if oldpw == "" {
 		http.Error(w, "old password field emtpy", http.StatusBadRequest)
 		return
 	}
-	newpw := r.Form.Get("new_password")
+	newpw := r.FormValue("new_password")
 	if newpw == "" {
 		http.Error(w, "new password field emtpy", http.StatusBadRequest)
 		return
@@ -195,7 +191,7 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// 할일: password에 대한 컨펌은 프론트 엔드에서 하여야 함
-	newpwc := r.Form.Get("new_password_confirm")
+	newpwc := r.FormValue("new_password_confirm")
 	if newpw != newpwc {
 		http.Error(w, "passwords are not matched", http.StatusBadRequest)
 		return

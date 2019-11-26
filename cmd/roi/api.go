@@ -58,7 +58,7 @@ func addShowApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("show '%s' already exists", show))
 		return
 	}
-	tasks := fields(r.Form.Get("default_tasks"))
+	tasks := fields(r.FormValue("default_tasks"))
 	p := &roi.Show{
 		Show:         show,
 		DefaultTasks: tasks,
@@ -143,7 +143,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		duration = int(f)
 	}
-	tasks := fields(r.Form.Get("working_tasks"))
+	tasks := fields(r.FormValue("working_tasks"))
 	if len(tasks) == 0 {
 		p, err := roi.GetShow(DB, show)
 		if err != nil {

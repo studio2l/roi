@@ -46,10 +46,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request) {
 		// for now SearchShot will handle it properly, don't panic.
 	}
 
-	if err := r.ParseForm(); err != nil {
-		log.Fatal(err)
-	}
-	query := r.Form.Get("q")
+	query := r.FormValue("q")
 	f := make(map[string]string)
 	for _, v := range strings.Fields(query) {
 		kv := strings.Split(v, ":")

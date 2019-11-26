@@ -31,8 +31,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		// 이 정보를 수정할 수 있도록 하기.
 		_ = u
 	}
-	r.ParseForm()
-	show := r.Form.Get("show")
+	show := r.FormValue("show")
 	if show == "" {
 		http.Error(w, "need 'show'", http.StatusBadRequest)
 		return
@@ -47,12 +46,12 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("show '%s' not exist", show), http.StatusBadRequest)
 		return
 	}
-	shot := r.Form.Get("shot")
+	shot := r.FormValue("shot")
 	if shot == "" {
 		http.Error(w, "need 'shot'", http.StatusBadRequest)
 		return
 	}
-	task := r.Form.Get("task")
+	task := r.FormValue("task")
 	if task == "" {
 		http.Error(w, "need 'task'", http.StatusBadRequest)
 		return
@@ -74,8 +73,8 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		upd := roi.UpdateTaskParam{
-			Status:   roi.TaskStatus(r.Form.Get("status")),
-			Assignee: r.Form.Get("assignee"),
+			Status:   roi.TaskStatus(r.FormValue("status")),
+			Assignee: r.FormValue("assignee"),
 			DueDate:  tforms["due_date"],
 		}
 		err = roi.UpdateTask(DB, show, shot, task, upd)
