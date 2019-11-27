@@ -32,9 +32,8 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		// 이 정보를 수정할 수 있도록 하기.
 		_ = u
 	}
-	r.ParseForm()
 	// 어떤 프로젝트에 샷을 생성해야 하는지 체크.
-	show := r.Form.Get("show")
+	show := r.FormValue("show")
 	if show == "" {
 		// 할일: 현재 GUI 디자인으로는 프로젝트를 선택하기 어렵기 때문에
 		// 일단 첫번째 프로젝트로 이동한다. 나중에는 에러가 나야 한다.
@@ -70,7 +69,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "POST" {
-		shot := r.Form.Get("shot")
+		shot := r.FormValue("shot")
 		if shot == "" {
 			http.Error(w, "need 'shot'", http.StatusBadRequest)
 			return
@@ -85,18 +84,18 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "shot '%s' already exist", http.StatusBadRequest)
 			return
 		}
-		tasks := fields(r.Form.Get("working_tasks"))
+		tasks := fields(r.FormValue("working_tasks"))
 		s := &roi.Shot{
 			Shot:          shot,
 			Show:          show,
 			Status:        roi.ShotWaiting,
-			EditOrder:     atoi(r.Form.Get("edit_order")),
-			Description:   r.Form.Get("description"),
-			CGDescription: r.Form.Get("cg_description"),
-			TimecodeIn:    r.Form.Get("timecode_in"),
-			TimecodeOut:   r.Form.Get("timecode_out"),
-			Duration:      atoi(r.Form.Get("duration")),
-			Tags:          fields(r.Form.Get("tags")),
+			EditOrder:     atoi(r.FormValue("edit_order")),
+			Description:   r.FormValue("description"),
+			CGDescription: r.FormValue("cg_description"),
+			TimecodeIn:    r.FormValue("timecode_in"),
+			TimecodeOut:   r.FormValue("timecode_out"),
+			Duration:      atoi(r.FormValue("duration")),
+			Tags:          fields(r.FormValue("tags")),
 			WorkingTasks:  tasks,
 		}
 		err = roi.AddShot(DB, show, s)
@@ -154,8 +153,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		// 이 정보를 수정할 수 있도록 하기.
 		_ = u
 	}
-	r.ParseForm()
-	show := r.Form.Get("show")
+	show := r.FormValue("show")
 	if show == "" {
 		http.Error(w, "need 'show'", http.StatusBadRequest)
 		return
@@ -170,7 +168,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("show '%s' not exist", show), http.StatusBadRequest)
 		return
 	}
-	shot := r.Form.Get("shot")
+	shot := r.FormValue("shot")
 	if shot == "" {
 		http.Error(w, "need 'shot'", http.StatusBadRequest)
 		return
@@ -186,20 +184,20 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("shot '%s' not exist", shot), http.StatusBadRequest)
 			return
 		}
-		tasks := fields(r.Form.Get("working_tasks"))
+		tasks := fields(r.FormValue("working_tasks"))
 		tforms, err := parseTimeForms(r.Form, "due_date")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		upd := roi.UpdateShotParam{
-			Status:        roi.ShotStatus(r.Form.Get("status")),
-			EditOrder:     atoi(r.Form.Get("edit_order")),
-			Description:   r.Form.Get("description"),
-			CGDescription: r.Form.Get("cg_description"),
-			TimecodeIn:    r.Form.Get("timecode_in"),
-			TimecodeOut:   r.Form.Get("timecode_out"),
-			Duration:      atoi(r.Form.Get("duration")),
-			Tags:          fields(r.Form.Get("tags")),
+			Status:        roi.ShotStatus(r.FormValue("status")),
+			EditOrder:     atoi(r.FormValue("edit_order")),
+			Description:   r.FormValue("description"),
+			CGDescription: r.FormValue("cg_description"),
+			TimecodeIn:    r.FormValue("timecode_in"),
+			TimecodeOut:   r.FormValue("timecode_out"),
+			Duration:      atoi(r.FormValue("duration")),
+			Tags:          fields(r.FormValue("tags")),
 			WorkingTasks:  tasks,
 			DueDate:       tforms["due_date"],
 		}
