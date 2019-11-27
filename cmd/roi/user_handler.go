@@ -44,17 +44,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	session, err := getSession(r)
-	if err != nil {
-		log.Print(fmt.Sprintf("could not get session: %s", err))
-		clearSession(w)
-	}
-	recipe := struct {
-		LoggedInUser string
-	}{
-		LoggedInUser: session["userid"],
-	}
-	err = executeTemplate(w, "login.html", recipe)
+	err := executeTemplate(w, "login.html", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -105,17 +95,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	session, err := getSession(r)
-	if err != nil {
-		log.Print(fmt.Sprintf("could not get session: %s", err))
-		clearSession(w)
-	}
-	recipe := struct {
-		LoggedInUser string
-	}{
-		LoggedInUser: session["userid"],
-	}
-	err = executeTemplate(w, "signup.html", recipe)
+	err := executeTemplate(w, "signup.html", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -123,11 +103,14 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 
 // profileHandler는 /profile 페이지로 사용자가 접속했을 때 사용자 프로필 페이지를 반환한다.
 func profileHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(r)
+	u, err := sessionUser(r)
 	if err != nil {
-		log.Print(fmt.Sprintf("could not get session: %s", err))
+		handleError(w, err)
 		clearSession(w)
-		http.Redirect(w, r, "/login/", http.StatusSeeOther)
+		return
+	}
+	if u == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 	if r.Method == "POST" {
@@ -140,7 +123,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 			PhoneNumber: r.FormValue("phone_number"),
 			EntryDate:   r.FormValue("entry_date"),
 		}
-		err = roi.UpdateUser(DB, session["userid"], upd)
+		err := roi.UpdateUser(DB, u.ID, upd)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not set user: %s", err), http.StatusInternalServerError)
 			return
@@ -148,17 +131,11 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/settings/profile", http.StatusSeeOther)
 		return
 	}
-	u, err := roi.GetUser(DB, session["userid"])
-	if err != nil {
-		http.Error(w, fmt.Sprintf("could not get user: %s", err.Error()), http.StatusInternalServerError)
-		return
-	}
-	fmt.Println(u)
 	recipe := struct {
 		LoggedInUser string
 		User         *roi.User
 	}{
-		LoggedInUser: session["userid"],
+		LoggedInUser: u.ID,
 		User:         u,
 	}
 	err = executeTemplate(w, "profile.html", recipe)
@@ -170,10 +147,14 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 // updatePasswordHandler는 /update-password 페이지로 사용자가 패스워드 변경과 관련된 정보를 보내면
 // 사용자 패스워드를 변경한다.
 func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(r)
+	u, err := sessionUser(r)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("could not get session: %s", err), http.StatusInternalServerError)
+		handleError(w, err)
 		clearSession(w)
+		return
+	}
+	if u == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 	oldpw := r.FormValue("old_password")
@@ -196,8 +177,7 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "passwords are not matched", http.StatusBadRequest)
 		return
 	}
-	id := session["userid"]
-	match, err := roi.UserPasswordMatch(DB, id, oldpw)
+	match, err := roi.UserPasswordMatch(DB, u.ID, oldpw)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -206,7 +186,7 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "entered password is not correct", http.StatusBadRequest)
 		return
 	}
-	err = roi.UpdateUserPassword(DB, id, newpw)
+	err = roi.UpdateUserPassword(DB, u.ID, newpw)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("could not change user password: %s", err), http.StatusInternalServerError)
 		return
@@ -216,10 +196,15 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 
 // userHandler는 루트 페이지로 사용자가 접근했을때 그 사용자에게 필요한 정보를 맞춤식으로 제공한다.
 func userHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(r)
+	u, err := sessionUser(r)
 	if err != nil {
-		log.Printf("could not get session: %s", err)
+		handleError(w, err)
 		clearSession(w)
+		return
+	}
+	if u == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
 	}
 	user := r.URL.Path[len("/user/"):]
 	tasks, err := roi.UserTasks(DB, user)
@@ -275,7 +260,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		TasksOfDay    map[string][]string
 		AllTaskStatus []roi.TaskStatus
 	}{
-		LoggedInUser:  session["userid"],
+		LoggedInUser:  u.ID,
 		User:          user,
 		Timeline:      timeline,
 		NumTasks:      numTasks,
@@ -290,10 +275,15 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func usersHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(r)
+	u, err := sessionUser(r)
 	if err != nil {
-		log.Printf("could not get session: %s", err)
+		handleError(w, err)
 		clearSession(w)
+		return
+	}
+	if u == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
 	}
 	us, err := roi.Users(DB)
 	if err != nil {
@@ -305,7 +295,7 @@ func usersHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedInUser string
 		Users        []*roi.User
 	}{
-		LoggedInUser: session["userid"],
+		LoggedInUser: u.ID,
 		Users:        us,
 	}
 	err = executeTemplate(w, "users.html", recipe)

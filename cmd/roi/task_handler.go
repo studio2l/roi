@@ -9,27 +9,15 @@ import (
 )
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(r)
+	u, err := sessionUser(r)
 	if err != nil {
-		http.Error(w, "could not get session", http.StatusUnauthorized)
-		clearSession(w)
-		return
-	}
-	u, err := roi.GetUser(DB, session["userid"])
-	if err != nil {
-		http.Error(w, "could not get user information", http.StatusInternalServerError)
+		handleError(w, err)
 		clearSession(w)
 		return
 	}
 	if u == nil {
-		http.Error(w, "user not exist", http.StatusBadRequest)
-		clearSession(w)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
-	}
-	if false {
-		// 할일: 오직 어드민, 프로젝트 슈퍼바이저, 프로젝트 매니저, CG 슈퍼바이저만
-		// 이 정보를 수정할 수 있도록 하기.
-		_ = u
 	}
 	show := r.FormValue("show")
 	if show == "" {
@@ -110,7 +98,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		AllTaskStatus []roi.TaskStatus
 		Versions      []*roi.Version // 역순
 	}{
-		LoggedInUser:  session["userid"],
+		LoggedInUser:  u.ID,
 		Task:          t,
 		AllTaskStatus: roi.AllTaskStatus,
 		Versions:      vers,

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -12,6 +11,17 @@ import (
 
 // shotsHandler는 /shots/ 페이지로 사용자가 접속했을때 페이지를 반환한다.
 func shotsHandler(w http.ResponseWriter, r *http.Request) {
+	u, err := sessionUser(r)
+	if err != nil {
+		handleError(w, err)
+		clearSession(w)
+		return
+	}
+	if u == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
 	show := r.URL.Path[len("/shots/"):]
 
 	ps, err := roi.AllShows(DB)
@@ -79,13 +89,6 @@ func shotsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		tasks[s.Shot] = tm
 	}
-
-	session, err := getSession(r)
-	if err != nil {
-		log.Print(fmt.Sprintf("could not get session: %s", err))
-		clearSession(w)
-	}
-
 	recipe := struct {
 		LoggedInUser  string
 		Shows         []string
@@ -96,7 +99,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request) {
 		AllTaskStatus []roi.TaskStatus
 		Query         string
 	}{
-		LoggedInUser:  session["userid"],
+		LoggedInUser:  u.ID,
 		Shows:         shows,
 		Show:          show,
 		Shots:         shots,
