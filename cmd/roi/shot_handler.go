@@ -10,27 +10,15 @@ import (
 )
 
 func addShotHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(r)
+	u, err := sessionUser(r)
 	if err != nil {
-		http.Error(w, "could not get session", http.StatusUnauthorized)
-		clearSession(w)
-		return
-	}
-	u, err := roi.GetUser(DB, session["userid"])
-	if err != nil {
-		http.Error(w, "could not get user information", http.StatusInternalServerError)
+		handleError(w, err)
 		clearSession(w)
 		return
 	}
 	if u == nil {
-		http.Error(w, "user not exist", http.StatusBadRequest)
-		clearSession(w)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
-	}
-	if false {
-		// 할일: 오직 어드민, 프로젝트 슈퍼바이저, 프로젝트 매니저, CG 슈퍼바이저만
-		// 이 정보를 수정할 수 있도록 하기.
-		_ = u
 	}
 	// 어떤 프로젝트에 샷을 생성해야 하는지 체크.
 	show := r.FormValue("show")
@@ -121,7 +109,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedInUser string
 		Show         *roi.Show
 	}{
-		LoggedInUser: session["userid"],
+		LoggedInUser: u.ID,
 		Show:         sw,
 	}
 	err = executeTemplate(w, "add-shot.html", recipe)
@@ -131,27 +119,15 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateShotHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(r)
+	u, err := sessionUser(r)
 	if err != nil {
-		http.Error(w, "could not get session", http.StatusUnauthorized)
-		clearSession(w)
-		return
-	}
-	u, err := roi.GetUser(DB, session["userid"])
-	if err != nil {
-		http.Error(w, "could not get user information", http.StatusInternalServerError)
+		handleError(w, err)
 		clearSession(w)
 		return
 	}
 	if u == nil {
-		http.Error(w, "user not exist", http.StatusBadRequest)
-		clearSession(w)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
-	}
-	if false {
-		// 할일: 오직 어드민, 프로젝트 슈퍼바이저, 프로젝트 매니저, CG 슈퍼바이저만
-		// 이 정보를 수정할 수 있도록 하기.
-		_ = u
 	}
 	show := r.FormValue("show")
 	if show == "" {
@@ -262,7 +238,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		Tasks         map[string]*roi.Task
 		AllTaskStatus []roi.TaskStatus
 	}{
-		LoggedInUser:  session["userid"],
+		LoggedInUser:  u.ID,
 		Shot:          s,
 		AllShotStatus: roi.AllShotStatus,
 		Tasks:         tm,

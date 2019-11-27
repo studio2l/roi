@@ -19,12 +19,18 @@ func mustFields(r *http.Request, keys ...string) error {
 	return nil
 }
 
-func getSessionUser(r *http.Request) (*roi.User, error) {
+// sessionUser는 현재 http 요청의 세션 쿠키에서 userid를 검사하여,
+// 그 아이디에 해당하는 유저를 반환한다.
+// 세션에 userid 정보가 없다면 nil 유저를 반환한다.
+func sessionUser(r *http.Request) (*roi.User, error) {
 	session, err := getSession(r)
 	if err != nil {
 		return nil, httpError{msg: "could not get session", code: http.StatusUnauthorized}
 	}
 	user := session["userid"]
+	if user == "" {
+		return nil, nil
+	}
 	u, err := roi.GetUser(DB, user)
 	if err != nil {
 		return nil, httpError{msg: "could not get user information", code: http.StatusInternalServerError}

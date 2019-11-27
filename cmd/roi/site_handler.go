@@ -8,10 +8,15 @@ import (
 )
 
 func siteHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(r)
+	u, err := sessionUser(r)
 	if err != nil {
-		log.Printf("could not get session: %s", err)
+		handleError(w, err)
 		clearSession(w)
+		return
+	}
+	if u == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
 	}
 	if r.Method == "POST" {
 		s := &roi.Site{
@@ -42,7 +47,7 @@ func siteHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedInUser string
 		Site         *roi.Site
 	}{
-		LoggedInUser: session["userid"],
+		LoggedInUser: u.ID,
 		Site:         s,
 	}
 	err = executeTemplate(w, "site.html", recipe)

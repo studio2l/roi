@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"sort"
@@ -13,17 +12,17 @@ import (
 
 // rootHandler는 루트 페이지로 사용자가 접근했을때 그 사용자에게 필요한 정보를 맞춤식으로 제공한다.
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(r)
+	u, err := sessionUser(r)
 	if err != nil {
-		log.Print(fmt.Sprintf("could not get session: %s", err))
+		handleError(w, err)
 		clearSession(w)
+		return
 	}
-	if session == nil || session["userid"] == "" {
+	if u == nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-	user := session["userid"]
-	tasks, err := roi.UserTasks(DB, user)
+	tasks, err := roi.UserTasks(DB, u.ID)
 	if err != nil {
 		log.Printf("could not get user tasks: %v", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -76,8 +75,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		TasksOfDay    map[string][]string
 		AllTaskStatus []roi.TaskStatus
 	}{
-		LoggedInUser:  session["userid"],
-		User:          session["userid"],
+		LoggedInUser:  u.ID,
+		User:          u.ID,
 		Timeline:      timeline,
 		NumTasks:      numTasks,
 		TaskFromID:    taskFromID,
