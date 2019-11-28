@@ -24,3 +24,11 @@ func handleError(w http.ResponseWriter, err error) {
 	log.Print(err)
 	http.Error(w, "internal error", http.StatusInternalServerError)
 }
+
+func BadRequest(err error) httpError {
+	return httpError{msg: err.Error(), code: http.StatusBadRequest}
+}
+
+func Internal(err error) httpError {
+	return httpError{msg: err.Error(), code: http.StatusInternalServerError}
+}

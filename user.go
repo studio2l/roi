@@ -139,7 +139,7 @@ func Users(db *sql.DB) ([]*User, error) {
 }
 
 // GetUser는 db에서 사용자를 검색한다.
-// 해당 유저를 찾지 못하면 nil이 반환된다.
+// 해당 유저를 찾지 못하면 nil과 NotFound 에러를 반환한다.
 func GetUser(db *sql.DB, id string) (*User, error) {
 	keystr := strings.Join(UserTableKeys, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", keystr, id)
@@ -149,7 +149,7 @@ func GetUser(db *sql.DB, id string) (*User, error) {
 	}
 	ok := rows.Next()
 	if !ok {
-		return nil, nil
+		return nil, NotFound{"user", id}
 	}
 	u := &User{}
 	if err := rows.Scan(&u.ID, &u.KorName, &u.Name, &u.Team, &u.Role, &u.Email, &u.PhoneNumber, &u.EntryDate); err != nil {

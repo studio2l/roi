@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -33,6 +34,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		err := mustFields(r, "version")
 		if err != nil {
 			handleError(w, err)
+			return
 		}
 		version := r.FormValue("version")
 		timeForms, err := parseTimeForms(r.Form, "created")
@@ -40,13 +42,13 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 			handleError(w, err)
 			return
 		}
-		t, err := roi.GetTask(DB, show, shot, task)
+		_, err = roi.GetTask(DB, show, shot, task)
 		if err != nil {
-			handleError(w, httpError{msg: err.Error(), code: http.StatusInternalServerError})
-			return
-		}
-		if t == nil {
-			handleError(w, httpError{msg: fmt.Sprintf("task not found: %s", taskID), code: http.StatusBadRequest})
+			if errors.As(err, &roi.NotFound{}) {
+				handleError(w, BadRequest(err))
+				return
+			}
+			handleError(w, Internal(err))
 			return
 		}
 		mov := fmt.Sprintf("data/show/%s/%s/%s/%s/1.mov", show, shot, task, version)
@@ -112,14 +114,13 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 	show := r.FormValue("show")
 	shot := r.FormValue("shot")
 	task := r.FormValue("task")
-	taskID := fmt.Sprintf("%s.%s.%s", show, shot, task)
-	t, err := roi.GetTask(DB, show, shot, task)
+	_, err = roi.GetTask(DB, show, shot, task)
 	if err != nil {
-		handleError(w, httpError{msg: err.Error(), code: http.StatusInternalServerError})
-		return
-	}
-	if t == nil {
-		handleError(w, fmt.Errorf("task not found: %s", taskID))
+		if errors.As(err, &roi.NotFound{}) {
+			handleError(w, BadRequest(err))
+			return
+		}
+		handleError(w, Internal(err))
 		return
 	}
 	version := r.FormValue("version")
@@ -157,11 +158,11 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := roi.GetVersion(DB, show, shot, task, version)
 	if err != nil {
-		handleError(w, httpError{msg: fmt.Sprintf("could not get version: %s: %v", versionID, err), code: http.StatusInternalServerError})
-		return
-	}
-	if v == nil {
-		handleError(w, fmt.Errorf("version not exist: %s", versionID))
+		if errors.As(err, &roi.NotFound{}) {
+			handleError(w, BadRequest(err))
+			return
+		}
+		handleError(w, Internal(err))
 		return
 	}
 	recipe := struct {

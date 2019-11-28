@@ -2,7 +2,6 @@ package roi
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -132,7 +131,7 @@ func siteFromRows(rows *sql.Rows) (*Site, error) {
 }
 
 // GetSite는 db에서 사이트 정보를 가지고 온다.
-// 사이트 정보는 항상 존재해야 한다.
+// 사이트 정보가 존재하지 않으면 nil과 NotFound 에러를 반환한다.
 func GetSite(db *sql.DB) (*Site, error) {
 	keystr := strings.Join(SitesTableKeys, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM sites LIMIT 1", keystr)
@@ -142,7 +141,7 @@ func GetSite(db *sql.DB) (*Site, error) {
 	}
 	ok := rows.Next()
 	if !ok {
-		return nil, errors.New("site should exist")
+		return nil, NotFound{"site", "(only one yet)"}
 	}
 	return siteFromRows(rows)
 }

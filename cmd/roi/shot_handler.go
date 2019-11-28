@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -47,8 +48,11 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sw, err := roi.GetShow(DB, show)
 	if err != nil {
-		log.Printf("could not get show '%s': %v", show, err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
+		if errors.As(err, &roi.NotFound{}) {
+			handleError(w, BadRequest(err))
+			return
+		}
+		handleError(w, Internal(err))
 		return
 	}
 	if sw == nil {
@@ -213,8 +217,11 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	s, err := roi.GetShot(DB, show, shot)
 	if err != nil {
-		log.Print(err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
+		if errors.As(err, &roi.NotFound{}) {
+			handleError(w, BadRequest(err))
+			return
+		}
+		handleError(w, Internal(err))
 		return
 	}
 	if s == nil {

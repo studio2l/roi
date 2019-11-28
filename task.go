@@ -226,8 +226,8 @@ func taskFromRows(rows *sql.Rows) (*Task, error) {
 	return t, nil
 }
 
-// GetTask는 db의 특정 프로젝트에서 해당 태스크를 찾는다.
-// 만일 그 이름의 태스크가 없다면 nil이 반환된다.
+// GetTask는 db에서 하나의 태스크를 찾는다.
+// 해당 태스크가 없다면 nil과 NotFound 에러를 반환한다.
 func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
 	keystr := strings.Join(TaskTableKeys, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2 AND task=$3 LIMIT 1", keystr)
@@ -237,7 +237,8 @@ func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
 	}
 	ok := rows.Next()
 	if !ok {
-		return nil, nil
+		id := prj + "/" + shot + "/" + task
+		return nil, NotFound{"task", id}
 	}
 	return taskFromRows(rows)
 }

@@ -198,8 +198,8 @@ func versionFromRows(rows *sql.Rows) (*Version, error) {
 	return v, nil
 }
 
-// GetVersion은 db의 특정 태스크의 해당 아웃풋을 찾는다.
-// 만일 그 버전의 아웃풋이 없다면 nil이 반환된다.
+// GetVersion은 db에서 하나의 버전을 찾는다.
+// 해당 버전이 없다면 nil과 NotFound 에러를 반환한다.
 func GetVersion(db *sql.DB, prj, shot, task string, version string) (*Version, error) {
 	keystr := strings.Join(VersionTableKeys, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2 AND task=$3 AND version=$4 LIMIT 1", keystr)
@@ -209,7 +209,8 @@ func GetVersion(db *sql.DB, prj, shot, task string, version string) (*Version, e
 	}
 	ok := rows.Next()
 	if !ok {
-		return nil, nil
+		id := prj + "/" + shot + "/" + task + "/" + version
+		return nil, NotFound{"version", id}
 	}
 	return versionFromRows(rows)
 }

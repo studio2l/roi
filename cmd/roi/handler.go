@@ -31,14 +31,7 @@ func sessionUser(r *http.Request) (*roi.User, error) {
 	if user == "" {
 		return nil, nil
 	}
-	u, err := roi.GetUser(DB, user)
-	if err != nil {
-		return nil, httpError{msg: "could not get user information", code: http.StatusInternalServerError}
-	}
-	if u == nil {
-		return nil, httpError{msg: fmt.Sprintf("user not exist: %s", user), code: http.StatusBadRequest}
-	}
-	return u, nil
+	return roi.GetUser(DB, user)
 }
 
 func saveFormFile(r *http.Request, field string, dst string) error {

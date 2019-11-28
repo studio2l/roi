@@ -311,8 +311,8 @@ func showFromRows(rows *sql.Rows) (*Show, error) {
 	return p, nil
 }
 
-// GetShow는 db에서 특정 쇼 정보를 부른다.
-// 해당 쇼가 없다면 nil이 반환된다.
+// GetShow는 db에서 하나의 쇼를 부른다.
+// 해당 쇼가 없다면 nil과 NotFound 에러를 반환한다.
 func GetShow(db *sql.DB, prj string) (*Show, error) {
 	keystr := strings.Join(ShowTableKeys, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM shows WHERE show=$1", keystr)
@@ -321,7 +321,7 @@ func GetShow(db *sql.DB, prj string) (*Show, error) {
 		return nil, err
 	}
 	if !rows.Next() {
-		return nil, nil
+		return nil, NotFound{"show", prj}
 	}
 	p, err := showFromRows(rows)
 	if err != nil {

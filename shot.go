@@ -275,8 +275,8 @@ func shotFromRows(rows *sql.Rows) (*Shot, error) {
 	return s, nil
 }
 
-// GetShot은 db의 특정 프로젝트에서 샷 이름으로 해당 샷을 찾는다.
-// 만일 그 이름의 샷이 없다면 nil이 반환된다.
+// GetShot은 db에서 하나의 샷을 찾는다.
+// 해당 샷이 존재하지 않는다면 nil과 NotFound 에러를 반환한다.
 func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 	keystr := strings.Join(ShotTableKeys, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND shot=$2 LIMIT 1", keystr)
@@ -286,7 +286,8 @@ func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 	}
 	ok := rows.Next()
 	if !ok {
-		return nil, nil
+		id := prj + "/" + shot
+		return nil, NotFound{"shot", id}
 	}
 	return shotFromRows(rows)
 }
