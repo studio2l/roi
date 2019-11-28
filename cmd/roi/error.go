@@ -16,13 +16,11 @@ func (e httpError) Error() string {
 
 func handleError(w http.ResponseWriter, err error) {
 	if e, ok := err.(httpError); ok {
-		if e.code == http.StatusInternalServerError {
-			log.Print(e.msg)
-			http.Error(w, "internal error", e.code)
+		if e.code != http.StatusInternalServerError {
+			http.Error(w, e.msg, e.code)
 			return
 		}
-		http.Error(w, e.msg, e.code)
-		return
 	}
-	http.Error(w, err.Error(), http.StatusBadRequest)
+	log.Print(err)
+	http.Error(w, "internal error", http.StatusInternalServerError)
 }
