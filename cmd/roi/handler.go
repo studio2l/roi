@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 func mustFields(r *http.Request, keys ...string) error {
 	for _, k := range keys {
 		if r.FormValue(k) == "" {
-			return httpError{msg: fmt.Sprintf("form field not found: %s", k), code: http.StatusBadRequest}
+			return roi.BadRequest{fmt.Sprintf("form field not found: %s", k)}
 		}
 	}
 	return nil
@@ -25,7 +26,7 @@ func mustFields(r *http.Request, keys ...string) error {
 func sessionUser(r *http.Request) (*roi.User, error) {
 	session, err := getSession(r)
 	if err != nil {
-		return nil, httpError{msg: "could not get session", code: http.StatusUnauthorized}
+		return nil, roi.Internal{errors.New("could not get session")}
 	}
 	user := session["userid"]
 	if user == "" {
@@ -38,25 +39,26 @@ func saveFormFile(r *http.Request, field string, dst string) error {
 	f, fi, err := r.FormFile(field)
 	if err != nil {
 		if err == http.ErrMissingFile {
+			// 사용자가 파일을 업로드 하지 않은 것은 에러가 아니다.
 			return nil
 		}
 		return err
 	}
 	defer f.Close()
 	if fi.Size > (32 << 20) {
-		return httpError{msg: fmt.Sprintf("mov: file size too big (got %dMB, maximum 32MB)", fi.Size>>20), code: http.StatusBadRequest}
+		return roi.BadRequest{fmt.Sprintf("mov: file size too big (got %dMB, maximum 32MB)", fi.Size>>20)}
 	}
 	data, err := ioutil.ReadAll(f)
 	if err != nil {
-		return httpError{msg: "could not read file data", code: http.StatusInternalServerError}
+		return roi.Internal{fmt.Errorf("could not read file data: %w", err)}
 	}
 	err = os.MkdirAll(filepath.Dir(dst), 0755)
 	if err != nil {
-		return httpError{msg: fmt.Sprintf("could not create directory: %v", err), code: http.StatusInternalServerError}
+		return roi.Internal{fmt.Errorf("could not create directory: %w", err)}
 	}
 	err = ioutil.WriteFile(dst, data, 0755)
 	if err != nil {
-		return httpError{msg: fmt.Sprintf("could not save file: %v", err), code: http.StatusInternalServerError}
+		return roi.Internal{fmt.Errorf("could not save file: %w", err)}
 	}
 	return nil
 }

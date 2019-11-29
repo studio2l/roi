@@ -20,7 +20,11 @@ func initTestDB() (*sql.DB, error) {
 
 // testDB는 로이의 테스트 DB 핸들러를 반환한다.
 func testDB() (*sql.DB, error) {
-	return sql.Open("postgres", "postgresql://root@localhost:54545/roi?sslmode=disable")
+	db, err := sql.Open("postgres", "postgresql://root@localhost:54545/roi?sslmode=disable")
+	if err != nil {
+		return nil, Internal{err}
+	}
+	return db, nil
 }
 
 func TestMain(m *testing.M) {
