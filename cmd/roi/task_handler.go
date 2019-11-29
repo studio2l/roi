@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -78,12 +79,11 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	t, err := roi.GetTask(DB, show, shot, task)
 	if err != nil {
-		log.Printf("could not get task '%s': %v", taskID, err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-	if t == nil {
-		http.Error(w, fmt.Sprintf("task '%s' not exist", taskID), http.StatusBadRequest)
+		if errors.As(err, &roi.NotFound{}) {
+			handleError(w, BadRequest(err))
+			return
+		}
+		handleError(w, Internal(err))
 		return
 	}
 	vers, err := roi.TaskVersions(DB, show, shot, task)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
@@ -39,8 +40,11 @@ func siteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	s, err := roi.GetSite(DB)
 	if err != nil {
-		log.Printf("could not get site: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
+		if errors.As(err, &roi.NotFound{}) {
+			handleError(w, BadRequest(err))
+			return
+		}
+		handleError(w, Internal(err))
 		return
 	}
 	recipe := struct {
