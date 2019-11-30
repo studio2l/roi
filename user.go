@@ -82,6 +82,9 @@ var UserTableIndicesWithHashedPassword = append(
 
 // AddUser는 db에 한 명의 사용자를 추가한다.
 func AddUser(db *sql.DB, id, pw string) error {
+	if id == "" {
+		return BadRequest("need id")
+	}
 	// 이 이름을 가진 사용자가 이미 있는지 검사한다.
 	exist, err := UserExist(db, id)
 	if err != nil {
