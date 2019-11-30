@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/studio2l/roi"
 )
 
 // templates에는 사용자에게 보일 페이지의 템플릿이 담긴다.
@@ -20,7 +22,11 @@ func executeTemplate(w http.ResponseWriter, name string, data interface{}) error
 	if dev {
 		parseTemplate()
 	}
-	return templates.ExecuteTemplate(w, name, data)
+	err := templates.ExecuteTemplate(w, name, data)
+	if err != nil {
+		return roi.Internal(err)
+	}
+	return nil
 }
 
 // parseTemplate은 tmpl 디렉토리 안의 html파일들을 파싱하여 http 응답에 사용될 수 있도록 한다.
