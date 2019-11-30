@@ -147,11 +147,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	if len(tasks) == 0 {
 		p, err := roi.GetShow(DB, show)
 		if err != nil {
-			if errors.As(err, &roi.NotFound{}) {
-				handleError(w, BadRequest(err))
-				return
-			}
-			handleError(w, Internal(err))
+			handleError(w, err)
 			return
 		}
 		tasks = p.DefaultTasks

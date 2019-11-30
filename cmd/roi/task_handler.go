@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -79,11 +78,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	t, err := roi.GetTask(DB, show, shot, task)
 	if err != nil {
-		if errors.As(err, &roi.NotFound{}) {
-			handleError(w, BadRequest(err))
-			return
-		}
-		handleError(w, Internal(err))
+		handleError(w, err)
 		return
 	}
 	vers, err := roi.TaskVersions(DB, show, shot, task)

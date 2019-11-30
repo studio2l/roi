@@ -128,25 +128,25 @@ var TaskTableIndices = dbIndices(TaskTableKeys)
 // AddTask는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddTask(db *sql.DB, prj, shot string, t *Task) error {
 	if prj == "" {
-		return fmt.Errorf("show not specified")
+		return BadRequest("show not specified")
 	}
 	if shot == "" {
-		return fmt.Errorf("shot not specified")
+		return BadRequest("shot not specified")
 	}
 	if t == nil {
-		return fmt.Errorf("nil task")
+		return BadRequest("nil task")
 	}
 	if t.Task == "" {
-		return fmt.Errorf("task name not specified")
+		return BadRequest("task not specified")
 	}
 	if !isValidTaskStatus(t.Status) {
-		return fmt.Errorf("invalid task status: '%s'", t.Status)
+		return BadRequest(fmt.Sprintf("invalid task status: '%s'", t.Status))
 	}
 	keystr := strings.Join(TaskTableKeys, ", ")
 	idxstr := strings.Join(TaskTableIndices, ", ")
 	stmt := fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", keystr, idxstr)
 	if _, err := db.Exec(stmt, t.dbValues()...); err != nil {
-		return err
+		return Internal(err)
 	}
 	return nil
 }
@@ -182,22 +182,22 @@ func (u UpdateTaskParam) values() []interface{} {
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
 func UpdateTask(db *sql.DB, prj, shot, task string, upd UpdateTaskParam) error {
 	if prj == "" {
-		return fmt.Errorf("show not specified")
+		return BadRequest("show not specified")
 	}
 	if shot == "" {
-		return fmt.Errorf("shot not specified")
+		return BadRequest("shot not specified")
 	}
 	if task == "" {
-		return fmt.Errorf("task name not specified")
+		return BadRequest("task name not specified")
 	}
 	if !isValidTaskStatus(upd.Status) {
-		return fmt.Errorf("invalid task status: '%s'", upd.Status)
+		return BadRequest(fmt.Sprintf("invalid task status: '%s'", upd.Status))
 	}
 	keystr := strings.Join(upd.keys(), ", ")
 	idxstr := strings.Join(upd.indices(), ", ")
 	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s'", keystr, idxstr, prj, shot, task)
 	if _, err := db.Exec(stmt, upd.values()...); err != nil {
-		return err
+		return Internal(err)
 	}
 	return nil
 }
@@ -207,7 +207,7 @@ func TaskExist(db *sql.DB, prj, shot, task string) (bool, error) {
 	stmt := "SELECT task FROM tasks WHERE show=$1 AND shot=$2 AND task=$3 LIMIT 1"
 	rows, err := db.Query(stmt, prj, shot, task)
 	if err != nil {
-		return false, err
+		return false, Internal(err)
 	}
 	return rows.Next(), nil
 }
@@ -221,7 +221,7 @@ func taskFromRows(rows *sql.Rows) (*Task, error) {
 		&t.StartDate, &t.EndDate, &t.DueDate,
 	)
 	if err != nil {
-		return nil, err
+		return nil, Internal(err)
 	}
 	return t, nil
 }
@@ -233,12 +233,12 @@ func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2 AND task=$3 LIMIT 1", keystr)
 	rows, err := db.Query(stmt, prj, shot, task)
 	if err != nil {
-		return nil, err
+		return nil, Internal(err)
 	}
 	ok := rows.Next()
 	if !ok {
 		id := prj + "/" + shot + "/" + task
-		return nil, NotFound{"task", id}
+		return nil, NotFound("task", id)
 	}
 	return taskFromRows(rows)
 }
@@ -249,7 +249,7 @@ func ShotTasks(db *sql.DB, prj, shot string) ([]*Task, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2", keystr)
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
-		return nil, err
+		return nil, Internal(err)
 	}
 	tasks := make([]*Task, 0)
 	for rows.Next() {
@@ -275,7 +275,7 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.show = shots.show AND tasks.shot = shots.shot)  WHERE tasks.assignee='%s' AND tasks.task = ANY(shots.working_tasks)", keystr, user)
 	rows, err := db.Query(stmt)
 	if err != nil {
-		return nil, err
+		return nil, Internal(err)
 	}
 	tasks := make([]*Task, 0)
 	for rows.Next() {
@@ -292,6 +292,10 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 // 해당 태스크가 없어도 에러를 내지 않기 때문에 검사를 원한다면 TaskExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
 func DeleteTask(db *sql.DB, prj, shot, task string) error {
+	_, err := GetTask(db, prj, shot, task)
+	if err != nil {
+		return err
+	}
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("could not begin a transaction: %v", err)
@@ -303,5 +307,9 @@ func DeleteTask(db *sql.DB, prj, shot, task string) error {
 	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1 AND shot=$2 AND task=$3", prj, shot, task); err != nil {
 		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
 	}
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return Internal(err)
+	}
+	return nil
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -44,11 +43,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		_, err = roi.GetTask(DB, show, shot, task)
 		if err != nil {
-			if errors.As(err, &roi.NotFound{}) {
-				handleError(w, BadRequest(err))
-				return
-			}
-			handleError(w, Internal(err))
+			handleError(w, err)
 			return
 		}
 		mov := fmt.Sprintf("data/show/%s/%s/%s/%s/1.mov", show, shot, task, version)
@@ -68,7 +63,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err = roi.AddVersion(DB, show, shot, task, v)
 		if err != nil {
-			handleError(w, httpError{msg: fmt.Sprintf("could not add version to task '%s': %v", taskID, err), code: http.StatusInternalServerError})
+			handleError(w, fmt.Errorf("could not add version to task '%s': %w", taskID, err))
 			return
 		}
 		http.Redirect(w, r, fmt.Sprintf("/update-version?show=%s&shot=%s&task=%s&version=%s", show, shot, task, version), http.StatusSeeOther)
@@ -116,11 +111,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 	task := r.FormValue("task")
 	_, err = roi.GetTask(DB, show, shot, task)
 	if err != nil {
-		if errors.As(err, &roi.NotFound{}) {
-			handleError(w, BadRequest(err))
-			return
-		}
-		handleError(w, Internal(err))
+		handleError(w, err)
 		return
 	}
 	version := r.FormValue("version")
@@ -128,7 +119,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		exist, err := roi.VersionExist(DB, show, shot, task, version)
 		if err != nil {
-			handleError(w, httpError{msg: fmt.Sprintf("could not check version exist: %s: %v", versionID, err), code: http.StatusInternalServerError})
+			handleError(w, err)
 			return
 		}
 		if !exist {
@@ -158,11 +149,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	v, err := roi.GetVersion(DB, show, shot, task, version)
 	if err != nil {
-		if errors.As(err, &roi.NotFound{}) {
-			handleError(w, BadRequest(err))
-			return
-		}
-		handleError(w, Internal(err))
+		handleError(w, err)
 		return
 	}
 	recipe := struct {
