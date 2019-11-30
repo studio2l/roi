@@ -177,7 +177,7 @@ func UserPasswordMatch(db *sql.DB, id, pw string) (bool, error) {
 	rows.Scan(&hashed_password)
 	err = bcrypt.CompareHashAndPassword([]byte(hashed_password), []byte(pw))
 	if err != nil {
-		return false, Internal(err)
+		return false, BadRequest("password not match")
 	}
 	return true, nil
 }

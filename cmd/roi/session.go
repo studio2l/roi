@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/securecookie"
+	"github.com/studio2l/roi"
 )
 
 // cookieHandler는 클라이언트 브라우저 세션에 암호화된 쿠키를 저장을 돕는다.
@@ -13,7 +14,7 @@ var cookieHandler *securecookie.SecureCookie
 func setSession(w http.ResponseWriter, session map[string]string) error {
 	encoded, err := cookieHandler.Encode("session", session)
 	if err != nil {
-		return err
+		return roi.Internal(err)
 	}
 	c := &http.Cookie{
 		Name:  "session",
