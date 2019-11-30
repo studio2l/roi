@@ -38,7 +38,7 @@ type BadRequestError struct {
 	msg string
 }
 
-// BadRequest는 BadRequestError 에러를 반환한다.
+// BadRequest는 BadRequestError를 반환한다.
 func BadRequest(msg string) BadRequestError {
 	return BadRequestError{msg: msg}
 }
@@ -55,13 +55,13 @@ func (e BadRequestError) Log() string {
 	return ""
 }
 
-// InternalError은 문제가 서버 밖으로 전달되지 않아야 하는 때 반환되는 에러이다.
+// InternalError은 문제가 서버 밖으로 전달되지 않아야 함을 의미하는 에러이다.
 // InternalError은 errors.Wrapper 인터페이스를 만족한다.
 type InternalError struct {
 	err error
 }
 
-// Internal은 InternalError 에러를 반환한다.
+// Internal은 InternalError를 반환한다.
 func Internal(err error) InternalError {
 	return InternalError{err}
 }
@@ -82,12 +82,13 @@ func (e InternalError) Unwrap() error {
 	return e.err
 }
 
-// AuthError는 특정 사용자가 허락되지 않은 행동을 요청했을 때 반환되는 에러이다.
+// AuthError는 특정 사용자가 허락되지 않은 행동을 요청했음을 의미하는 에러이다.
 type AuthError struct {
 	user string
 	op   string
 }
 
+// Auth는 AuthError를 반환한다.
 func Auth(user, op string) AuthError {
 	return AuthError{user: user, op: op}
 }
