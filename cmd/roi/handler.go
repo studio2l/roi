@@ -4,12 +4,61 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/studio2l/roi"
 )
+
+type Env struct {
+	SessionUser *roi.User
+}
+
+// HandlerFunc는 이 패키지에서 사용하는 핸들 함수이다.
+type HandlerFunc func(w http.ResponseWriter, r *http.Request, env *Env) error
+
+// handle은 이 패키지에서 사용하는 핸들 함수를 http.HandleFunc로 변경한다.
+func handle(serve HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var u *roi.User
+		if !(r.URL.Path == "/login" || r.URL.Path == "/login/") {
+			var err error
+			u, err = sessionUser(r)
+			if err != nil {
+				if errors.As(err, &roi.NotFoundError{}) {
+					http.Redirect(w, r, "/login", http.StatusSeeOther)
+					return
+				}
+				handleError(w, err)
+				clearSession(w)
+				return
+			}
+		}
+		env := &Env{
+			SessionUser: u,
+		}
+		err := serve(w, r, env)
+		if err != nil {
+			handleError(w, err)
+		}
+	}
+}
+
+// handleError는 handle에서 요청을 처리하던 도중 에러가 났을 때 에러 메시지를 답신한다.
+func handleError(w http.ResponseWriter, err error) {
+	var e roi.Error
+	if errors.As(err, &e) {
+		if e.Log() != "" {
+			log.Print(e.Log())
+		}
+		http.Error(w, err.Error(), e.Code())
+		return
+	}
+	log.Print(err)
+	http.Error(w, "internal error", http.StatusInternalServerError)
+}
 
 func mustFields(r *http.Request, keys ...string) error {
 	for _, k := range keys {
@@ -33,11 +82,13 @@ func sessionUser(r *http.Request) (*roi.User, error) {
 		return nil, roi.NotFound("user", "")
 	}
 	u, err := roi.GetUser(DB, user)
-	if errors.As(err, &roi.NotFoundError{}) {
-		// 일반적으로 db에 사용자가 없는 것은 NotFound 에러를 내지만,
-		// 존재하지 않는 사용자가 세션 유저로 등록되어 있는 것은 해킹일 가능성이 높다.
-		// 로그에 남도록 Internal 에러를 내고 %v 포매팅을 사용해 NotFound 타입정보는 지운다.
-		return nil, roi.Internal(fmt.Errorf("warn: invalid session user (malicious attack?): %s: %v", user, err))
+	if err != nil {
+		if errors.As(err, &roi.NotFoundError{}) {
+			// 일반적으로 db에 사용자가 없는 것은 NotFound 에러를 내지만,
+			// 존재하지 않는 사용자가 세션 유저로 등록되어 있는 것은 해킹일 가능성이 높다.
+			// 로그에 남도록 Internal 에러를 내고 %v 포매팅을 사용해 NotFound 타입정보는 지운다.
+			return nil, roi.Internal(fmt.Errorf("warn: invalid session user (malicious attack?): %s: %v", user, err))
+		}
 	}
 	return u, nil
 }
