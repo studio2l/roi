@@ -226,10 +226,10 @@ var ShotTableIndices = dbIndices(ShotTableKeys)
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
 func AddShot(db *sql.DB, prj string, s *Shot) error {
 	if prj == "" {
-		return BadRequest{"show code not specified"}
+		return BadRequest("show code not specified")
 	}
 	if s == nil {
-		return BadRequest{"nil shot is invalid"}
+		return BadRequest("nil shot is invalid")
 	}
 	if s.Tags == nil {
 		s.Tags = make([]string, 0)
@@ -238,13 +238,13 @@ func AddShot(db *sql.DB, prj string, s *Shot) error {
 		s.WorkingTasks = make([]string, 0)
 	}
 	if !isValidShotStatus(s.Status) {
-		return BadRequest{fmt.Sprintf("invalid shot status: '%s'", s.Status)}
+		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", s.Status))
 	}
 	keys := strings.Join(ShotTableKeys, ", ")
 	idxs := strings.Join(ShotTableIndices, ", ")
 	stmt := fmt.Sprintf("INSERT INTO shots (%s) VALUES (%s)", keys, idxs)
 	if _, err := db.Exec(stmt, s.dbValues()...); err != nil {
-		return Internal{err}
+		return Internal(err)
 	}
 	return nil
 }
@@ -254,7 +254,7 @@ func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
 	stmt := "SELECT shot FROM shots WHERE show=$1 AND shot=$2 LIMIT 1"
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
-		return false, Internal{err}
+		return false, Internal(err)
 	}
 	return rows.Next(), nil
 }
@@ -269,7 +269,7 @@ func shotFromRows(rows *sql.Rows) (*Shot, error) {
 		&s.StartDate, &s.EndDate, &s.DueDate,
 	)
 	if err != nil {
-		return nil, Internal{err}
+		return nil, Internal(err)
 	}
 	return s, nil
 }
@@ -281,12 +281,12 @@ func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND shot=$2 LIMIT 1", keystr)
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
-		return nil, Internal{err}
+		return nil, Internal(err)
 	}
 	ok := rows.Next()
 	if !ok {
 		id := prj + "/" + shot
-		return nil, NotFound{"shot", id}
+		return nil, NotFound("shot", id)
 	}
 	return shotFromRows(rows)
 }
@@ -348,7 +348,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 	}
 	rows, err := db.Query(stmt, vals...)
 	if err != nil {
-		return nil, Internal{err}
+		return nil, Internal(err)
 	}
 	defer rows.Close()
 	// 태스크 검색을 해 JOIN이 되면 샷이 중복으로 추가될 수 있다.
@@ -359,7 +359,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 	for rows.Next() {
 		s, err := shotFromRows(rows)
 		if err != nil {
-			return nil, Internal{err}
+			return nil, Internal(err)
 		}
 		ok := hasShot[s.Shot]
 		if ok {
@@ -432,19 +432,19 @@ func (u UpdateShotParam) values() []interface{} {
 // UpdateShot은 db에서 해당 샷을 수정한다.
 func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 	if prj == "" {
-		return BadRequest{"show code not specified"}
+		return BadRequest("show code not specified")
 	}
 	if shot == "" {
-		return BadRequest{"shot id empty"}
+		return BadRequest("shot id empty")
 	}
 	if !isValidShotStatus(upd.Status) {
-		return BadRequest{fmt.Sprintf("invalid shot status: '%s'", upd.Status)}
+		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", upd.Status))
 	}
 	keystr := strings.Join(upd.keys(), ", ")
 	idxstr := strings.Join(upd.indices(), ", ")
 	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", keystr, idxstr, prj, shot)
 	if _, err := db.Exec(stmt, upd.values()...); err != nil {
-		return Internal{err}
+		return Internal(err)
 	}
 	return nil
 }
@@ -455,21 +455,21 @@ func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 func DeleteShot(db *sql.DB, prj, shot string) error {
 	tx, err := db.Begin()
 	if err != nil {
-		return Internal{fmt.Errorf("could not begin a transaction: %w", err)}
+		return Internal(fmt.Errorf("could not begin a transaction: %w", err))
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
 	if _, err := tx.Exec("DELETE FROM shots WHERE show=$1 AND shot=$2", prj, shot); err != nil {
-		return Internal{fmt.Errorf("could not delete data from 'shots' table: %w", err)}
+		return Internal(fmt.Errorf("could not delete data from 'shots' table: %w", err))
 	}
 	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1 AND shot=$2", prj, shot); err != nil {
-		return Internal{fmt.Errorf("could not delete data from 'tasks' table: %w", err)}
+		return Internal(fmt.Errorf("could not delete data from 'tasks' table: %w", err))
 	}
 	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1 AND shot=$2", prj, shot); err != nil {
-		return Internal{fmt.Errorf("could not delete data from 'versions' table: %w", err)}
+		return Internal(fmt.Errorf("could not delete data from 'versions' table: %w", err))
 	}
 	err = tx.Commit()
 	if err != nil {
-		return Internal{err}
+		return Internal(err)
 	}
 	return nil
 }

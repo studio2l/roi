@@ -112,7 +112,7 @@ func UserExist(db *sql.DB, id string) (bool, error) {
 	stmt := fmt.Sprintf("SELECT id FROM users WHERE id='%s'", id)
 	rows, err := db.Query(stmt)
 	if err != nil {
-		return false, Internal{err}
+		return false, Internal(err)
 	}
 	return rows.Next(), rows.Err()
 }
@@ -122,18 +122,18 @@ func Users(db *sql.DB) ([]*User, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM users", keystr)
 	rows, err := db.Query(stmt)
 	if err != nil {
-		return nil, Internal{err}
+		return nil, Internal(err)
 	}
 	us := make([]*User, 0)
 	for rows.Next() {
 		u := &User{}
 		if err := rows.Scan(&u.ID, &u.KorName, &u.Name, &u.Team, &u.Role, &u.Email, &u.PhoneNumber, &u.EntryDate); err != nil {
-			return nil, Internal{err}
+			return nil, Internal(err)
 		}
 		us = append(us, u)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, Internal{fmt.Errorf("could not scan user: %v", err)}
+		return nil, Internal(fmt.Errorf("could not scan user: %v", err))
 	}
 	return us, nil
 }
@@ -145,15 +145,15 @@ func GetUser(db *sql.DB, id string) (*User, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", keystr, id)
 	rows, err := db.Query(stmt)
 	if err != nil {
-		return nil, Internal{err}
+		return nil, Internal(err)
 	}
 	ok := rows.Next()
 	if !ok {
-		return nil, NotFound{"user", id}
+		return nil, NotFound("user", id)
 	}
 	u := &User{}
 	if err := rows.Scan(&u.ID, &u.KorName, &u.Name, &u.Team, &u.Role, &u.Email, &u.PhoneNumber, &u.EntryDate); err != nil {
-		return nil, Internal{err}
+		return nil, Internal(err)
 	}
 	return u, nil
 }
@@ -164,17 +164,17 @@ func UserPasswordMatch(db *sql.DB, id, pw string) (bool, error) {
 	stmt := fmt.Sprintf("SELECT hashed_password FROM users WHERE id='%s'", id)
 	rows, err := db.Query(stmt)
 	if err != nil {
-		return false, Internal{err}
+		return false, Internal(err)
 	}
 	ok := rows.Next()
 	if !ok {
-		return false, NotFound{"user", id}
+		return false, NotFound("user", id)
 	}
 	var hashed_password string
 	rows.Scan(&hashed_password)
 	err = bcrypt.CompareHashAndPassword([]byte(hashed_password), []byte(pw))
 	if err != nil {
-		return false, Internal{err}
+		return false, Internal(err)
 	}
 	return true, nil
 }
@@ -228,7 +228,7 @@ func UpdateUser(db *sql.DB, id string, u UpdateUserParam) error {
 	idxstr := strings.Join(u.indices(), ", ")
 	stmt := fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keystr, idxstr, id)
 	if _, err := db.Exec(stmt, u.values()...); err != nil {
-		return Internal{err}
+		return Internal(err)
 	}
 	return nil
 }
@@ -237,12 +237,12 @@ func UpdateUser(db *sql.DB, id string, u UpdateUserParam) error {
 func UpdateUserPassword(db *sql.DB, id, pw string) error {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
 	if err != nil {
-		return Internal{fmt.Errorf("could not generate hash from password: %v", err)}
+		return Internal(fmt.Errorf("could not generate hash from password: %v", err))
 	}
 	hashed_password := string(hashed)
 	stmt := fmt.Sprintf("UPDATE users SET hashed_password=$1 WHERE id='%s'", id)
 	if _, err := db.Exec(stmt, hashed_password); err != nil {
-		return Internal{err}
+		return Internal(err)
 	}
 	return nil
 }
@@ -256,7 +256,7 @@ func DeleteUser(db *sql.DB, id string) error {
 	}
 	stmt := fmt.Sprintf("DELETE FROM users WHERE id='%s'", id)
 	if _, err := db.Exec(stmt); err != nil {
-		return Internal{err}
+		return Internal(err)
 	}
 	return nil
 }

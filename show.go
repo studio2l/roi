@@ -2,7 +2,6 @@ package roi
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -189,16 +188,16 @@ var CreateTableIfNotExistsShowsStmt = `CREATE TABLE IF NOT EXISTS shows (
 // AddShow는 db에 쇼를 추가한다.
 func AddShow(db *sql.DB, p *Show) error {
 	if p == nil {
-		return errors.New("nil Show is invalid")
+		return BadRequest("nil show is invalid")
 	}
 	if !IsValidShow(p.Show) {
-		return fmt.Errorf("Show id is invalid: %s", p.Show)
+		return BadRequest(fmt.Sprintf("invalid show id: %s", p.Show))
 	}
 	keystr := strings.Join(ShowTableKeys, ", ")
 	idxstr := strings.Join(ShowTableIndices, ", ")
 	stmt := fmt.Sprintf("INSERT INTO shows (%s) VALUES (%s)", keystr, idxstr)
 	if _, err := db.Exec(stmt, p.dbValues()...); err != nil {
-		return Internal{err}
+		return Internal(err)
 	}
 	return nil
 }
@@ -276,13 +275,13 @@ func (u UpdateShowParam) values() []interface{} {
 // UpdateShow는 db의 쇼 정보를 수정한다.
 func UpdateShow(db *sql.DB, prj string, upd UpdateShowParam) error {
 	if !IsValidShow(prj) {
-		return BadRequest{fmt.Sprintf("Show id is invalid: %s", prj)}
+		return BadRequest(fmt.Sprintf("invalid show id: %s", prj))
 	}
 	keystr := strings.Join(upd.keys(), ", ")
 	idxstr := strings.Join(upd.indices(), ", ")
 	stmt := fmt.Sprintf("UPDATE shows SET (%s) = (%s) WHERE show='%s'", keystr, idxstr, prj)
 	if _, err := db.Exec(stmt, upd.values()...); err != nil {
-		return Internal{err}
+		return Internal(err)
 	}
 	return nil
 }
@@ -291,7 +290,7 @@ func UpdateShow(db *sql.DB, prj string, upd UpdateShowParam) error {
 func ShowExist(db *sql.DB, prj string) (bool, error) {
 	rows, err := db.Query("SELECT show FROM shows WHERE show=$1 LIMIT 1", prj)
 	if err != nil {
-		return false, Internal{err}
+		return false, Internal(err)
 	}
 	return rows.Next(), nil
 }
@@ -306,22 +305,22 @@ func showFromRows(rows *sql.Rows) (*Show, error) {
 		&p.ViewLUT, pq.Array(&p.DefaultTasks),
 	)
 	if err != nil {
-		return nil, Internal{err}
+		return nil, Internal(err)
 	}
 	return p, nil
 }
 
 // GetShow는 db에서 하나의 쇼를 부른다.
-// 해당 쇼가 없다면 nil과 NotFound 에러를 반환한다.
+// 해당 쇼가 없다면 nil과 NotFoundError를 반환한다.
 func GetShow(db *sql.DB, prj string) (*Show, error) {
 	keystr := strings.Join(ShowTableKeys, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM shows WHERE show=$1", keystr)
 	rows, err := db.Query(stmt, prj)
 	if err != nil {
-		return nil, Internal{err}
+		return nil, Internal(err)
 	}
 	if !rows.Next() {
-		return nil, NotFound{"show", prj}
+		return nil, NotFound("show", prj)
 	}
 	p, err := showFromRows(rows)
 	if err != nil {
@@ -337,7 +336,7 @@ func AllShows(db *sql.DB) ([]*Show, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM shows", fields)
 	rows, err := db.Query(stmt)
 	if err != nil {
-		return nil, Internal{err}
+		return nil, Internal(err)
 	}
 	prjs := make([]*Show, 0)
 	for rows.Next() {
@@ -348,7 +347,7 @@ func AllShows(db *sql.DB) ([]*Show, error) {
 		prjs = append(prjs, p)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, Internal{err}
+		return nil, Internal(err)
 	}
 	return prjs, nil
 }
@@ -359,20 +358,20 @@ func AllShows(db *sql.DB) ([]*Show, error) {
 func DeleteShow(db *sql.DB, prj string) error {
 	tx, err := db.Begin()
 	if err != nil {
-		return Internal{fmt.Errorf("could not begin a transaction: %v", err)}
+		return Internal(fmt.Errorf("could not begin a transaction: %v", err))
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
 	if _, err := tx.Exec("DELETE FROM shows WHERE show=$1", prj); err != nil {
-		return Internal{fmt.Errorf("could not delete data from 'shows' table: %v", err)}
+		return Internal(fmt.Errorf("could not delete data from 'shows' table: %v", err))
 	}
 	if _, err := tx.Exec("DELETE FROM shots WHERE show=$1", prj); err != nil {
-		return Internal{fmt.Errorf("could not delete data from 'shots' table: %v", err)}
+		return Internal(fmt.Errorf("could not delete data from 'shots' table: %v", err))
 	}
 	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1", prj); err != nil {
-		return Internal{fmt.Errorf("could not delete data from 'tasks' table: %v", err)}
+		return Internal(fmt.Errorf("could not delete data from 'tasks' table: %v", err))
 	}
 	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1", prj); err != nil {
-		return Internal{fmt.Errorf("could not delete data from 'versions' table: %v", err)}
+		return Internal(fmt.Errorf("could not delete data from 'versions' table: %v", err))
 	}
 	return tx.Commit()
 }
