@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"sort"
@@ -14,12 +15,12 @@ import (
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	u, err := sessionUser(r)
 	if err != nil {
+		if errors.As(err, &roi.NotFoundError{}) {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
 		handleError(w, err)
 		clearSession(w)
-		return
-	}
-	if u == nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 	tasks, err := roi.UserTasks(DB, u.ID)

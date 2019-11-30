@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -29,9 +30,16 @@ func sessionUser(r *http.Request) (*roi.User, error) {
 	}
 	user := session["userid"]
 	if user == "" {
-		return nil, nil
+		return nil, roi.NotFound("user", "")
 	}
-	return roi.GetUser(DB, user)
+	u, err := roi.GetUser(DB, user)
+	if errors.As(err, &roi.NotFoundError{}) {
+		// 일반적으로 db에 사용자가 없는 것은 NotFound 에러를 내지만,
+		// 존재하지 않는 사용자가 세션 유저로 등록되어 있는 것은 해킹일 가능성이 높다.
+		// 로그에 남도록 Internal 에러를 내고 %v 포매팅을 사용해 NotFound 타입정보는 지운다.
+		return nil, roi.Internal(fmt.Errorf("warn: invalid session user (malicious attack?): %s: %v", user, err))
+	}
+	return u, nil
 }
 
 func saveFormFile(r *http.Request, field string, dst string) error {

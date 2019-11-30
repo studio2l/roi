@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -105,12 +106,12 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 func profileHandler(w http.ResponseWriter, r *http.Request) {
 	u, err := sessionUser(r)
 	if err != nil {
+		if errors.As(err, &roi.NotFoundError{}) {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
 		handleError(w, err)
 		clearSession(w)
-		return
-	}
-	if u == nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 	if r.Method == "POST" {
@@ -149,12 +150,12 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	u, err := sessionUser(r)
 	if err != nil {
+		if errors.As(err, &roi.NotFoundError{}) {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
 		handleError(w, err)
 		clearSession(w)
-		return
-	}
-	if u == nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 	oldpw := r.FormValue("old_password")
@@ -198,12 +199,12 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 func userHandler(w http.ResponseWriter, r *http.Request) {
 	u, err := sessionUser(r)
 	if err != nil {
+		if errors.As(err, &roi.NotFoundError{}) {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
 		handleError(w, err)
 		clearSession(w)
-		return
-	}
-	if u == nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 	user := r.URL.Path[len("/user/"):]
@@ -277,12 +278,12 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 func usersHandler(w http.ResponseWriter, r *http.Request) {
 	u, err := sessionUser(r)
 	if err != nil {
+		if errors.As(err, &roi.NotFoundError{}) {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
 		handleError(w, err)
 		clearSession(w)
-		return
-	}
-	if u == nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 	us, err := roi.Users(DB)
