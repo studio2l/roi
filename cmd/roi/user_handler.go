@@ -1,9 +1,7 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -13,107 +11,77 @@ import (
 )
 
 // loginHandler는 /login 페이지로 사용자가 접속했을때 로그인 페이지를 반환한다.
-func loginHandler(w http.ResponseWriter, r *http.Request) {
+func loginHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
+		err := mustFields(r, "id", "password")
+		if err != nil {
+			return err
+		}
 		id := r.FormValue("id")
-		if id == "" {
-			http.Error(w, "id field emtpy", http.StatusBadRequest)
-			return
-		}
 		pw := r.FormValue("password")
-		if pw == "" {
-			http.Error(w, "password field emtpy", http.StatusBadRequest)
-			return
-		}
 		match, err := roi.UserPasswordMatch(DB, id, pw)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return err
 		}
 		if !match {
-			http.Error(w, "entered password is not correct", http.StatusBadRequest)
-			return
+			return roi.BadRequest("entered password is not correct")
 		}
 		session := map[string]string{
 			"userid": id,
 		}
 		err = setSession(w, session)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("could not set session: %s", err), http.StatusInternalServerError)
-			return
+			return fmt.Errorf("could not set session: %w", err)
 		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
+		return nil
 	}
-	err := executeTemplate(w, "login.html", nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return executeTemplate(w, "login.html", nil)
 }
 
 // logoutHandler는 /logout 페이지로 사용자가 접속했을때 사용자를 로그아웃 시킨다.
-func logoutHandler(w http.ResponseWriter, r *http.Request) {
+func logoutHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	clearSession(w)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+	return nil
 }
 
 // signupHandler는 /signup 페이지로 사용자가 접속했을때 가입 페이지를 반환한다.
-func signupHandler(w http.ResponseWriter, r *http.Request) {
+func signupHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
+		err := mustFields(r, "id", "password")
+		if err != nil {
+			return err
+		}
 		id := r.FormValue("id")
-		if id == "" {
-			http.Error(w, "id field emtpy", http.StatusBadRequest)
-			return
-		}
 		pw := r.FormValue("password")
-		if pw == "" {
-			http.Error(w, "password field emtpy", http.StatusBadRequest)
-			return
-		}
 		if len(pw) < 8 {
-			http.Error(w, "password too short", http.StatusBadRequest)
-			return
+			return roi.BadRequest("password too short")
 		}
 		// 할일: password에 대한 컨펌은 프론트 엔드에서 하여야 함
 		pwc := r.FormValue("password_confirm")
 		if pw != pwc {
-			http.Error(w, "passwords are not matched", http.StatusBadRequest)
-			return
+			return roi.BadRequest("passwords are not matched")
 		}
-		err := roi.AddUser(DB, id, pw)
+		err = roi.AddUser(DB, env.SessionUser.ID, pw)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("could not add user: %s", err), http.StatusBadRequest)
-			return
+			return roi.Internal(err)
 		}
 		session := map[string]string{
 			"userid": id,
 		}
 		err = setSession(w, session)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("could not set session: %s", err), http.StatusInternalServerError)
-			return
+			return err
 		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
+		return nil
 	}
-	err := executeTemplate(w, "signup.html", nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return executeTemplate(w, "signup.html", nil)
 }
 
 // profileHandler는 /profile 페이지로 사용자가 접속했을 때 사용자 프로필 페이지를 반환한다.
-func profileHandler(w http.ResponseWriter, r *http.Request) {
-	u, err := sessionUser(r)
-	if err != nil {
-		if errors.As(err, &roi.NotFoundError{}) {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		handleError(w, err)
-		clearSession(w)
-		return
-	}
+func profileHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
 		upd := roi.UpdateUserParam{
 			KorName:     r.FormValue("kor_name"),
@@ -124,95 +92,61 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 			PhoneNumber: r.FormValue("phone_number"),
 			EntryDate:   r.FormValue("entry_date"),
 		}
-		err := roi.UpdateUser(DB, u.ID, upd)
+		err := roi.UpdateUser(DB, env.SessionUser.ID, upd)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("could not set user: %s", err), http.StatusInternalServerError)
-			return
+			return err
 		}
 		http.Redirect(w, r, "/settings/profile", http.StatusSeeOther)
-		return
+		return nil
 	}
 	recipe := struct {
 		LoggedInUser string
 		User         *roi.User
 	}{
-		LoggedInUser: u.ID,
-		User:         u,
+		LoggedInUser: env.SessionUser.ID,
+		User:         env.SessionUser,
 	}
-	err = executeTemplate(w, "profile.html", recipe)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return executeTemplate(w, "profile.html", recipe)
 }
 
 // updatePasswordHandler는 /update-password 페이지로 사용자가 패스워드 변경과 관련된 정보를 보내면
 // 사용자 패스워드를 변경한다.
-func updatePasswordHandler(w http.ResponseWriter, r *http.Request) {
-	u, err := sessionUser(r)
+func updatePasswordHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	err := mustFields(r, "old_password", "new_password")
 	if err != nil {
-		if errors.As(err, &roi.NotFoundError{}) {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		handleError(w, err)
-		clearSession(w)
-		return
+		return err
 	}
 	oldpw := r.FormValue("old_password")
-	if oldpw == "" {
-		http.Error(w, "old password field emtpy", http.StatusBadRequest)
-		return
-	}
 	newpw := r.FormValue("new_password")
-	if newpw == "" {
-		http.Error(w, "new password field emtpy", http.StatusBadRequest)
-		return
-	}
 	if len(newpw) < 8 {
-		http.Error(w, "new password too short", http.StatusBadRequest)
-		return
+		return roi.BadRequest("new password too short")
 	}
 	// 할일: password에 대한 컨펌은 프론트 엔드에서 하여야 함
 	newpwc := r.FormValue("new_password_confirm")
 	if newpw != newpwc {
-		http.Error(w, "passwords are not matched", http.StatusBadRequest)
-		return
+		return roi.BadRequest("passwords are not matched")
 	}
-	match, err := roi.UserPasswordMatch(DB, u.ID, oldpw)
+	match, err := roi.UserPasswordMatch(DB, env.SessionUser.ID, oldpw)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 	if !match {
-		http.Error(w, "entered password is not correct", http.StatusBadRequest)
-		return
+		return roi.BadRequest("entered password is not correct")
 	}
-	err = roi.UpdateUserPassword(DB, u.ID, newpw)
+	err = roi.UpdateUserPassword(DB, env.SessionUser.ID, newpw)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("could not change user password: %s", err), http.StatusInternalServerError)
-		return
+		return err
 	}
 	http.Redirect(w, r, "/settings/profile", http.StatusSeeOther)
+	return nil
 }
 
 // userHandler는 루트 페이지로 사용자가 접근했을때 그 사용자에게 필요한 정보를 맞춤식으로 제공한다.
-func userHandler(w http.ResponseWriter, r *http.Request) {
-	u, err := sessionUser(r)
-	if err != nil {
-		if errors.As(err, &roi.NotFoundError{}) {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		handleError(w, err)
-		clearSession(w)
-		return
-	}
+func userHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	user := r.URL.Path[len("/user/"):]
 	tasks, err := roi.UserTasks(DB, user)
 	if err != nil {
-		log.Printf("could not get user tasks: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
+		return err
 	}
 	// 태스크를 미리 아이디 기준으로 정렬해 두면 아래에서 사용되는
 	// tasksOfDay 또한 아이디 기준으로 정렬된다.
@@ -261,7 +195,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		TasksOfDay    map[string][]string
 		AllTaskStatus []roi.TaskStatus
 	}{
-		LoggedInUser:  u.ID,
+		LoggedInUser:  env.SessionUser.ID,
 		User:          user,
 		Timeline:      timeline,
 		NumTasks:      numTasks,
@@ -269,39 +203,20 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		TasksOfDay:    tasksOfDay,
 		AllTaskStatus: roi.AllTaskStatus,
 	}
-	err = executeTemplate(w, "user.html", recipe)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return executeTemplate(w, "user.html", recipe)
 }
 
-func usersHandler(w http.ResponseWriter, r *http.Request) {
-	u, err := sessionUser(r)
-	if err != nil {
-		if errors.As(err, &roi.NotFoundError{}) {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		handleError(w, err)
-		clearSession(w)
-		return
-	}
+func usersHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	us, err := roi.Users(DB)
 	if err != nil {
-		log.Printf("could not get users: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
+		return err
 	}
 	recipe := struct {
 		LoggedInUser string
 		Users        []*roi.User
 	}{
-		LoggedInUser: u.ID,
+		LoggedInUser: env.SessionUser.ID,
 		Users:        us,
 	}
-	err = executeTemplate(w, "users.html", recipe)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	return executeTemplate(w, "users.html", recipe)
 }
