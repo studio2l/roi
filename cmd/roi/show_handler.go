@@ -2,70 +2,42 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/studio2l/roi"
 )
 
-// showsHandler는 /show 페이지로 사용자가 접속했을때 페이지를 반환한다.
-func showsHandler(w http.ResponseWriter, r *http.Request) {
+// showsHandler는 /shows 페이지로 사용자가 접속했을때 페이지를 반환한다.
+func showsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	shows, err := roi.AllShows(DB)
 	if err != nil {
-		log.Print(fmt.Sprintf("error while getting shows: %s", err))
-		return
+		return err
 	}
-
-	session, err := getSession(r)
-	if err != nil {
-		log.Print(fmt.Sprintf("could not get session: %s", err))
-		clearSession(w)
-	}
-
 	recipe := struct {
 		LoggedInUser string
 		Shows        []*roi.Show
 	}{
-		LoggedInUser: session["userid"],
+		LoggedInUser: env.SessionUser.ID,
 		Shows:        shows,
 	}
-	err = executeTemplate(w, "shows.html", recipe)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return executeTemplate(w, "shows.html", recipe)
 }
 
 // addShowHandler는 /add-show 페이지로 사용자가 접속했을때 페이지를 반환한다.
 // 만일 POST로 프로젝트 정보가 오면 프로젝트를 생성한다.
-func addShowHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(r)
-	if err != nil {
-		http.Error(w, "could not get session", http.StatusUnauthorized)
-		clearSession(w)
-		return
-	}
-	u, err := roi.GetUser(DB, session["userid"])
-	if err != nil {
-		handleError(w, err)
-		return
-	}
-	if u.Role != "admin" {
-		// 할일: admin이 아닌 사람은 프로젝트를 생성할 수 없도록 하기
-	}
+func addShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
-		show := r.FormValue("show")
-		if show == "" {
-			http.Error(w, "need 'show' form value", http.StatusBadRequest)
-			return
+		err := mustFields(r, "show")
+		if err != nil {
+			return err
 		}
+		show := r.FormValue("show")
 		exist, err := roi.ShowExist(DB, show)
 		if err != nil {
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
+			return err
 		}
 		if exist {
-			http.Error(w, fmt.Sprintf("show '%s' exist", show), http.StatusBadRequest)
-			return
+			return roi.BadRequest(fmt.Sprintf("show exist: %s", show))
 		}
 		timeForms, err := parseTimeForms(r.Form,
 			"start_date",
@@ -75,8 +47,7 @@ func addShowHandler(w http.ResponseWriter, r *http.Request) {
 			"vfx_due_date",
 		)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+			return err
 		}
 		p := &roi.Show{
 			Show:          show,
@@ -99,16 +70,14 @@ func addShowHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err = roi.AddShow(DB, p)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("could not add show '%s'", p), http.StatusInternalServerError)
-			return
+			return err
 		}
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
-		return
+		return nil
 	}
 	si, err := roi.GetSite(DB)
 	if err != nil {
-		handleError(w, err)
-		return
+		return err
 	}
 	s := &roi.Show{
 		DefaultTasks: si.DefaultTasks,
@@ -117,48 +86,26 @@ func addShowHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedInUser string
 		Show         *roi.Show
 	}{
-		LoggedInUser: session["userid"],
+		LoggedInUser: env.SessionUser.ID,
 		Show:         s,
 	}
-	err = executeTemplate(w, "add-show.html", recipe)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return executeTemplate(w, "add-show.html", recipe)
 }
 
 // updateShowHandler는 /update-show 페이지로 사용자가 접속했을때 페이지를 반환한다.
 // 만일 POST로 프로젝트 정보가 오면 프로젝트 정보를 수정한다.
-func updateShowHandler(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(r)
+func updateShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	err := mustFields(r, "show")
 	if err != nil {
-		http.Error(w, "could not get session", http.StatusUnauthorized)
-		clearSession(w)
-		return
+		return err
 	}
-	u, err := roi.GetUser(DB, session["userid"])
+	show := r.FormValue("show")
+	exist, err := roi.ShowExist(DB, show)
 	if err != nil {
-		http.Error(w, "could not get user information", http.StatusInternalServerError)
-		clearSession(w)
-		return
-	}
-	if false {
-		// 할일: 오직 어드민, 프로젝트 슈퍼바이저, 프로젝트 매니저, CG 슈퍼바이저만
-		// 이 정보를 수정할 수 있도록 하기.
-		_ = u
-	}
-	id := r.FormValue("id")
-	if id == "" {
-		http.Error(w, "need show 'id'", http.StatusBadRequest)
-		return
-	}
-	exist, err := roi.ShowExist(DB, id)
-	if err != nil {
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
+		return err
 	}
 	if !exist {
-		http.Error(w, fmt.Sprintf("show '%s' not exist", id), http.StatusBadRequest)
-		return
+		return roi.BadRequest(fmt.Sprintf("show not exist: %s", show))
 	}
 	timeForms, err := parseTimeForms(r.Form,
 		"start_date",
@@ -168,8 +115,7 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request) {
 		"vfx_due_date",
 	)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return err
 	}
 	if r.Method == "POST" {
 		upd := roi.UpdateShowParam{
@@ -190,35 +136,25 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request) {
 			ViewLUT:       r.FormValue("view_lut"),
 			DefaultTasks:  fields(r.FormValue("default_tasks")),
 		}
-		err = roi.UpdateShow(DB, id, upd)
+		err = roi.UpdateShow(DB, show, upd)
 		if err != nil {
-			log.Println(err)
-			http.Error(w, fmt.Sprintf("could not add show '%s'", id), http.StatusInternalServerError)
-			return
+			return err
 		}
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
-		return
+		return nil
 	}
-	p, err := roi.GetShow(DB, id)
+	p, err := roi.GetShow(DB, show)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("could not get show: %s", id), http.StatusInternalServerError)
-		return
-	}
-	if p == nil {
-		http.Error(w, fmt.Sprintf("could not get show: %s", id), http.StatusBadRequest)
-		return
+		return err
 	}
 	recipe := struct {
 		LoggedInUser  string
 		Show          *roi.Show
 		AllShowStatus []roi.ShowStatus
 	}{
-		LoggedInUser:  session["userid"],
+		LoggedInUser:  env.SessionUser.ID,
 		Show:          p,
 		AllShowStatus: roi.AllShowStatus,
 	}
-	err = executeTemplate(w, "update-show.html", recipe)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return executeTemplate(w, "update-show.html", recipe)
 }
