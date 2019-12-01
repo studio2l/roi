@@ -8,6 +8,9 @@ import (
 
 func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	err := mustFields(r, "show", "shot", "task")
+	if err != nil {
+		return err
+	}
 	show := r.FormValue("show")
 	shot := r.FormValue("shot")
 	task := r.FormValue("task")
