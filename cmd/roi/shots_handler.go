@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -11,52 +9,29 @@ import (
 )
 
 // shotsHandler는 /shots/ 페이지로 사용자가 접속했을때 페이지를 반환한다.
-func shotsHandler(w http.ResponseWriter, r *http.Request) {
-	u, err := sessionUser(r)
-	if err != nil {
-		if errors.As(err, &roi.NotFoundError{}) {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		handleError(w, err)
-		clearSession(w)
-		return
-	}
-
+func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	show := r.URL.Path[len("/shots/"):]
-
 	ps, err := roi.AllShows(DB)
 	if err != nil {
-		log.Printf("could not get show list: %v", err)
+		return err
 	}
 	shows := make([]string, len(ps))
 	for i, p := range ps {
 		shows[i] = p.Show
 	}
-	if show == "" && len(shows) != 0 {
-		// 할일: 추후 사용자가 마지막으로 선택했던 프로젝트로 이동
-		http.Redirect(w, r, "/shots/"+shows[0], http.StatusSeeOther)
-		return
+	if show == "" {
+		if len(shows) != 0 {
+			// 할일: 추후 사용자가 마지막으로 선택했던 프로젝트로 이동
+			http.Redirect(w, r, "/shots/"+shows[0], http.StatusSeeOther)
+			return nil
+		}
 	}
 	if show != "" {
-		found := false
-		for _, p := range shows {
-			if p == show {
-				found = true
-				break
-			}
-		}
-		if !found {
-			http.Error(w, "show not found", http.StatusNotFound)
-			return
+		_, err := roi.GetShow(DB, show)
+		if err != nil {
+			return err
 		}
 	}
-
-	if show == "" {
-		// TODO: show empty page
-		// for now SearchShot will handle it properly, don't panic.
-	}
-
 	query := r.FormValue("q")
 	f := make(map[string]string)
 	for _, v := range strings.Fields(query) {
@@ -74,15 +49,13 @@ func shotsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	shots, err := roi.SearchShots(DB, show, f["shot"], f["tag"], f["status"], f["assignee"], f["task-status"], toTime(f["task-due"]))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	tasks := make(map[string]map[string]*roi.Task)
 	for _, s := range shots {
 		ts, err := roi.ShotTasks(DB, show, s.Shot)
 		if err != nil {
-			log.Printf("couldn't get shot tasks: %v", err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
+			return err
 		}
 		tm := make(map[string]*roi.Task)
 		for _, t := range ts {
@@ -100,7 +73,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request) {
 		AllTaskStatus []roi.TaskStatus
 		Query         string
 	}{
-		LoggedInUser:  u.ID,
+		LoggedInUser:  env.SessionUser.ID,
 		Shows:         shows,
 		Show:          show,
 		Shots:         shots,
@@ -109,8 +82,5 @@ func shotsHandler(w http.ResponseWriter, r *http.Request) {
 		AllTaskStatus: roi.AllTaskStatus,
 		Query:         query,
 	}
-	err = executeTemplate(w, "shots.html", recipe)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return executeTemplate(w, "shots.html", recipe)
 }

@@ -1,25 +1,17 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/studio2l/roi"
 )
 
-func addShotHandler(w http.ResponseWriter, r *http.Request) {
-	u, err := sessionUser(r)
+func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	err := mustFields(r, "show")
 	if err != nil {
-		if errors.As(err, &roi.NotFoundError{}) {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		handleError(w, err)
-		clearSession(w)
-		return
+		return err
 	}
 	// 어떤 프로젝트에 샷을 생성해야 하는지 체크.
 	show := r.FormValue("show")
@@ -29,48 +21,30 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		// 관련 이슈: #143
 		showRows, err := DB.Query("SELECT show FROM shows")
 		if err != nil {
-			log.Print("could not select the first show:", err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
+			return roi.Internal(err)
 		}
 		defer showRows.Close()
 		if !showRows.Next() {
-			fmt.Fprintf(w, "no shows in roi yet")
-			return
+			return roi.BadRequest("no shows in roi")
 		}
 		if err := showRows.Scan(&show); err != nil {
-			log.Printf("could not scan a row of show '%s': %v", show, err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return roi.Internal(err)
 		}
 		http.Redirect(w, r, "/add-shot?show="+show, http.StatusSeeOther)
-		return
-	}
-	sw, err := roi.GetShow(DB, show)
-	if err != nil {
-		handleError(w, err)
-		return
-	}
-	if sw == nil {
-		msg := fmt.Sprintf("show '%s' not exist", show)
-		http.Error(w, msg, http.StatusBadRequest)
-		return
+		return nil
 	}
 	if r.Method == "POST" {
-		shot := r.FormValue("shot")
-		if shot == "" {
-			http.Error(w, "need 'shot'", http.StatusBadRequest)
-			return
+		err := mustFields(r, "shot")
+		if err != nil {
+			return err
 		}
+		shot := r.FormValue("shot")
 		exist, err := roi.ShotExist(DB, show, shot)
 		if err != nil {
-			log.Printf("could not check shot '%s' exist", shot)
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
+			return err
 		}
 		if exist {
-			http.Error(w, "shot '%s' already exist", http.StatusBadRequest)
-			return
+			return roi.BadRequest(fmt.Sprintf("shot exist: %s", show+"/"+shot))
 		}
 		tasks := fields(r.FormValue("working_tasks"))
 		s := &roi.Shot{
@@ -88,9 +62,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err = roi.AddShot(DB, show, s)
 		if err != nil {
-			log.Printf("could not add shot '%s': %v", show+"."+shot, err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
+			return err
 		}
 		for _, task := range tasks {
 			t := &roi.Task{
@@ -103,67 +75,42 @@ func addShotHandler(w http.ResponseWriter, r *http.Request) {
 			roi.AddTask(DB, show, shot, t)
 		}
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
-		return
+		return nil
+	}
+	sw, err := roi.GetShow(DB, show)
+	if err != nil {
+		return err
 	}
 	recipe := struct {
 		LoggedInUser string
 		Show         *roi.Show
 	}{
-		LoggedInUser: u.ID,
+		LoggedInUser: env.SessionUser.ID,
 		Show:         sw,
 	}
-	err = executeTemplate(w, "add-shot.html", recipe)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return executeTemplate(w, "add-shot.html", recipe)
 }
 
-func updateShotHandler(w http.ResponseWriter, r *http.Request) {
-	u, err := sessionUser(r)
+func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	err := mustFields(r, "show", "shot")
 	if err != nil {
-		if errors.As(err, &roi.NotFoundError{}) {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		handleError(w, err)
-		clearSession(w)
-		return
+		return err
 	}
 	show := r.FormValue("show")
-	if show == "" {
-		http.Error(w, "need 'show'", http.StatusBadRequest)
-		return
-	}
-	exist, err := roi.ShowExist(DB, show)
+	shot := r.FormValue("show")
+	_, err = roi.GetShow(DB, show)
 	if err != nil {
-		log.Print(err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-	if !exist {
-		http.Error(w, fmt.Sprintf("show '%s' not exist", show), http.StatusBadRequest)
-		return
-	}
-	shot := r.FormValue("shot")
-	if shot == "" {
-		http.Error(w, "need 'shot'", http.StatusBadRequest)
-		return
+		return err
 	}
 	if r.Method == "POST" {
-		exist, err = roi.ShotExist(DB, show, shot)
+		_, err = roi.GetShot(DB, show, shot)
 		if err != nil {
-			log.Print(err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
-		}
-		if !exist {
-			http.Error(w, fmt.Sprintf("shot '%s' not exist", shot), http.StatusBadRequest)
-			return
+			return err
 		}
 		tasks := fields(r.FormValue("working_tasks"))
 		tforms, err := parseTimeForms(r.Form, "due_date")
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			return err
 		}
 		upd := roi.UpdateShotParam{
 			Status:        roi.ShotStatus(r.FormValue("status")),
@@ -179,9 +126,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err = roi.UpdateShot(DB, show, shot, upd)
 		if err != nil {
-			log.Print(err)
-			http.Error(w, fmt.Sprintf("could not update shot '%s'", shot), http.StatusInternalServerError)
-			return
+			return err
 		}
 		// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
 		for _, task := range tasks {
@@ -192,39 +137,27 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  roi.TaskNotSet,
 				DueDate: time.Time{},
 			}
-			tid := show + "." + shot + "." + task
 			exist, err := roi.TaskExist(DB, show, shot, task)
 			if err != nil {
-				log.Printf("could not check task '%s' exist: %v", tid, err)
-				http.Error(w, "internal error", http.StatusInternalServerError)
-				return
+				return err
 			}
 			if !exist {
 				err := roi.AddTask(DB, show, shot, t)
 				if err != nil {
-					log.Printf("could not add task '%s': %v", tid, err)
-					http.Error(w, "internal error", http.StatusInternalServerError)
-					return
+					return err
 				}
 			}
 		}
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
-		return
+		return nil
 	}
 	s, err := roi.GetShot(DB, show, shot)
 	if err != nil {
-		handleError(w, err)
-		return
-	}
-	if s == nil {
-		http.Error(w, fmt.Sprintf("shot '%s' not exist", shot), http.StatusBadRequest)
-		return
+		return err
 	}
 	ts, err := roi.ShotTasks(DB, show, shot)
 	if err != nil {
-		log.Printf("could not get all tasks of shot '%s': %v", show+"."+shot, err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
+		return err
 	}
 	tm := make(map[string]*roi.Task)
 	for _, t := range ts {
@@ -237,14 +170,11 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request) {
 		Tasks         map[string]*roi.Task
 		AllTaskStatus []roi.TaskStatus
 	}{
-		LoggedInUser:  u.ID,
+		LoggedInUser:  env.SessionUser.ID,
 		Shot:          s,
 		AllShotStatus: roi.AllShotStatus,
 		Tasks:         tm,
 		AllTaskStatus: roi.AllTaskStatus,
 	}
-	err = executeTemplate(w, "update-shot.html", recipe)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return executeTemplate(w, "update-shot.html", recipe)
 }
