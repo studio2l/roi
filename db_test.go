@@ -5,14 +5,14 @@ import (
 	"testing"
 )
 
-type Test struct {
+type TestStructForDBKeysIndicesValues struct {
 	A string `db:"a"`
 	B int    `db:"b"`
 	C bool   `db:"c"`
 }
 
 func TestDBKeysIndicesValues(t *testing.T) {
-	testVal := Test{
+	testVal := TestStructForDBKeysIndicesValues{
 		A: "a",
 		B: 1,
 		C: true,
