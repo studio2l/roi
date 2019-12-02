@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "image/jpeg"
+	"reflect"
 	"strconv"
 )
 
@@ -67,6 +68,57 @@ func DB() (*sql.DB, error) {
 		return nil, Internal(err)
 	}
 	return db, nil
+}
+
+// dbKeysIndicesValues는 임의의 타입 값인 v에 대해서 그 db키, 값, 인덱스 리스트를 반환한다.
+func dbKeysIndicesValues(v interface{}) ([]string, []string, []interface{}, error) {
+	keys, err := dbKeys(v)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	idxs := dbIndices(keys)
+	vals, err := dbValues(v)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return keys, idxs, vals, nil
+}
+
+// dbKeys는 임의의 타입 값인 v에 대해서 그 db 키 리스트를 반환한다.
+func dbKeys(v interface{}) (keys []string, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = Internal(fmt.Errorf("%v", r))
+		}
+	}()
+	typ := reflect.ValueOf(v).Type()
+	n := typ.NumField()
+	keys = make([]string, n)
+	for i := 0; i < n; i++ {
+		f := typ.Field(i)
+		key := f.Tag.Get("db")
+		if key == "" {
+			return nil, fmt.Errorf("no db tag value in struct %s.%s", typ.Name(), f.Name)
+		}
+		keys[i] = key
+	}
+	return keys, nil
+}
+
+// dbValues는 임의의 타입 값인 v에 대해서 그 값 리스트를 반환한다.
+func dbValues(v interface{}) (vals []interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = Internal(fmt.Errorf("%v", r))
+		}
+	}()
+	rv := reflect.ValueOf(v)
+	n := rv.NumField()
+	vals = make([]interface{}, n)
+	for i := 0; i < n; i++ {
+		vals[i] = rv.Field(i).Interface()
+	}
+	return vals, nil
 }
 
 // dbIndices는 받아들인 문자열 슬라이스와 같은 길이의
