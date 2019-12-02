@@ -97,7 +97,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	show := r.FormValue("show")
-	shot := r.FormValue("show")
+	shot := r.FormValue("shot")
 	_, err = roi.GetShow(DB, show)
 	if err != nil {
 		return err
