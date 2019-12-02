@@ -116,14 +116,7 @@ ex) localhost
 	)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			// 정의되지 않은 페이지로의 이동을 차단
-			http.Error(w, "page not found", http.StatusNotFound)
-			return
-		}
-		rootHandler(w, r)
-	})
+	mux.HandleFunc("/", handle(rootHandler))
 	mux.HandleFunc("/login", handle(loginHandler))
 	mux.HandleFunc("/logout", handle(logoutHandler))
 	mux.HandleFunc("/settings/profile", handle(profileHandler))

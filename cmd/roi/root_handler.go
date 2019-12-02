@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -12,22 +10,15 @@ import (
 )
 
 // rootHandler는 루트 페이지로 사용자가 접근했을때 그 사용자에게 필요한 정보를 맞춤식으로 제공한다.
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	u, err := sessionUser(r)
-	if err != nil {
-		if errors.As(err, &roi.NotFoundError{}) {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		handleError(w, err)
-		clearSession(w)
-		return
+func rootHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	if r.URL.Path != "/" {
+		// 정의되지 않은 페이지로의 이동을 차단
+		http.Error(w, "page not found", http.StatusNotFound)
+		return nil
 	}
-	tasks, err := roi.UserTasks(DB, u.ID)
+	tasks, err := roi.UserTasks(DB, env.SessionUser.ID)
 	if err != nil {
-		log.Printf("could not get user tasks: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
+		return err
 	}
 	// 태스크를 미리 아이디 기준으로 정렬해 두면 아래에서 사용되는
 	// tasksOfDay 또한 아이디 기준으로 정렬된다.
@@ -76,16 +67,13 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		TasksOfDay    map[string][]string
 		AllTaskStatus []roi.TaskStatus
 	}{
-		LoggedInUser:  u.ID,
-		User:          u.ID,
+		LoggedInUser:  env.SessionUser.ID,
+		User:          env.SessionUser.ID,
 		Timeline:      timeline,
 		NumTasks:      numTasks,
 		TaskFromID:    taskFromID,
 		TasksOfDay:    tasksOfDay,
 		AllTaskStatus: roi.AllTaskStatus,
 	}
-	err = executeTemplate(w, "user.html", recipe)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return executeTemplate(w, "user.html", recipe)
 }
