@@ -73,6 +73,7 @@ func DB() (*sql.DB, error) {
 }
 
 // dbKVs는 임의의 타입인 v에 대해서 그 db키, 값 리스트를 반환한다.
+// 참고: dbKVs는 nil 슬라이스를 빈 슬라이스로 변경한다.
 func dbKVs(v interface{}) ([]string, []interface{}, error) {
 	keys, err := dbKeys(v)
 	if err != nil {
@@ -87,19 +88,26 @@ func dbKVs(v interface{}) ([]string, []interface{}, error) {
 
 // dbKeys는 임의의 타입인 v에 대해서 그 db 키 슬라이스를 반환한다.
 func dbKeys(v interface{}) (keys []string, err error) {
+	var typ reflect.Type
+	var field reflect.StructField
 	defer func() {
 		if r := recover(); r != nil {
-			err = Internal(fmt.Errorf("%v", r))
+			err = Internal(fmt.Errorf("dbKeys: %v: %s.%s", r, typ.Name(), field.Name))
 		}
 	}()
-	typ := reflect.ValueOf(v).Type()
+	rv := reflect.ValueOf(v)
+	if rv.Kind() == reflect.Ptr {
+		// 포인터에서 스트럭트로
+		rv = rv.Elem()
+	}
+	typ = rv.Type()
 	n := typ.NumField()
 	keys = make([]string, n)
 	for i := 0; i < n; i++ {
-		f := typ.Field(i)
-		key := f.Tag.Get("db")
+		field = typ.Field(i)
+		key := field.Tag.Get("db")
 		if key == "" {
-			return nil, fmt.Errorf("no db tag value in struct %s.%s", typ.Name(), f.Name)
+			panic(fmt.Errorf("no db tag value in struct"))
 		}
 		keys[i] = key
 	}
@@ -107,21 +115,36 @@ func dbKeys(v interface{}) (keys []string, err error) {
 }
 
 // dbValues는 임의의 타입인 v에 대해서 그 값 슬라이스를 반환한다.
+// 참고: dbValues는 nil 슬라이스를 빈 슬라이스로 변경한다.
 func dbValues(v interface{}) (vals []interface{}, err error) {
+	var typ reflect.Type
+	var field reflect.Value
 	defer func() {
 		if r := recover(); r != nil {
-			err = Internal(fmt.Errorf("%v", r))
+			err = Internal(fmt.Errorf("dbValues: %v: %s.%s", r, typ.Name(), field.Type().Name()))
 		}
 	}()
 	rv := reflect.ValueOf(v)
+	if rv.Kind() == reflect.Ptr {
+		// 포인터에서 스트럭트로
+		rv = rv.Elem()
+	}
+	typ = rv.Type()
 	n := rv.NumField()
 	vals = make([]interface{}, n)
 	for i := 0; i < n; i++ {
-		f := rv.Field(i)
-		vals[i] = f.Interface()
-		if f.Kind() == reflect.Slice {
-			vals[i] = pq.Array(vals[i])
+		field = rv.Field(i)
+		fv := field.Interface()
+		if field.Kind() == reflect.Slice {
+			// 현재로써는 임의의 슬라이스를 DB에 넣을때 pq.Array의 힘을 빌린다.
+			if field.IsNil() {
+				// roi는 DB에 nil을 사용하지 않는다.
+				fv = pq.Array(reflect.MakeSlice(field.Type(), 0, 0).Interface())
+			} else {
+				fv = pq.Array(field.Interface())
+			}
 		}
+		vals[i] = fv
 	}
 	return vals, nil
 }
