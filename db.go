@@ -6,6 +6,8 @@ import (
 	_ "image/jpeg"
 	"reflect"
 	"strconv"
+
+	"github.com/lib/pq"
 )
 
 // InitDB는 로이 DB 및 DB유저를 생성한고 생성된 DB를 반환한다.
@@ -116,7 +118,11 @@ func dbValues(v interface{}) (vals []interface{}, err error) {
 	n := rv.NumField()
 	vals = make([]interface{}, n)
 	for i := 0; i < n; i++ {
-		vals[i] = rv.Field(i).Interface()
+		f := rv.Field(i)
+		vals[i] = f.Interface()
+		if f.Kind() == reflect.Slice {
+			vals[i] = pq.Array(vals[i])
+		}
 	}
 	return vals, nil
 }
