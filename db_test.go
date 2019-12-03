@@ -31,7 +31,8 @@ func TestDBKVs(t *testing.T) {
 	if !reflect.DeepEqual(keys, wantKeys) {
 		t.Fatalf("keys: want %v, got %v", wantKeys, keys)
 	}
-	wantVals := []interface{}{"a", 1, true, pq.Array([]int{1, 2, 3}), pq.Array([]string(nil))}
+	// 마지막이 pq.Array([]string(nil))이 아닌 이유는 dbKVs함수가 nil 슬라이스를 만들지 않기 때문이다.
+	wantVals := []interface{}{"a", 1, true, pq.Array([]int{1, 2, 3}), pq.Array([]string{})}
 	if !reflect.DeepEqual(vals, wantVals) {
 		t.Fatalf("vals: want %v, got %v", wantVals, vals)
 	}
