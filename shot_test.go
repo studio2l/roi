@@ -31,6 +31,7 @@ var testShotB = &Shot{
 	TimecodeOut:   "00:00:06:03",
 	Duration:      15,
 	Tags:          []string{"로이", "창문"},
+	WorkingTasks:  []string{"lit"},
 }
 var testShotC = &Shot{
 	Shot:          "CG_0030",
@@ -43,6 +44,7 @@ var testShotC = &Shot{
 	TimecodeOut:   "00:00:08:15",
 	Duration:      36,
 	Tags:          []string{"가로등", "창문"},
+	WorkingTasks:  []string{"mod"},
 }
 
 var testShots = []*Shot{testShotA, testShotB, testShotC}

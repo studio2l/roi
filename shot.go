@@ -184,12 +184,6 @@ func AddShot(db *sql.DB, prj string, s *Shot) error {
 	if s == nil {
 		return BadRequest("nil shot is invalid")
 	}
-	if s.Tags == nil {
-		s.Tags = make([]string, 0)
-	}
-	if s.WorkingTasks == nil {
-		s.WorkingTasks = make([]string, 0)
-	}
 	if !isValidShotStatus(s.Status) {
 		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", s.Status))
 	}
