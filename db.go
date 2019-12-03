@@ -72,21 +72,20 @@ func DB() (*sql.DB, error) {
 	return db, nil
 }
 
-// dbKeysIndicesValues는 임의의 타입 값인 v에 대해서 그 db키, 값, 인덱스 리스트를 반환한다.
-func dbKeysIndicesValues(v interface{}) ([]string, []string, []interface{}, error) {
+// dbKVs는 임의의 타입인 v에 대해서 그 db키, 값 리스트를 반환한다.
+func dbKVs(v interface{}) ([]string, []interface{}, error) {
 	keys, err := dbKeys(v)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
-	idxs := dbIndices(keys)
 	vals, err := dbValues(v)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
-	return keys, idxs, vals, nil
+	return keys, vals, nil
 }
 
-// dbKeys는 임의의 타입 값인 v에 대해서 그 db 키 리스트를 반환한다.
+// dbKeys는 임의의 타입인 v에 대해서 그 db 키 슬라이스를 반환한다.
 func dbKeys(v interface{}) (keys []string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -107,7 +106,7 @@ func dbKeys(v interface{}) (keys []string, err error) {
 	return keys, nil
 }
 
-// dbValues는 임의의 타입 값인 v에 대해서 그 값 리스트를 반환한다.
+// dbValues는 임의의 타입인 v에 대해서 그 값 슬라이스를 반환한다.
 func dbValues(v interface{}) (vals []interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {

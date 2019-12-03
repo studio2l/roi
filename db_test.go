@@ -7,7 +7,7 @@ import (
 	"github.com/lib/pq"
 )
 
-type TestStructForDBKeysIndicesValues struct {
+type TestStructForDBKVs struct {
 	A string   `db:"a"`
 	B int      `db:"b"`
 	C bool     `db:"c"`
@@ -15,15 +15,15 @@ type TestStructForDBKeysIndicesValues struct {
 	E []string `db:"e"`
 }
 
-func TestDBKeysIndicesValues(t *testing.T) {
-	testVal := TestStructForDBKeysIndicesValues{
+func TestDBKVs(t *testing.T) {
+	testVal := TestStructForDBKVs{
 		A: "a",
 		B: 1,
 		C: true,
 		D: []int{1, 2, 3},
 		E: nil,
 	}
-	keys, idxs, vals, err := dbKeysIndicesValues(testVal)
+	keys, vals, err := dbKVs(testVal)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,10 +34,6 @@ func TestDBKeysIndicesValues(t *testing.T) {
 	wantVals := []interface{}{"a", 1, true, pq.Array([]int{1, 2, 3}), pq.Array([]string(nil))}
 	if !reflect.DeepEqual(vals, wantVals) {
 		t.Fatalf("vals: want %v, got %v", wantVals, vals)
-	}
-	wantIdxs := []string{"$1", "$2", "$3", "$4", "$5"}
-	if !reflect.DeepEqual(idxs, wantIdxs) {
-		t.Fatalf("idxs: want %v, got %v", wantIdxs, idxs)
 	}
 }
 
