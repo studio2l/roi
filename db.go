@@ -4,7 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	_ "image/jpeg"
+	"reflect"
 	"strconv"
+
+	"github.com/lib/pq"
 )
 
 // InitDB는 로이 DB 및 DB유저를 생성한고 생성된 DB를 반환한다.
@@ -67,6 +70,60 @@ func DB() (*sql.DB, error) {
 		return nil, Internal(err)
 	}
 	return db, nil
+}
+
+// dbKVs는 임의의 타입인 v에 대해서 그 db키, 값 리스트를 반환한다.
+func dbKVs(v interface{}) ([]string, []interface{}, error) {
+	keys, err := dbKeys(v)
+	if err != nil {
+		return nil, nil, err
+	}
+	vals, err := dbValues(v)
+	if err != nil {
+		return nil, nil, err
+	}
+	return keys, vals, nil
+}
+
+// dbKeys는 임의의 타입인 v에 대해서 그 db 키 슬라이스를 반환한다.
+func dbKeys(v interface{}) (keys []string, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = Internal(fmt.Errorf("%v", r))
+		}
+	}()
+	typ := reflect.ValueOf(v).Type()
+	n := typ.NumField()
+	keys = make([]string, n)
+	for i := 0; i < n; i++ {
+		f := typ.Field(i)
+		key := f.Tag.Get("db")
+		if key == "" {
+			return nil, fmt.Errorf("no db tag value in struct %s.%s", typ.Name(), f.Name)
+		}
+		keys[i] = key
+	}
+	return keys, nil
+}
+
+// dbValues는 임의의 타입인 v에 대해서 그 값 슬라이스를 반환한다.
+func dbValues(v interface{}) (vals []interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = Internal(fmt.Errorf("%v", r))
+		}
+	}()
+	rv := reflect.ValueOf(v)
+	n := rv.NumField()
+	vals = make([]interface{}, n)
+	for i := 0; i < n; i++ {
+		f := rv.Field(i)
+		vals[i] = f.Interface()
+		if f.Kind() == reflect.Slice {
+			vals[i] = pq.Array(vals[i])
+		}
+	}
+	return vals, nil
 }
 
 // dbIndices는 받아들인 문자열 슬라이스와 같은 길이의
