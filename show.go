@@ -87,81 +87,27 @@ func IsValidShow(id string) bool {
 
 type Show struct {
 	// 쇼 아이디. 로이 내에서 고유해야 한다.
-	Show string
+	Show string `db:"show"`
 
-	Name   string
-	Status string
+	Name   string `db:"name"`
+	Status string `db:"status"`
 
-	Client        string
-	Director      string
-	Producer      string
-	VFXSupervisor string
-	VFXManager    string
-	CGSupervisor  string
+	Client        string `db:"client"`
+	Director      string `db:"director"`
+	Producer      string `db:"producer"`
+	VFXSupervisor string `db:"vfx_supervisor"`
+	VFXManager    string `db:"vfx_manager"`
+	CGSupervisor  string `db:"cg_supervisor"`
 
-	CrankIn     time.Time
-	CrankUp     time.Time
-	StartDate   time.Time
-	ReleaseDate time.Time
-	VFXDueDate  time.Time
+	CrankIn     time.Time `db:"crank_in"`
+	CrankUp     time.Time `db:"crank_up"`
+	StartDate   time.Time `db:"start_date"`
+	ReleaseDate time.Time `db:"release_date"`
+	VFXDueDate  time.Time `db:"vfx_due_date"`
 
-	OutputSize   string
-	ViewLUT      string
-	DefaultTasks []string
-}
-
-func (p *Show) dbValues() []interface{} {
-	if p == nil {
-		p = &Show{}
-	}
-	if p.DefaultTasks == nil {
-		p.DefaultTasks = []string{}
-	}
-	vals := []interface{}{
-		p.Show,
-		p.Name,
-		p.Status,
-		p.Client,
-		p.Director,
-		p.Producer,
-		p.VFXSupervisor,
-		p.VFXManager,
-		p.CGSupervisor,
-		p.CrankIn,
-		p.CrankUp,
-		p.StartDate,
-		p.ReleaseDate,
-		p.VFXDueDate,
-		p.OutputSize,
-		p.ViewLUT,
-		pq.Array(p.DefaultTasks),
-	}
-	return vals
-}
-
-var ShowTableKeys = []string{
-	"show",
-	"name",
-	"status",
-	"client",
-	"director",
-	"producer",
-	"vfx_supervisor",
-	"vfx_manager",
-	"cg_supervisor",
-	"crank_in",
-	"crank_up",
-	"start_date",
-	"release_date",
-	"vfx_due_date",
-	"output_size",
-	"view_lut",
-	"default_tasks",
-}
-
-var ShowTableIndices = []string{
-	"$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9", "$10",
-	"$11", "$12", "$13", "$14", "$15", "$16", "$17",
+	OutputSize   string   `db:"output_size"`
+	ViewLUT      string   `db:"view_lut"`
+	DefaultTasks []string `db:"default_tasks"`
 }
 
 var CreateTableIfNotExistsShowsStmt = `CREATE TABLE IF NOT EXISTS shows (
@@ -193,10 +139,14 @@ func AddShow(db *sql.DB, p *Show) error {
 	if !IsValidShow(p.Show) {
 		return BadRequest(fmt.Sprintf("invalid show id: %s", p.Show))
 	}
-	keystr := strings.Join(ShowTableKeys, ", ")
-	idxstr := strings.Join(ShowTableIndices, ", ")
-	stmt := fmt.Sprintf("INSERT INTO shows (%s) VALUES (%s)", keystr, idxstr)
-	if _, err := db.Exec(stmt, p.dbValues()...); err != nil {
+	ks, vs, err := dbKVs(p)
+	if err != nil {
+		return err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(dbIndices(ks), ", ")
+	stmt := fmt.Sprintf("INSERT INTO shows (%s) VALUES (%s)", keys, idxs)
+	if _, err := db.Exec(stmt, vs...); err != nil {
 		return Internal(err)
 	}
 	return nil
@@ -205,71 +155,22 @@ func AddShow(db *sql.DB, p *Show) error {
 // UpdateShowParam은 Show에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
 // UpdateShow에서 사용한다.
 type UpdateShowParam struct {
-	Name          string
-	Status        string
-	Client        string
-	Director      string
-	Producer      string
-	VFXSupervisor string
-	VFXManager    string
-	CGSupervisor  string
-	CrankIn       time.Time
-	CrankUp       time.Time
-	StartDate     time.Time
-	ReleaseDate   time.Time
-	VFXDueDate    time.Time
-	OutputSize    string
-	ViewLUT       string
-	DefaultTasks  []string
-}
-
-func (u UpdateShowParam) keys() []string {
-	return []string{
-		"name",
-		"status",
-		"client",
-		"director",
-		"producer",
-		"vfx_supervisor",
-		"vfx_manager",
-		"cg_supervisor",
-		"crank_in",
-		"crank_up",
-		"start_date",
-		"release_date",
-		"vfx_due_date",
-		"output_size",
-		"view_lut",
-		"default_tasks",
-	}
-}
-
-func (u UpdateShowParam) indices() []string {
-	return dbIndices(u.keys())
-}
-
-func (u UpdateShowParam) values() []interface{} {
-	if u.DefaultTasks == nil {
-		u.DefaultTasks = []string{}
-	}
-	return []interface{}{
-		u.Name,
-		u.Status,
-		u.Client,
-		u.Director,
-		u.Producer,
-		u.VFXSupervisor,
-		u.VFXManager,
-		u.CGSupervisor,
-		u.CrankIn,
-		u.CrankUp,
-		u.StartDate,
-		u.ReleaseDate,
-		u.VFXDueDate,
-		u.OutputSize,
-		u.ViewLUT,
-		pq.Array(u.DefaultTasks),
-	}
+	Name          string    `db:"name"`
+	Status        string    `db:"status"`
+	Client        string    `db:"client"`
+	Director      string    `db:"director"`
+	Producer      string    `db:"producer"`
+	VFXSupervisor string    `db:"vfx_supervisor"`
+	VFXManager    string    `db:"vfx_manager"`
+	CGSupervisor  string    `db:"cg_supervisor"`
+	CrankIn       time.Time `db:"crank_in"`
+	CrankUp       time.Time `db:"crank_up"`
+	StartDate     time.Time `db:"start_date"`
+	ReleaseDate   time.Time `db:"release_date"`
+	VFXDueDate    time.Time `db:"vfx_due_date"`
+	OutputSize    string    `db:"output_size"`
+	ViewLUT       string    `db:"view_lut"`
+	DefaultTasks  []string  `db:"default_tasks"`
 }
 
 // UpdateShow는 db의 쇼 정보를 수정한다.
@@ -277,10 +178,14 @@ func UpdateShow(db *sql.DB, prj string, upd UpdateShowParam) error {
 	if !IsValidShow(prj) {
 		return BadRequest(fmt.Sprintf("invalid show id: %s", prj))
 	}
-	keystr := strings.Join(upd.keys(), ", ")
-	idxstr := strings.Join(upd.indices(), ", ")
-	stmt := fmt.Sprintf("UPDATE shows SET (%s) = (%s) WHERE show='%s'", keystr, idxstr, prj)
-	if _, err := db.Exec(stmt, upd.values()...); err != nil {
+	ks, vs, err := dbKVs(upd)
+	if err != nil {
+		return err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(dbIndices(ks), ", ")
+	stmt := fmt.Sprintf("UPDATE shows SET (%s) = (%s) WHERE show='%s'", keys, idxs, prj)
+	if _, err := db.Exec(stmt, vs...); err != nil {
 		return Internal(err)
 	}
 	return nil
@@ -313,8 +218,12 @@ func showFromRows(rows *sql.Rows) (*Show, error) {
 // GetShow는 db에서 하나의 쇼를 부른다.
 // 해당 쇼가 없다면 nil과 NotFoundError를 반환한다.
 func GetShow(db *sql.DB, prj string) (*Show, error) {
-	keystr := strings.Join(ShowTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM shows WHERE show=$1", keystr)
+	ks, _, err := dbKVs(&Show{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM shows WHERE show=$1", keys)
 	rows, err := db.Query(stmt, prj)
 	if err != nil {
 		return nil, Internal(err)
@@ -332,8 +241,12 @@ func GetShow(db *sql.DB, prj string) (*Show, error) {
 // AllShows는 db에서 모든 쇼 정보를 가져온다.
 // 검색 중 문제가 있으면 nil, error를 반환한다.
 func AllShows(db *sql.DB) ([]*Show, error) {
-	fields := strings.Join(ShowTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM shows", fields)
+	ks, _, err := dbKVs(&Show{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM shows", keys)
 	rows, err := db.Query(stmt)
 	if err != nil {
 		return nil, Internal(err)

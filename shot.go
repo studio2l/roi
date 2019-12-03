@@ -130,18 +130,18 @@ func (s ShotStatus) UIColor() string {
 }
 
 type Shot struct {
-	Show string
-	Shot string
+	Show string `db:"show"`
+	Shot string `db:"shot"`
 
 	// 샷 정보
-	Status        ShotStatus
-	EditOrder     int
-	Description   string
-	CGDescription string
-	TimecodeIn    string
-	TimecodeOut   string
-	Duration      int
-	Tags          []string
+	Status        ShotStatus `db:"status"`
+	EditOrder     int        `db:"edit_order"`
+	Description   string     `db:"description"`
+	CGDescription string     `db:"cg_description"`
+	TimecodeIn    string     `db:"timecode_in"`
+	TimecodeOut   string     `db:"timecode_out"`
+	Duration      int        `db:"duration"`
+	Tags          []string   `db:"tags"`
 
 	// WorkingTasks는 샷에 작업중인 어떤 태스크가 있는지를 나타낸다.
 	// 웹 페이지에는 여기에 포함된 태스크만 이 순서대로 보여져야 한다.
@@ -150,39 +150,11 @@ type Shot struct {
 	// 반대로 여기에 포함되어 있지 않지만 db내에는 존재하는 태스크가 있을 수 있다.
 	// 그 태스크는 (예를 들어 태스크가 Omit 되는 등의 이유로) 숨겨진 태스크이며,
 	// 직접 지우지 않는 한 db에 보관된다.
-	WorkingTasks []string
+	WorkingTasks []string `db:"working_tasks"`
 
-	StartDate time.Time
-	EndDate   time.Time
-	DueDate   time.Time
-}
-
-func (s *Shot) dbValues() []interface{} {
-	if s == nil {
-		s = &Shot{}
-	}
-	if s.Tags == nil {
-		s.Tags = make([]string, 0)
-	}
-	if s.WorkingTasks == nil {
-		s.WorkingTasks = make([]string, 0)
-	}
-	return []interface{}{
-		s.Show,
-		s.Shot,
-		s.Status,
-		s.EditOrder,
-		s.Description,
-		s.CGDescription,
-		s.TimecodeIn,
-		s.TimecodeOut,
-		s.Duration,
-		pq.Array(s.Tags),
-		pq.Array(s.WorkingTasks),
-		s.StartDate,
-		s.EndDate,
-		s.DueDate,
-	}
+	StartDate time.Time `db:"start_date"`
+	EndDate   time.Time `db:"end_date"`
+	DueDate   time.Time `db:"due_date"`
 }
 
 var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
@@ -204,25 +176,6 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	UNIQUE(show, shot)
 )`
 
-var ShotTableKeys = []string{
-	"show",
-	"shot",
-	"status",
-	"edit_order",
-	"description",
-	"cg_description",
-	"timecode_in",
-	"timecode_out",
-	"duration",
-	"tags",
-	"working_tasks",
-	"start_date",
-	"end_date",
-	"due_date",
-}
-
-var ShotTableIndices = dbIndices(ShotTableKeys)
-
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
 func AddShot(db *sql.DB, prj string, s *Shot) error {
 	if prj == "" {
@@ -240,10 +193,14 @@ func AddShot(db *sql.DB, prj string, s *Shot) error {
 	if !isValidShotStatus(s.Status) {
 		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", s.Status))
 	}
-	keys := strings.Join(ShotTableKeys, ", ")
-	idxs := strings.Join(ShotTableIndices, ", ")
+	ks, vs, err := dbKVs(s)
+	if err != nil {
+		return err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(dbIndices(ks), ", ")
 	stmt := fmt.Sprintf("INSERT INTO shots (%s) VALUES (%s)", keys, idxs)
-	if _, err := db.Exec(stmt, s.dbValues()...); err != nil {
+	if _, err := db.Exec(stmt, vs...); err != nil {
 		return Internal(err)
 	}
 	return nil
@@ -277,8 +234,12 @@ func shotFromRows(rows *sql.Rows) (*Shot, error) {
 // GetShot은 db에서 하나의 샷을 찾는다.
 // 해당 샷이 존재하지 않는다면 nil과 NotFound 에러를 반환한다.
 func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
-	keystr := strings.Join(ShotTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND shot=$2 LIMIT 1", keystr)
+	ks, _, err := dbKVs(&Shot{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND shot=$2 LIMIT 1", keys)
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
 		return nil, Internal(err)
@@ -293,19 +254,23 @@ func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
 func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status string, task_due_date time.Time) ([]*Shot, error) {
-	keystr := ""
-	for i, k := range ShotTableKeys {
+	ks, _, err := dbKVs(&Shot{})
+	if err != nil {
+		return nil, err
+	}
+	keys := ""
+	for i, k := range ks {
 		if i != 0 {
-			keystr += ", "
+			keys += ", "
 		}
 		// 태스크에 있는 정보를 찾기 위해 JOIN 해야 할 경우가 있기 때문에
 		// shots. 을 붙인다.
-		keystr += "shots." + k
+		keys += "shots." + k
 	}
 	where := make([]string, 0)
 	vals := make([]interface{}, 0)
 	i := 1 // 인덱스가 1부터 시작이다.
-	stmt := fmt.Sprintf("SELECT %s FROM shots", keystr)
+	stmt := fmt.Sprintf("SELECT %s FROM shots", keys)
 	where = append(where, fmt.Sprintf("shots.show=$%d", i))
 	vals = append(vals, prj)
 	i++
@@ -377,56 +342,16 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 // UpdateShotParam은 Shot에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
 // UpdateShot에서 사용한다.
 type UpdateShotParam struct {
-	Status        ShotStatus
-	EditOrder     int
-	Description   string
-	CGDescription string
-	TimecodeIn    string
-	TimecodeOut   string
-	Duration      int
-	Tags          []string
-	WorkingTasks  []string
-	DueDate       time.Time
-}
-
-func (u UpdateShotParam) keys() []string {
-	return []string{
-		"status",
-		"edit_order",
-		"description",
-		"cg_description",
-		"timecode_in",
-		"timecode_out",
-		"duration",
-		"tags",
-		"working_tasks",
-		"due_date",
-	}
-}
-
-func (u UpdateShotParam) indices() []string {
-	return dbIndices(u.keys())
-}
-
-func (u UpdateShotParam) values() []interface{} {
-	if u.Tags == nil {
-		u.Tags = make([]string, 0)
-	}
-	if u.WorkingTasks == nil {
-		u.WorkingTasks = make([]string, 0)
-	}
-	return []interface{}{
-		u.Status,
-		u.EditOrder,
-		u.Description,
-		u.CGDescription,
-		u.TimecodeIn,
-		u.TimecodeOut,
-		u.Duration,
-		pq.Array(u.Tags),
-		pq.Array(u.WorkingTasks),
-		u.DueDate,
-	}
+	Status        ShotStatus `db:"status"`
+	EditOrder     int        `db:"edit_order"`
+	Description   string     `db:"description"`
+	CGDescription string     `db:"cg_description"`
+	TimecodeIn    string     `db:"timecode_in"`
+	TimecodeOut   string     `db:"timecode_out"`
+	Duration      int        `db:"duration"`
+	Tags          []string   `db:"tags"`
+	WorkingTasks  []string   `db:"working_tasks"`
+	DueDate       time.Time  `db:"due_date"`
 }
 
 // UpdateShot은 db에서 해당 샷을 수정한다.
@@ -440,10 +365,14 @@ func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 	if !isValidShotStatus(upd.Status) {
 		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", upd.Status))
 	}
-	keystr := strings.Join(upd.keys(), ", ")
-	idxstr := strings.Join(upd.indices(), ", ")
-	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", keystr, idxstr, prj, shot)
-	if _, err := db.Exec(stmt, upd.values()...); err != nil {
+	ks, vs, err := dbKVs(upd)
+	if err != nil {
+		return err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(dbIndices(ks), ", ")
+	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", keys, idxs, prj, shot)
+	if _, err := db.Exec(stmt, vs...); err != nil {
 		return Internal(err)
 	}
 	return nil

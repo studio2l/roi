@@ -67,34 +67,17 @@ func (s TaskStatus) UIString() string {
 
 type Task struct {
 	// 관련 아이디
-	Show string
-	Shot string
+	Show string `db:"show"`
+	Shot string `db:"shot"`
 
 	// 태스크 정보
-	Task        string // 이름은 타입 또는 타입_요소로 구성된다. 예) fx, fx_fire
-	Status      TaskStatus
-	Assignee    string
-	LastVersion string
-	StartDate   time.Time
-	EndDate     time.Time
-	DueDate     time.Time
-}
-
-func (t *Task) dbValues() []interface{} {
-	if t == nil {
-		t = &Task{}
-	}
-	return []interface{}{
-		t.Show,
-		t.Shot,
-		t.Task,
-		t.Status,
-		t.Assignee,
-		t.LastVersion,
-		t.StartDate,
-		t.EndDate,
-		t.DueDate,
-	}
+	Task        string     `db:"task"` // 이름은 타입 또는 타입_요소로 구성된다. 예) fx, fx_fire
+	Status      TaskStatus `db:"status"`
+	Assignee    string     `db:"assignee"`
+	LastVersion string     `db:"last_version"`
+	StartDate   time.Time  `db:"start_date"`
+	EndDate     time.Time  `db:"end_date"`
+	DueDate     time.Time  `db:"due_date"`
 }
 
 var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
@@ -110,20 +93,6 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	due_date TIMESTAMPTZ NOT NULL,
 	UNIQUE(show, shot, task)
 )`
-
-var TaskTableKeys = []string{
-	"show",
-	"shot",
-	"task",
-	"status",
-	"assignee",
-	"last_version",
-	"start_date",
-	"end_date",
-	"due_date",
-}
-
-var TaskTableIndices = dbIndices(TaskTableKeys)
 
 // AddTask는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddTask(db *sql.DB, prj, shot string, t *Task) error {
@@ -142,10 +111,14 @@ func AddTask(db *sql.DB, prj, shot string, t *Task) error {
 	if !isValidTaskStatus(t.Status) {
 		return BadRequest(fmt.Sprintf("invalid task status: '%s'", t.Status))
 	}
-	keystr := strings.Join(TaskTableKeys, ", ")
-	idxstr := strings.Join(TaskTableIndices, ", ")
-	stmt := fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", keystr, idxstr)
-	if _, err := db.Exec(stmt, t.dbValues()...); err != nil {
+	ks, vs, err := dbKVs(t)
+	if err != nil {
+		return err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(dbIndices(ks), ", ")
+	stmt := fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", keys, idxs)
+	if _, err := db.Exec(stmt, vs...); err != nil {
 		return Internal(err)
 	}
 	return nil
@@ -154,29 +127,9 @@ func AddTask(db *sql.DB, prj, shot string, t *Task) error {
 // UpdateTaskParam은 Task에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
 // UpdateTask에서 사용한다.
 type UpdateTaskParam struct {
-	Status   TaskStatus
-	Assignee string
-	DueDate  time.Time
-}
-
-func (u UpdateTaskParam) keys() []string {
-	return []string{
-		"status",
-		"assignee",
-		"due_date",
-	}
-}
-
-func (u UpdateTaskParam) indices() []string {
-	return dbIndices(u.keys())
-}
-
-func (u UpdateTaskParam) values() []interface{} {
-	return []interface{}{
-		u.Status,
-		u.Assignee,
-		u.DueDate,
-	}
+	Status   TaskStatus `db:"status"`
+	Assignee string     `db:"assignee"`
+	DueDate  time.Time  `db:"due_date"`
 }
 
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
@@ -193,10 +146,14 @@ func UpdateTask(db *sql.DB, prj, shot, task string, upd UpdateTaskParam) error {
 	if !isValidTaskStatus(upd.Status) {
 		return BadRequest(fmt.Sprintf("invalid task status: '%s'", upd.Status))
 	}
-	keystr := strings.Join(upd.keys(), ", ")
-	idxstr := strings.Join(upd.indices(), ", ")
-	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s'", keystr, idxstr, prj, shot, task)
-	if _, err := db.Exec(stmt, upd.values()...); err != nil {
+	ks, vs, err := dbKVs(upd)
+	if err != nil {
+		return err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(dbIndices(ks), ", ")
+	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s'", keys, idxs, prj, shot, task)
+	if _, err := db.Exec(stmt, vs...); err != nil {
 		return Internal(err)
 	}
 	return nil
@@ -229,8 +186,12 @@ func taskFromRows(rows *sql.Rows) (*Task, error) {
 // GetTask는 db에서 하나의 태스크를 찾는다.
 // 해당 태스크가 없다면 nil과 NotFound 에러를 반환한다.
 func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
-	keystr := strings.Join(TaskTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2 AND task=$3 LIMIT 1", keystr)
+	ks, _, err := dbKVs(&Task{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2 AND task=$3 LIMIT 1", keys)
 	rows, err := db.Query(stmt, prj, shot, task)
 	if err != nil {
 		return nil, Internal(err)
@@ -245,8 +206,12 @@ func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
 
 // ShotTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
 func ShotTasks(db *sql.DB, prj, shot string) ([]*Task, error) {
-	keystr := strings.Join(TaskTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2", keystr)
+	ks, _, err := dbKVs(&Task{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2", keys)
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
 		return nil, Internal(err)
@@ -265,14 +230,18 @@ func ShotTasks(db *sql.DB, prj, shot string) ([]*Task, error) {
 // UserTasks는 해당 유저의 모든 태스크를 db에서 검색해 반환한다.
 func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 	// 샷의 working_tasks에 속하지 않은 태스크는 보이지 않는다.
-	keystr := ""
-	for i, k := range TaskTableKeys {
-		if i != 0 {
-			keystr += ", "
-		}
-		keystr += "tasks." + k
+	ks, _, err := dbKVs(&Task{})
+	if err != nil {
+		return nil, err
 	}
-	stmt := fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.show = shots.show AND tasks.shot = shots.shot)  WHERE tasks.assignee='%s' AND tasks.task = ANY(shots.working_tasks)", keystr, user)
+	keys := ""
+	for i := range ks {
+		if i != 0 {
+			keys += ", "
+		}
+		keys += "tasks." + ks[i]
+	}
+	stmt := fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.show = shots.show AND tasks.shot = shots.shot)  WHERE tasks.assignee='%s' AND tasks.task = ANY(shots.working_tasks)", keys, user)
 	rows, err := db.Query(stmt)
 	if err != nil {
 		return nil, Internal(err)

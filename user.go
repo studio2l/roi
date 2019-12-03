@@ -9,16 +9,29 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// User는 사용자와 관련된 정보이다.
+// user는 db에 저장하는 사용자 전체 정보이다.
+type user struct {
+	ID             string `db:"id"`
+	KorName        string `db:"kor_name"`
+	Name           string `db:"name"`
+	Team           string `db:"team"`
+	Role           string `db:"role"`
+	Email          string `db:"email"`
+	PhoneNumber    string `db:"phone_number"`
+	EntryDate      string `db:"entry_date"`
+	HashedPassword string `db:"hashed_password"`
+}
+
+// User는 일반적인 사용자 정보이다.
 type User struct {
-	ID          string
-	KorName     string
-	Name        string
-	Team        string
-	Role        string
-	Email       string
-	PhoneNumber string
-	EntryDate   string
+	ID          string `db:"id"`
+	KorName     string `db:"kor_name"`
+	Name        string `db:"name"`
+	Team        string `db:"team"`
+	Role        string `db:"role"`
+	Email       string `db:"email"`
+	PhoneNumber string `db:"phone_number"`
+	EntryDate   string `db:"entry_date"`
 }
 
 var CreateTableIfNotExistsUsersStmt = `CREATE TABLE IF NOT EXISTS users (
@@ -33,52 +46,6 @@ var CreateTableIfNotExistsUsersStmt = `CREATE TABLE IF NOT EXISTS users (
 	entry_date STRING NOT NULL,
 	hashed_password STRING NOT NULL
 )`
-
-func (u *User) dbValues() []interface{} {
-	if u == nil {
-		u = &User{}
-	}
-	vals := []interface{}{
-		u.ID,
-		u.KorName,
-		u.Name,
-		u.Team,
-		u.Role,
-		u.Email,
-		u.PhoneNumber,
-		u.EntryDate,
-	}
-	return vals
-}
-
-func (u *User) dbValuesWithHashedPassword(hashed_password string) []interface{} {
-	return append(u.dbValues(), hashed_password)
-}
-
-var UserTableKeys = []string{
-	"id",
-	"kor_name",
-	"name",
-	"team",
-	"role",
-	"email",
-	"phone_number",
-	"entry_date",
-}
-
-var UserTableKeysWithHashedPassword = append(
-	UserTableKeys,
-	"hashed_password",
-)
-
-var UserTableIndices = []string{
-	"$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8",
-}
-
-var UserTableIndicesWithHashedPassword = append(
-	UserTableIndices,
-	"$9",
-)
 
 // AddUser는 db에 한 명의 사용자를 추가한다.
 func AddUser(db *sql.DB, id, pw string) error {
@@ -99,12 +66,15 @@ func AddUser(db *sql.DB, id, pw string) error {
 		return err
 	}
 	hashed_password := string(hashed)
+	ks, vs, err := dbKVs(&user{ID: id, HashedPassword: hashed_password})
+	if err != nil {
+		return err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(dbIndices(ks), ", ")
 	// 사용자 생성
-	keystr := strings.Join(UserTableKeysWithHashedPassword, ", ")
-	idxstr := strings.Join(UserTableIndicesWithHashedPassword, ", ")
-	stmt := fmt.Sprintf("INSERT INTO users (%s) VALUES (%s)", keystr, idxstr)
-	u := &User{ID: id}
-	if _, err := db.Exec(stmt, u.dbValuesWithHashedPassword(hashed_password)...); err != nil {
+	stmt := fmt.Sprintf("INSERT INTO users (%s) VALUES (%s)", keys, idxs)
+	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
 	}
 	return nil
@@ -121,8 +91,12 @@ func UserExist(db *sql.DB, id string) (bool, error) {
 }
 
 func Users(db *sql.DB) ([]*User, error) {
-	keystr := strings.Join(UserTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM users", keystr)
+	ks, _, err := dbKVs(&User{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM users", keys)
 	rows, err := db.Query(stmt)
 	if err != nil {
 		return nil, Internal(err)
@@ -144,8 +118,12 @@ func Users(db *sql.DB) ([]*User, error) {
 // GetUser는 db에서 사용자를 검색한다.
 // 해당 유저를 찾지 못하면 nil과 NotFound 에러를 반환한다.
 func GetUser(db *sql.DB, id string) (*User, error) {
-	keystr := strings.Join(UserTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", keystr, id)
+	ks, _, err := dbKVs(&User{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", keys, id)
 	rows, err := db.Query(stmt)
 	if err != nil {
 		return nil, Internal(err)
