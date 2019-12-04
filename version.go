@@ -11,16 +11,16 @@ import (
 
 // Version은 특정 태스크의 하나의 버전이다.
 type Version struct {
-	Show string
-	Shot string
-	Task string
+	Show string `db:"show"`
+	Shot string `db:"shot"`
+	Task string `db:"task"`
 
-	Version     string    // 버전명
-	OutputFiles []string  // 결과물 경로
-	Images      []string  // 결과물을 확인할 수 있는 이미지
-	Mov         string    // 결과물을 영상으로 볼 수 있는 경로
-	WorkFile    string    // 이 결과물을 만든 작업 파일
-	Created     time.Time // 결과물이 만들어진 시간
+	Version     string    `db:"version"`      // 버전명
+	OutputFiles []string  `db:"output_files"` // 결과물 경로
+	Images      []string  `db:"images"`       // 결과물을 확인할 수 있는 이미지
+	Mov         string    `db:"mov"`          // 결과물을 영상으로 볼 수 있는 경로
+	WorkFile    string    `db:"work_file"`    // 이 결과물을 만든 작업 파일
+	Created     time.Time `db:"created"`      // 결과물이 만들어진 시간
 }
 
 var CreateTableIfNotExistsVersionsStmt = `CREATE TABLE IF NOT EXISTS versions (
@@ -37,43 +37,6 @@ var CreateTableIfNotExistsVersionsStmt = `CREATE TABLE IF NOT EXISTS versions (
 	UNIQUE(show, shot, task, version)
 )`
 
-var VersionTableKeys = []string{
-	"show",
-	"shot",
-	"task",
-	"version",
-	"output_files",
-	"images",
-	"mov",
-	"work_file",
-	"created",
-}
-
-var VersionTableIndices = dbIndices(VersionTableKeys)
-
-func (v *Version) dbValues() []interface{} {
-	if v == nil {
-		v = &Version{}
-	}
-	if v.OutputFiles == nil {
-		v.OutputFiles = make([]string, 0)
-	}
-	if v.Images == nil {
-		v.Images = make([]string, 0)
-	}
-	return []interface{}{
-		v.Show,
-		v.Shot,
-		v.Task,
-		v.Version,
-		pq.Array(v.OutputFiles),
-		pq.Array(v.Images),
-		v.Mov,
-		v.WorkFile,
-		v.Created,
-	}
-}
-
 // AddVersion은 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddVersion(db *sql.DB, prj, shot, task string, v *Version) error {
 	if prj == "" {
@@ -88,15 +51,19 @@ func AddVersion(db *sql.DB, prj, shot, task string, v *Version) error {
 	if v == nil {
 		return fmt.Errorf("nil version")
 	}
-	keystr := strings.Join(VersionTableKeys, ", ")
-	idxstr := strings.Join(VersionTableIndices, ", ")
+	ks, vs, err := dbKVs(v)
+	if err != nil {
+		return err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(dbIndices(ks), ", ")
 	tx, err := db.Begin()
 	if err != nil {
 		return Internal(fmt.Errorf("could not begin a transaction: %v", err))
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	stmt := fmt.Sprintf("INSERT INTO versions (%s) VALUES (%s)", keystr, idxstr)
-	if _, err := tx.Exec(stmt, v.dbValues()...); err != nil {
+	stmt := fmt.Sprintf("INSERT INTO versions (%s) VALUES (%s)", keys, idxs)
+	if _, err := tx.Exec(stmt, vs...); err != nil {
 		return Internal(fmt.Errorf("could not insert versions: %v", err))
 	}
 	if _, err := tx.Exec("UPDATE tasks SET status=$1, last_version=$2 WHERE show=$3 AND shot=$4 AND task=$5", TaskInProgress, v.Version, prj, shot, task); err != nil {
@@ -112,41 +79,11 @@ func AddVersion(db *sql.DB, prj, shot, task string, v *Version) error {
 // UpdateVersionParam은 Version에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
 // UpdateVersion에서 사용한다.
 type UpdateVersionParam struct {
-	OutputFiles []string
-	Images      []string
-	Mov         string
-	WorkFile    string
-	Created     time.Time
-}
-
-func (u UpdateVersionParam) keys() []string {
-	return []string{
-		"output_files",
-		"images",
-		"mov",
-		"work_file",
-		"created",
-	}
-}
-
-func (u UpdateVersionParam) indices() []string {
-	return dbIndices(u.keys())
-}
-
-func (u UpdateVersionParam) values() []interface{} {
-	if u.OutputFiles == nil {
-		u.OutputFiles = make([]string, 0)
-	}
-	if u.Images == nil {
-		u.Images = make([]string, 0)
-	}
-	return []interface{}{
-		pq.Array(u.OutputFiles),
-		pq.Array(u.Images),
-		u.Mov,
-		u.WorkFile,
-		u.Created,
-	}
+	OutputFiles []string  `db:"output_files"`
+	Images      []string  `db:"images"`
+	Mov         string    `db:"mov"`
+	WorkFile    string    `db:"work_file"`
+	Created     time.Time `db:"created"`
 }
 
 // UpdateVersion은 db의 특정 태스크를 업데이트 한다.
@@ -163,10 +100,14 @@ func UpdateVersion(db *sql.DB, prj, shot, task string, version string, upd Updat
 	if version == "" {
 		return BadRequest("version not specified")
 	}
-	keystr := strings.Join(upd.keys(), ", ")
-	idxstr := strings.Join(upd.indices(), ", ")
-	stmt := fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s' AND version='%s'", keystr, idxstr, prj, shot, task, version)
-	if _, err := db.Exec(stmt, upd.values()...); err != nil {
+	ks, vs, err := dbKVs(upd)
+	if err != nil {
+		return err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(dbIndices(ks), ", ")
+	stmt := fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s' AND version='%s'", keys, idxs, prj, shot, task, version)
+	if _, err := db.Exec(stmt, vs...); err != nil {
 		return Internal(err)
 	}
 	return nil
@@ -210,8 +151,12 @@ func versionFromRows(rows *sql.Rows) (*Version, error) {
 // GetVersion은 db에서 하나의 버전을 찾는다.
 // 해당 버전이 없다면 nil과 NotFound 에러를 반환한다.
 func GetVersion(db *sql.DB, prj, shot, task string, version string) (*Version, error) {
-	keystr := strings.Join(VersionTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2 AND task=$3 AND version=$4 LIMIT 1", keystr)
+	ks, _, err := dbKVs(&Version{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2 AND task=$3 AND version=$4 LIMIT 1", keys)
 	rows, err := db.Query(stmt, prj, shot, task, version)
 	if err != nil {
 		return nil, Internal(err)
@@ -226,8 +171,12 @@ func GetVersion(db *sql.DB, prj, shot, task string, version string) (*Version, e
 
 // TaskVersions는 db에서 특정 태스크의 버전 전체를 검색해 반환한다.
 func TaskVersions(db *sql.DB, prj, shot, task string) ([]*Version, error) {
-	keystr := strings.Join(VersionTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2 AND task=$3", keystr)
+	ks, _, err := dbKVs(&Version{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2 AND task=$3", keys)
 	rows, err := db.Query(stmt, prj, shot, task)
 	if err != nil {
 		return nil, Internal(err)
@@ -245,8 +194,12 @@ func TaskVersions(db *sql.DB, prj, shot, task string) ([]*Version, error) {
 
 // ShotVersions는 db에서 특정 샷의 버전 전체를 검색해 반환한다.
 func ShotVersions(db *sql.DB, prj, shot string) ([]*Version, error) {
-	keystr := strings.Join(VersionTableKeys, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2", keystr)
+	ks, _, err := dbKVs(&Version{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2", keys)
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
 		return nil, Internal(err)

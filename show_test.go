@@ -23,6 +23,7 @@ var testShow = &Show{
 	VFXDueDate:    time.Date(2018, 9, 31, 0, 0, 0, 0, time.Local).UTC(),
 	OutputSize:    "1920x1080",
 	ViewLUT:       "some/place/aces.lut",
+	DefaultTasks:  []string{},
 }
 
 func TestShow(t *testing.T) {
