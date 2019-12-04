@@ -20,45 +20,45 @@ func InitDB() (*sql.DB, error) {
 func initDB(addr string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", addr)
 	if err != nil {
-		return nil, Internal(fmt.Errorf("could not open database with root user: %w", err))
+		return nil, fmt.Errorf("could not open database with root user: %w", err)
 	}
 	tx, err := db.Begin()
 	if err != nil {
-		return nil, Internal(fmt.Errorf("could not begin a transaction: %w", err))
+		return nil, fmt.Errorf("could not begin a transaction: %w", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
 
 	// 밑의 구문들은 다 여러번 실행해도 안전한 구문들이다.
 	if _, err := tx.Exec("CREATE USER IF NOT EXISTS roiuser"); err != nil {
-		return nil, Internal(fmt.Errorf("could not create user 'roiuser': %w", err))
+		return nil, fmt.Errorf("could not create user 'roiuser': %w", err)
 	}
 	if _, err := tx.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
-		return nil, Internal(fmt.Errorf("could not create db 'roi': %w", err))
+		return nil, fmt.Errorf("could not create db 'roi': %w", err)
 	}
 	if _, err := tx.Exec("GRANT ALL ON DATABASE roi TO roiuser"); err != nil {
-		return nil, Internal(fmt.Errorf("could not grant 'roi' to 'roiuser': %w", err))
+		return nil, fmt.Errorf("could not grant 'roi' to 'roiuser': %w", err)
 	}
 	if _, err := tx.Exec(CreateTableIfNotExistsSitesStmt); err != nil {
-		return nil, Internal(fmt.Errorf("could not create 'sites' table: %w", err))
+		return nil, fmt.Errorf("could not create 'sites' table: %w", err)
 	}
 	if _, err := tx.Exec(CreateTableIfNotExistsShowsStmt); err != nil {
-		return nil, Internal(fmt.Errorf("could not create 'projects' table: %w", err))
+		return nil, fmt.Errorf("could not create 'projects' table: %w", err)
 	}
 	if _, err := tx.Exec(CreateTableIfNotExistsShotsStmt); err != nil {
-		return nil, Internal(fmt.Errorf("could not create 'shots' table: %w", err))
+		return nil, fmt.Errorf("could not create 'shots' table: %w", err)
 	}
 	if _, err := tx.Exec(CreateTableIfNotExistsTasksStmt); err != nil {
-		return nil, Internal(fmt.Errorf("could not create 'tasks' table: %w", err))
+		return nil, fmt.Errorf("could not create 'tasks' table: %w", err)
 	}
 	if _, err := tx.Exec(CreateTableIfNotExistsVersionsStmt); err != nil {
-		return nil, Internal(fmt.Errorf("could not create 'versions' table: %w", err))
+		return nil, fmt.Errorf("could not create 'versions' table: %w", err)
 	}
 	if _, err := tx.Exec(CreateTableIfNotExistsUsersStmt); err != nil {
-		return nil, Internal(fmt.Errorf("could not create 'users' table: %w", err))
+		return nil, fmt.Errorf("could not create 'users' table: %w", err)
 	}
 	err = tx.Commit()
 	if err != nil {
-		return nil, Internal(fmt.Errorf("could not commit transaction: %w", err))
+		return nil, fmt.Errorf("could not commit transaction: %w", err)
 	}
 	return db, nil
 }
@@ -67,7 +67,7 @@ func initDB(addr string) (*sql.DB, error) {
 func DB() (*sql.DB, error) {
 	db, err := sql.Open("postgres", "postgresql://roiuser@localhost:26257/roi?sslmode=disable")
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	return db, nil
 }
@@ -92,7 +92,7 @@ func dbKeys(v interface{}) (keys []string, err error) {
 	var field reflect.StructField
 	defer func() {
 		if r := recover(); r != nil {
-			err = Internal(fmt.Errorf("dbKeys: %v: %s.%s", r, typ.Name(), field.Name))
+			err = fmt.Errorf("dbKeys: %v: %s.%s", r, typ.Name(), field.Name)
 		}
 	}()
 	rv := reflect.ValueOf(v)
@@ -121,7 +121,7 @@ func dbValues(v interface{}) (vals []interface{}, err error) {
 	var field reflect.Value
 	defer func() {
 		if r := recover(); r != nil {
-			err = Internal(fmt.Errorf("dbValues: %v: %s.%s", r, typ.Name(), field.Type().Name()))
+			err = fmt.Errorf("dbValues: %v: %s.%s", r, typ.Name(), field.Type().Name())
 		}
 	}()
 	rv := reflect.ValueOf(v)

@@ -8,8 +8,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/studio2l/roi"
 )
 
 // templates에는 사용자에게 보일 페이지의 템플릿이 담긴다.
@@ -24,7 +22,7 @@ func executeTemplate(w http.ResponseWriter, name string, data interface{}) error
 	}
 	err := templates.ExecuteTemplate(w, name, data)
 	if err != nil {
-		return roi.Internal(err)
+		return err
 	}
 	return nil
 }

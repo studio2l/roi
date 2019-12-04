@@ -59,19 +59,19 @@ func AddVersion(db *sql.DB, prj, shot, task string, v *Version) error {
 	idxs := strings.Join(dbIndices(ks), ", ")
 	tx, err := db.Begin()
 	if err != nil {
-		return Internal(fmt.Errorf("could not begin a transaction: %v", err))
+		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
 	stmt := fmt.Sprintf("INSERT INTO versions (%s) VALUES (%s)", keys, idxs)
 	if _, err := tx.Exec(stmt, vs...); err != nil {
-		return Internal(fmt.Errorf("could not insert versions: %v", err))
+		return fmt.Errorf("could not insert versions: %v", err)
 	}
 	if _, err := tx.Exec("UPDATE tasks SET status=$1, last_version=$2 WHERE show=$3 AND shot=$4 AND task=$5", TaskInProgress, v.Version, prj, shot, task); err != nil {
-		return Internal(fmt.Errorf("could not update last version of task: %v", err))
+		return fmt.Errorf("could not update last version of task: %v", err)
 	}
 	err = tx.Commit()
 	if err != nil {
-		return Internal(fmt.Errorf("could not commit the transaction: %v", err))
+		return fmt.Errorf("could not commit the transaction: %v", err)
 	}
 	return nil
 }
@@ -108,7 +108,7 @@ func UpdateVersion(db *sql.DB, prj, shot, task string, version string, upd Updat
 	idxs := strings.Join(dbIndices(ks), ", ")
 	stmt := fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s' AND version='%s'", keys, idxs, prj, shot, task, version)
 	if _, err := db.Exec(stmt, vs...); err != nil {
-		return Internal(err)
+		return err
 	}
 	return nil
 }
@@ -130,7 +130,7 @@ func VersionExist(db *sql.DB, prj, shot, task string, version string) (bool, err
 	stmt := "SELECT version FROM versions WHERE show=$1 AND shot=$2 AND task=$3 AND version=$4 LIMIT 1"
 	rows, err := db.Query(stmt, prj, shot, task, version)
 	if err != nil {
-		return false, Internal(err)
+		return false, err
 	}
 	return rows.Next(), nil
 }
@@ -143,7 +143,7 @@ func versionFromRows(rows *sql.Rows) (*Version, error) {
 		&v.Version, pq.Array(&v.OutputFiles), pq.Array(&v.Images), &v.Mov, &v.WorkFile, &v.Created,
 	)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	return v, nil
 }
@@ -159,7 +159,7 @@ func GetVersion(db *sql.DB, prj, shot, task string, version string) (*Version, e
 	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2 AND task=$3 AND version=$4 LIMIT 1", keys)
 	rows, err := db.Query(stmt, prj, shot, task, version)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	ok := rows.Next()
 	if !ok {
@@ -179,7 +179,7 @@ func TaskVersions(db *sql.DB, prj, shot, task string) ([]*Version, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2 AND task=$3", keys)
 	rows, err := db.Query(stmt, prj, shot, task)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	versions := make([]*Version, 0)
 	for rows.Next() {
@@ -202,7 +202,7 @@ func ShotVersions(db *sql.DB, prj, shot string) ([]*Version, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2", keys)
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	versions := make([]*Version, 0)
 	for rows.Next() {
@@ -221,15 +221,15 @@ func ShotVersions(db *sql.DB, prj, shot string) ([]*Version, error) {
 func DeleteVersion(db *sql.DB, prj, shot, task string, version string) error {
 	tx, err := db.Begin()
 	if err != nil {
-		return Internal(fmt.Errorf("could not begin a transaction: %w", err))
+		return fmt.Errorf("could not begin a transaction: %w", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
 	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1 AND shot=$2 AND task=$3 AND version=$4", prj, shot, task, version); err != nil {
-		return Internal(fmt.Errorf("could not delete data from 'versions' table: %w", err))
+		return fmt.Errorf("could not delete data from 'versions' table: %w", err)
 	}
 	err = tx.Commit()
 	if err != nil {
-		return Internal(err)
+		return err
 	}
 	return nil
 }

@@ -3,7 +3,9 @@ package roi
 import "net/http"
 
 // Error는 error 인터페이스를 만족하는 roi의 에러 타입이다.
-// roi의 모든 에러는 Error 형이어야 한다.
+// Error는 에러와 함께 HTTP Code 정보를 가지고 있어 서버가 이를
+// 반환할수 있도록 하였다.
+// 서버는 Error가 아닌 기본 에러는 InternalServerError로 생각해야한다.
 type Error interface {
 	Error() string
 	Code() int
@@ -53,33 +55,6 @@ func (e BadRequestError) Code() int {
 
 func (e BadRequestError) Log() string {
 	return ""
-}
-
-// InternalError은 문제가 서버 밖으로 전달되지 않아야 함을 의미하는 에러이다.
-// InternalError은 errors.Wrapper 인터페이스를 만족한다.
-type InternalError struct {
-	err error
-}
-
-// Internal은 InternalError를 반환한다.
-func Internal(err error) InternalError {
-	return InternalError{err}
-}
-
-func (e InternalError) Error() string {
-	return "internal error"
-}
-
-func (e InternalError) Code() int {
-	return http.StatusInternalServerError
-}
-
-func (e InternalError) Log() string {
-	return e.err.Error()
-}
-
-func (e InternalError) Unwrap() error {
-	return e.err
 }
 
 // AuthError는 특정 사용자가 허락되지 않은 행동을 요청했음을 의미하는 에러이다.

@@ -75,7 +75,7 @@ func mustFields(r *http.Request, keys ...string) error {
 func sessionUser(r *http.Request) (*roi.User, error) {
 	session, err := getSession(r)
 	if err != nil {
-		return nil, roi.Internal(fmt.Errorf("could not get session: %w", err))
+		return nil, fmt.Errorf("could not get session: %w", err)
 	}
 	user := session["userid"]
 	if user == "" {
@@ -87,7 +87,7 @@ func sessionUser(r *http.Request) (*roi.User, error) {
 			// 일반적으로 db에 사용자가 없는 것은 NotFound 에러를 내지만,
 			// 존재하지 않는 사용자가 세션 유저로 등록되어 있는 것은 해킹일 가능성이 높다.
 			// 로그에 남도록 Internal 에러를 내고 %v 포매팅을 사용해 NotFound 타입정보는 지운다.
-			return nil, roi.Internal(fmt.Errorf("warn: invalid session user (malicious attack?): %s: %v", user, err))
+			return nil, fmt.Errorf("warn: invalid session user (malicious attack?): %s: %v", user, err)
 		}
 	}
 	return u, nil
@@ -108,15 +108,15 @@ func saveFormFile(r *http.Request, field string, dst string) error {
 	}
 	data, err := ioutil.ReadAll(f)
 	if err != nil {
-		return roi.Internal(fmt.Errorf("could not read file data: %w", err))
+		return fmt.Errorf("could not read file data: %w", err)
 	}
 	err = os.MkdirAll(filepath.Dir(dst), 0755)
 	if err != nil {
-		return roi.Internal(fmt.Errorf("could not create directory: %w", err))
+		return fmt.Errorf("could not create directory: %w", err)
 	}
 	err = ioutil.WriteFile(dst, data, 0755)
 	if err != nil {
-		return roi.Internal(fmt.Errorf("could not save file: %w", err))
+		return fmt.Errorf("could not save file: %w", err)
 	}
 	return nil
 }

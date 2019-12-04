@@ -119,7 +119,7 @@ func AddTask(db *sql.DB, prj, shot string, t *Task) error {
 	idxs := strings.Join(dbIndices(ks), ", ")
 	stmt := fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", keys, idxs)
 	if _, err := db.Exec(stmt, vs...); err != nil {
-		return Internal(err)
+		return err
 	}
 	return nil
 }
@@ -154,7 +154,7 @@ func UpdateTask(db *sql.DB, prj, shot, task string, upd UpdateTaskParam) error {
 	idxs := strings.Join(dbIndices(ks), ", ")
 	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s'", keys, idxs, prj, shot, task)
 	if _, err := db.Exec(stmt, vs...); err != nil {
-		return Internal(err)
+		return err
 	}
 	return nil
 }
@@ -164,7 +164,7 @@ func TaskExist(db *sql.DB, prj, shot, task string) (bool, error) {
 	stmt := "SELECT task FROM tasks WHERE show=$1 AND shot=$2 AND task=$3 LIMIT 1"
 	rows, err := db.Query(stmt, prj, shot, task)
 	if err != nil {
-		return false, Internal(err)
+		return false, err
 	}
 	return rows.Next(), nil
 }
@@ -178,7 +178,7 @@ func taskFromRows(rows *sql.Rows) (*Task, error) {
 		&t.StartDate, &t.EndDate, &t.DueDate,
 	)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	return t, nil
 }
@@ -194,7 +194,7 @@ func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2 AND task=$3 LIMIT 1", keys)
 	rows, err := db.Query(stmt, prj, shot, task)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	ok := rows.Next()
 	if !ok {
@@ -214,7 +214,7 @@ func ShotTasks(db *sql.DB, prj, shot string) ([]*Task, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2", keys)
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	tasks := make([]*Task, 0)
 	for rows.Next() {
@@ -244,7 +244,7 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.show = shots.show AND tasks.shot = shots.shot)  WHERE tasks.assignee='%s' AND tasks.task = ANY(shots.working_tasks)", keys, user)
 	rows, err := db.Query(stmt)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	tasks := make([]*Task, 0)
 	for rows.Next() {
@@ -278,7 +278,7 @@ func DeleteTask(db *sql.DB, prj, shot, task string) error {
 	}
 	err = tx.Commit()
 	if err != nil {
-		return Internal(err)
+		return err
 	}
 	return nil
 }

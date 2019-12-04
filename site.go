@@ -45,7 +45,7 @@ func AddSite(db *sql.DB) error {
 	idxs := strings.Join(dbIndices(k), ", ")
 	stmt := fmt.Sprintf("INSERT INTO sites (%s) VALUES (%s) ON CONFLICT DO NOTHING", keys, idxs)
 	if _, err := db.Exec(stmt, v...); err != nil {
-		return Internal(err)
+		return err
 	}
 	return nil
 }
@@ -61,7 +61,7 @@ func UpdateSite(db *sql.DB, s *Site) error {
 	idxs := strings.Join(dbIndices(k), ", ")
 	stmt := fmt.Sprintf("UPDATE sites SET (%s) = (%s) WHERE site='only'", keys, idxs)
 	if _, err := db.Exec(stmt, v...); err != nil {
-		return Internal(err)
+		return err
 	}
 	return nil
 }
@@ -80,7 +80,7 @@ func siteFromRows(rows *sql.Rows) (*Site, error) {
 		pq.Array(&s.Leads),
 	)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	return s, nil
 }
@@ -96,7 +96,7 @@ func GetSite(db *sql.DB) (*Site, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM sites LIMIT 1", keys)
 	rows, err := db.Query(stmt)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	ok := rows.Next()
 	if !ok {
