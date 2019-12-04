@@ -195,7 +195,7 @@ func AddShot(db *sql.DB, prj string, s *Shot) error {
 	idxs := strings.Join(dbIndices(ks), ", ")
 	stmt := fmt.Sprintf("INSERT INTO shots (%s) VALUES (%s)", keys, idxs)
 	if _, err := db.Exec(stmt, vs...); err != nil {
-		return Internal(err)
+		return err
 	}
 	return nil
 }
@@ -205,7 +205,7 @@ func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
 	stmt := "SELECT shot FROM shots WHERE show=$1 AND shot=$2 LIMIT 1"
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
-		return false, Internal(err)
+		return false, err
 	}
 	return rows.Next(), nil
 }
@@ -220,7 +220,7 @@ func shotFromRows(rows *sql.Rows) (*Shot, error) {
 		&s.StartDate, &s.EndDate, &s.DueDate,
 	)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	return s, nil
 }
@@ -236,7 +236,7 @@ func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND shot=$2 LIMIT 1", keys)
 	rows, err := db.Query(stmt, prj, shot)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	ok := rows.Next()
 	if !ok {
@@ -307,7 +307,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 	}
 	rows, err := db.Query(stmt, vals...)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	defer rows.Close()
 	// 태스크 검색을 해 JOIN이 되면 샷이 중복으로 추가될 수 있다.
@@ -318,7 +318,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 	for rows.Next() {
 		s, err := shotFromRows(rows)
 		if err != nil {
-			return nil, Internal(err)
+			return nil, err
 		}
 		ok := hasShot[s.Shot]
 		if ok {
@@ -367,7 +367,7 @@ func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 	idxs := strings.Join(dbIndices(ks), ", ")
 	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", keys, idxs, prj, shot)
 	if _, err := db.Exec(stmt, vs...); err != nil {
-		return Internal(err)
+		return err
 	}
 	return nil
 }
@@ -378,21 +378,21 @@ func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 func DeleteShot(db *sql.DB, prj, shot string) error {
 	tx, err := db.Begin()
 	if err != nil {
-		return Internal(fmt.Errorf("could not begin a transaction: %w", err))
+		return fmt.Errorf("could not begin a transaction: %w", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
 	if _, err := tx.Exec("DELETE FROM shots WHERE show=$1 AND shot=$2", prj, shot); err != nil {
-		return Internal(fmt.Errorf("could not delete data from 'shots' table: %w", err))
+		return fmt.Errorf("could not delete data from 'shots' table: %w", err)
 	}
 	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1 AND shot=$2", prj, shot); err != nil {
-		return Internal(fmt.Errorf("could not delete data from 'tasks' table: %w", err))
+		return fmt.Errorf("could not delete data from 'tasks' table: %w", err)
 	}
 	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1 AND shot=$2", prj, shot); err != nil {
-		return Internal(fmt.Errorf("could not delete data from 'versions' table: %w", err))
+		return fmt.Errorf("could not delete data from 'versions' table: %w", err)
 	}
 	err = tx.Commit()
 	if err != nil {
-		return Internal(err)
+		return err
 	}
 	return nil
 }

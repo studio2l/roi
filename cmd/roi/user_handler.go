@@ -65,7 +65,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		}
 		err = roi.AddUser(DB, env.SessionUser.ID, pw)
 		if err != nil {
-			return roi.Internal(err)
+			return err
 		}
 		session := map[string]string{
 			"userid": id,

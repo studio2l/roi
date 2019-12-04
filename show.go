@@ -147,7 +147,7 @@ func AddShow(db *sql.DB, p *Show) error {
 	idxs := strings.Join(dbIndices(ks), ", ")
 	stmt := fmt.Sprintf("INSERT INTO shows (%s) VALUES (%s)", keys, idxs)
 	if _, err := db.Exec(stmt, vs...); err != nil {
-		return Internal(err)
+		return err
 	}
 	return nil
 }
@@ -186,7 +186,7 @@ func UpdateShow(db *sql.DB, prj string, upd UpdateShowParam) error {
 	idxs := strings.Join(dbIndices(ks), ", ")
 	stmt := fmt.Sprintf("UPDATE shows SET (%s) = (%s) WHERE show='%s'", keys, idxs, prj)
 	if _, err := db.Exec(stmt, vs...); err != nil {
-		return Internal(err)
+		return err
 	}
 	return nil
 }
@@ -195,7 +195,7 @@ func UpdateShow(db *sql.DB, prj string, upd UpdateShowParam) error {
 func ShowExist(db *sql.DB, prj string) (bool, error) {
 	rows, err := db.Query("SELECT show FROM shows WHERE show=$1 LIMIT 1", prj)
 	if err != nil {
-		return false, Internal(err)
+		return false, err
 	}
 	return rows.Next(), nil
 }
@@ -210,7 +210,7 @@ func showFromRows(rows *sql.Rows) (*Show, error) {
 		&p.ViewLUT, pq.Array(&p.DefaultTasks),
 	)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	return p, nil
 }
@@ -226,7 +226,7 @@ func GetShow(db *sql.DB, prj string) (*Show, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM shows WHERE show=$1", keys)
 	rows, err := db.Query(stmt, prj)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	if !rows.Next() {
 		return nil, NotFound("show", prj)
@@ -249,7 +249,7 @@ func AllShows(db *sql.DB) ([]*Show, error) {
 	stmt := fmt.Sprintf("SELECT %s FROM shows", keys)
 	rows, err := db.Query(stmt)
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	prjs := make([]*Show, 0)
 	for rows.Next() {
@@ -260,7 +260,7 @@ func AllShows(db *sql.DB) ([]*Show, error) {
 		prjs = append(prjs, p)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	return prjs, nil
 }
@@ -271,20 +271,20 @@ func AllShows(db *sql.DB) ([]*Show, error) {
 func DeleteShow(db *sql.DB, prj string) error {
 	tx, err := db.Begin()
 	if err != nil {
-		return Internal(fmt.Errorf("could not begin a transaction: %v", err))
+		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
 	if _, err := tx.Exec("DELETE FROM shows WHERE show=$1", prj); err != nil {
-		return Internal(fmt.Errorf("could not delete data from 'shows' table: %v", err))
+		return fmt.Errorf("could not delete data from 'shows' table: %v", err)
 	}
 	if _, err := tx.Exec("DELETE FROM shots WHERE show=$1", prj); err != nil {
-		return Internal(fmt.Errorf("could not delete data from 'shots' table: %v", err))
+		return fmt.Errorf("could not delete data from 'shots' table: %v", err)
 	}
 	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1", prj); err != nil {
-		return Internal(fmt.Errorf("could not delete data from 'tasks' table: %v", err))
+		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
 	}
 	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1", prj); err != nil {
-		return Internal(fmt.Errorf("could not delete data from 'versions' table: %v", err))
+		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
 	}
 	return tx.Commit()
 }

@@ -21,14 +21,14 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		// 관련 이슈: #143
 		showRows, err := DB.Query("SELECT show FROM shows")
 		if err != nil {
-			return roi.Internal(err)
+			return err
 		}
 		defer showRows.Close()
 		if !showRows.Next() {
 			return roi.BadRequest("no shows in roi")
 		}
 		if err := showRows.Scan(&show); err != nil {
-			return roi.Internal(err)
+			return err
 		}
 		http.Redirect(w, r, "/add-shot?show="+show, http.StatusSeeOther)
 		return nil

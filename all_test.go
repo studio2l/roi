@@ -22,7 +22,7 @@ func initTestDB() (*sql.DB, error) {
 func testDB() (*sql.DB, error) {
 	db, err := sql.Open("postgres", "postgresql://root@localhost:54545/roi?sslmode=disable")
 	if err != nil {
-		return nil, Internal(err)
+		return nil, err
 	}
 	return db, nil
 }
