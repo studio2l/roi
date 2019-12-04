@@ -63,7 +63,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		if pw != pwc {
 			return roi.BadRequest("passwords are not matched")
 		}
-		err = roi.AddUser(DB, env.SessionUser.ID, pw)
+		err = roi.AddUser(DB, id, pw)
 		if err != nil {
 			return err
 		}

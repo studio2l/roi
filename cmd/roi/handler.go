@@ -23,7 +23,7 @@ type HandlerFunc func(w http.ResponseWriter, r *http.Request, env *Env) error
 func handle(serve HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var u *roi.User
-		if !(r.URL.Path == "/login" || r.URL.Path == "/login/") {
+		if !(r.URL.Path == "/login" || r.URL.Path == "/login/" || r.URL.Path == "/signup") {
 			var err error
 			u, err = sessionUser(r)
 			if err != nil {
