@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
-
-	"github.com/lib/pq"
 )
 
 // Site는 현재 스튜디오를 뜻한다.
@@ -69,16 +67,11 @@ func UpdateSite(db *sql.DB, s *Site) error {
 // siteFromRows는 테이블의 한 열에서 사이트를 받아온다.
 func siteFromRows(rows *sql.Rows) (*Site, error) {
 	s := &Site{}
-	err := rows.Scan(
-		&s.Site,
-		pq.Array(&s.VFXSupervisors),
-		pq.Array(&s.VFXProducers),
-		pq.Array(&s.CGSupervisors),
-		pq.Array(&s.ProjectManagers),
-		pq.Array(&s.Tasks),
-		pq.Array(&s.DefaultTasks),
-		pq.Array(&s.Leads),
-	)
+	addrs, err := dbAddrs(s)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Scan(addrs...)
 	if err != nil {
 		return nil, err
 	}

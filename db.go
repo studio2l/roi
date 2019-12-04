@@ -149,6 +149,34 @@ func dbValues(v interface{}) (vals []interface{}, err error) {
 	return vals, nil
 }
 
+// dbValues는 임의의 타입인 v에 대해서 그 멤버들의 포인터 슬라이스를 반환한다.
+func dbAddrs(v interface{}) (addrs []interface{}, err error) {
+	var typ reflect.Type
+	var field reflect.Value
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("dbAddrs: %v: %s.%s", r, typ.Name(), field.Type().Name())
+		}
+	}()
+	rv := reflect.ValueOf(v)
+	if rv.Kind() == reflect.Ptr {
+		// 포인터에서 스트럭트로
+		rv = rv.Elem()
+	}
+	typ = rv.Type()
+	n := rv.NumField()
+	addrs = make([]interface{}, n)
+	for i := 0; i < n; i++ {
+		field = rv.Field(i)
+		fv := field.Addr().Interface()
+		if field.Kind() == reflect.Slice {
+			fv = pq.Array(fv)
+		}
+		addrs[i] = fv
+	}
+	return addrs, nil
+}
+
 // dbIndices는 받아들인 문자열 슬라이스와 같은 길이의
 // DB 인덱스 슬라이스를 생성한다. 인덱스는 1부터 시작한다.
 //
