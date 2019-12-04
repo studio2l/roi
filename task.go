@@ -172,11 +172,11 @@ func TaskExist(db *sql.DB, prj, shot, task string) (bool, error) {
 // taskFromRows는 테이블의 한 열에서 태스크를 받아온다.
 func taskFromRows(rows *sql.Rows) (*Task, error) {
 	t := &Task{}
-	err := rows.Scan(
-		&t.Show, &t.Shot,
-		&t.Task, &t.Status, &t.Assignee, &t.LastVersion,
-		&t.StartDate, &t.EndDate, &t.DueDate,
-	)
+	addrs, err := dbAddrs(t)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Scan(addrs...)
 	if err != nil {
 		return nil, err
 	}

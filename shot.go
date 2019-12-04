@@ -7,8 +7,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-
-	"github.com/lib/pq"
 )
 
 // 샷 아이디는 시퀀스_이름, 이름 이렇게 두가지 형식이 가능하다.
@@ -213,12 +211,11 @@ func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
 // shotFromRows는 테이블의 한 열에서 샷을 받아온다.
 func shotFromRows(rows *sql.Rows) (*Shot, error) {
 	s := &Shot{}
-	err := rows.Scan(
-		&s.Show, &s.Shot, &s.Status,
-		&s.EditOrder, &s.Description, &s.CGDescription, &s.TimecodeIn, &s.TimecodeOut,
-		&s.Duration, pq.Array(&s.Tags), pq.Array(&s.WorkingTasks),
-		&s.StartDate, &s.EndDate, &s.DueDate,
-	)
+	addrs, err := dbAddrs(s)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Scan(addrs...)
 	if err != nil {
 		return nil, err
 	}

@@ -6,8 +6,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/lib/pq"
 )
 
 type ShowStatus string
@@ -203,12 +201,11 @@ func ShowExist(db *sql.DB, prj string) (bool, error) {
 // showFromRows는 테이블의 한 열에서 쇼를 받아온다.
 func showFromRows(rows *sql.Rows) (*Show, error) {
 	p := &Show{}
-	err := rows.Scan(
-		&p.Show, &p.Name, &p.Status, &p.Client,
-		&p.Director, &p.Producer, &p.VFXSupervisor, &p.VFXManager, &p.CGSupervisor,
-		&p.CrankIn, &p.CrankUp, &p.StartDate, &p.ReleaseDate, &p.VFXDueDate, &p.OutputSize,
-		&p.ViewLUT, pq.Array(&p.DefaultTasks),
-	)
+	addrs, err := dbAddrs(p)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Scan(addrs...)
 	if err != nil {
 		return nil, err
 	}

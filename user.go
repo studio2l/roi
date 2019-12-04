@@ -103,8 +103,8 @@ func Users(db *sql.DB) ([]*User, error) {
 	}
 	us := make([]*User, 0)
 	for rows.Next() {
-		u := &User{}
-		if err := rows.Scan(&u.ID, &u.KorName, &u.Name, &u.Team, &u.Role, &u.Email, &u.PhoneNumber, &u.EntryDate); err != nil {
+		u, err := userFromRows(rows)
+		if err != nil {
 			return nil, err
 		}
 		us = append(us, u)
@@ -132,8 +132,22 @@ func GetUser(db *sql.DB, id string) (*User, error) {
 	if !ok {
 		return nil, NotFound("user", id)
 	}
+	u, err := userFromRows(rows)
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
+// userFromRows는 테이블의 한 열에서 유저를 받아온다.
+func userFromRows(rows *sql.Rows) (*User, error) {
 	u := &User{}
-	if err := rows.Scan(&u.ID, &u.KorName, &u.Name, &u.Team, &u.Role, &u.Email, &u.PhoneNumber, &u.EntryDate); err != nil {
+	addrs, err := dbAddrs(u)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Scan(addrs...)
+	if err != nil {
 		return nil, err
 	}
 	return u, nil

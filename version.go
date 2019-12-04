@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/lib/pq"
 )
 
 // Version은 특정 태스크의 하나의 버전이다.
@@ -138,10 +136,11 @@ func VersionExist(db *sql.DB, prj, shot, task string, version string) (bool, err
 // versionFromRows는 테이블의 한 열에서 아웃풋을 받아온다.
 func versionFromRows(rows *sql.Rows) (*Version, error) {
 	v := &Version{}
-	err := rows.Scan(
-		&v.Show, &v.Shot, &v.Task,
-		&v.Version, pq.Array(&v.OutputFiles), pq.Array(&v.Images), &v.Mov, &v.WorkFile, &v.Created,
-	)
+	addrs, err := dbAddrs(v)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Scan(addrs...)
 	if err != nil {
 		return nil, err
 	}
