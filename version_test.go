@@ -45,13 +45,6 @@ func TestVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add version: %v", err)
 	}
-	exist, err := VersionExist(db, testVersionA.Show, testVersionA.Shot, testVersionA.Task, testVersionA.Version)
-	if err != nil {
-		t.Fatalf("could not check version exist: %v", err)
-	}
-	if !exist {
-		t.Fatalf("added version not exist")
-	}
 	want := testVersionA
 	want.Version = "v001"
 	got, err := GetVersion(db, testVersionA.Show, testVersionA.Shot, testVersionA.Task, want.Version)
@@ -83,14 +76,6 @@ func TestVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not delete version: %v", err)
 	}
-	exist, err = VersionExist(db, testVersionA.Show, testVersionA.Shot, testVersionA.Task, testVersionA.Version)
-	if err != nil {
-		t.Fatalf("could not check version exist: %v", err)
-	}
-	if exist {
-		t.Fatalf("deleted version exist")
-	}
-
 	err = DeleteTask(db, testVersionA.Show, testVersionA.Shot, testVersionA.Task)
 	if err != nil {
 		t.Fatalf("could not delete task: %v", err)

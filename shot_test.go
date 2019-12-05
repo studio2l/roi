@@ -66,13 +66,6 @@ func TestShot(t *testing.T) {
 		if err != nil {
 			t.Fatalf("could not add shot to shots table: %s", err)
 		}
-		exist, err := ShotExist(db, testShow.Show, s.Shot)
-		if err != nil {
-			t.Fatalf("could not check shot existence from shots table: %s", err)
-		}
-		if !exist {
-			t.Fatalf("shot not found from shots table: %s", s.Shot)
-		}
 		got, err := GetShot(db, testShow.Show, s.Shot)
 		if err != nil {
 			t.Fatalf("could not get shot from shots table: %s", err)

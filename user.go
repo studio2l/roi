@@ -58,12 +58,11 @@ func AddUser(db *sql.DB, id, pw string) error {
 		return BadRequest("need id")
 	}
 	// 이 이름을 가진 사용자가 이미 있는지 검사한다.
-	exist, err := UserExist(db, id)
-	if err != nil {
+	_, err := GetUser(db, id)
+	if err == nil {
+		return BadRequest(fmt.Sprintf("user already exists: %s", id))
+	} else if !errors.As(err, &NotFoundError{}) {
 		return err
-	}
-	if exist {
-		return fmt.Errorf("user already exists: %s", id)
 	}
 	// 패스워드 해시
 	hashed, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
@@ -83,16 +82,6 @@ func AddUser(db *sql.DB, id, pw string) error {
 		return err
 	}
 	return nil
-}
-
-// UserExist는 db에서 사용자가 존재하는지 검사한다.
-func UserExist(db *sql.DB, id string) (bool, error) {
-	stmt := fmt.Sprintf("SELECT id FROM users WHERE id='%s'", id)
-	rows, err := db.Query(stmt)
-	if err != nil {
-		return false, err
-	}
-	return rows.Next(), rows.Err()
 }
 
 func Users(db *sql.DB) ([]*User, error) {

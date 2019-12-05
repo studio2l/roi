@@ -26,13 +26,6 @@ func TestUser(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add user: %s", err)
 	}
-	exist, err := UserExist(db, u.ID)
-	if err != nil {
-		t.Fatalf("could not check user exist: %v", err)
-	}
-	if !exist {
-		t.Fatalf("add user wasn't successful")
-	}
 	upd := UpdateUserParam{
 		KorName:     "김용빈",
 		Name:        "kim yongbin",
@@ -68,12 +61,5 @@ func TestUser(t *testing.T) {
 	err = DeleteUser(db, u.ID)
 	if err != nil {
 		t.Fatalf("could not delete user: %v", err)
-	}
-	exist, err = UserExist(db, u.ID)
-	if err != nil {
-		t.Fatalf("could not check user exist - after delete: %v", err)
-	}
-	if exist {
-		t.Fatalf("delete user wasn't successful")
 	}
 }

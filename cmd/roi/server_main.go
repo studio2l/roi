@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -86,11 +87,11 @@ ex) localhost
 		log.Fatalf("could not initialize database: %v", err)
 	}
 
-	exist, err := roi.UserExist(DB, "admin")
+	_, err = roi.GetUser(DB, "admin")
 	if err != nil {
-		log.Fatalf("could not check admin user exist: %v", err)
-	}
-	if !exist {
+		if !errors.As(err, &roi.NotFoundError{}) {
+			log.Fatalf("could not check admin user exist: %v", err)
+		}
 		err := roi.AddUser(DB, "admin", "password1!")
 		if err != nil {
 			log.Fatalf("could not create admin user: %v", err)

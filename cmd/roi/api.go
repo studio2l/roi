@@ -48,14 +48,13 @@ func addShowApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("'id' not specified"))
 		return
 	}
-	exist, err := roi.ShowExist(DB, show)
-	if err != nil {
+	_, err := roi.GetShow(DB, show)
+	if err == nil {
+		apiBadRequest(w, fmt.Errorf("show already exist: %v", show))
+		return
+	} else if !errors.As(err, &roi.NotFoundError{}) {
 		log.Printf("could not check show %q exist: %v", show, err)
 		apiInternalServerError(w)
-		return
-	}
-	if exist {
-		apiBadRequest(w, fmt.Errorf("show '%s' already exists", show))
 		return
 	}
 	tasks := fields(r.FormValue("default_tasks"))
@@ -82,17 +81,12 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("'show' not specified"))
 		return
 	}
-	exist, err := roi.ShowExist(DB, show)
+	_, err := roi.GetShow(DB, show)
 	if err != nil {
 		log.Printf("could not check show %q exist: %v", show, err)
 		apiInternalServerError(w)
 		return
 	}
-	if !exist {
-		apiBadRequest(w, fmt.Errorf("show '%s' not exists", show))
-		return
-	}
-
 	shot := r.PostFormValue("shot")
 	if shot == "" {
 		apiBadRequest(w, fmt.Errorf("'shot' not specified"))
@@ -102,17 +96,15 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("shot id '%s' is not valid", shot))
 		return
 	}
-	exist, err = roi.ShotExist(DB, show, shot)
-	if err != nil {
+	_, err = roi.GetShot(DB, show, shot)
+	if err == nil {
+		apiBadRequest(w, fmt.Errorf("shot already exist: %v", shot))
+		return
+	} else if !errors.As(err, &roi.NotFoundError{}) {
 		log.Printf("could not check shot '%s' exist: %v", shot, err)
 		apiInternalServerError(w)
 		return
 	}
-	if exist {
-		apiBadRequest(w, fmt.Errorf("shot '%s' already exists", shot))
-		return
-	}
-
 	status := "waiting"
 	v := r.PostFormValue("status")
 	if v != "" {

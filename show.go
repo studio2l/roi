@@ -189,15 +189,6 @@ func UpdateShow(db *sql.DB, prj string, upd UpdateShowParam) error {
 	return nil
 }
 
-// ShowExist는 db에 해당 쇼가 존재하는지를 검사한다.
-func ShowExist(db *sql.DB, prj string) (bool, error) {
-	rows, err := db.Query("SELECT show FROM shows WHERE show=$1 LIMIT 1", prj)
-	if err != nil {
-		return false, err
-	}
-	return rows.Next(), nil
-}
-
 // GetShow는 db에서 하나의 쇼를 부른다.
 // 해당 쇼가 없다면 nil과 NotFoundError를 반환한다.
 func GetShow(db *sql.DB, prj string) (*Show, error) {

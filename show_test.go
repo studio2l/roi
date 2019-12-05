@@ -37,13 +37,6 @@ func TestShow(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add project to projects table: %s", err)
 	}
-	exist, err := ShowExist(db, want.Show)
-	if err != nil {
-		t.Fatalf("could not check project existence from projects table: %s", err)
-	}
-	if !exist {
-		t.Fatalf("project not found from projects table: %s", want.Show)
-	}
 	got, err := GetShow(db, want.Show)
 	if err != nil {
 		t.Fatalf("could not get project from projects table: %s", err)

@@ -29,14 +29,10 @@ func TestTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add task: %s", err)
 	}
-	exist, err := TaskExist(db, testTaskA.Show, testTaskA.Shot, testTaskA.Task)
-	if err != nil {
-		t.Fatalf("could not check task exist: %s", err)
-	}
-	if !exist {
-		t.Fatalf("added task not exist")
-	}
 	tasks, err := UserTasks(db, "kybin")
+	if err != nil {
+		t.Fatalf("could not get user tasks: %s", err)
+	}
 	if len(tasks) != 1 {
 		t.Fatalf("invalid number of user tasks: want 1, got %d", len(tasks))
 	}
@@ -48,14 +44,6 @@ func TestTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not delete task: %s", err)
 	}
-	exist, err = TaskExist(db, testTaskA.Show, testTaskA.Shot, testTaskA.Task)
-	if err != nil {
-		t.Fatalf("could not check task exist: %s", err)
-	}
-	if exist {
-		t.Fatalf("deleted task exist")
-	}
-
 	err = DeleteShot(db, testTaskA.Show, testTaskA.Shot)
 	if err != nil {
 		t.Fatalf("could not delete shot: %s", err)
