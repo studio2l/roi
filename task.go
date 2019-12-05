@@ -159,16 +159,6 @@ func UpdateTask(db *sql.DB, prj, shot, task string, upd UpdateTaskParam) error {
 	return nil
 }
 
-// TaskExist는 db에 해당 태스크가 존재하는지를 검사한다.
-func TaskExist(db *sql.DB, prj, shot, task string) (bool, error) {
-	stmt := "SELECT task FROM tasks WHERE show=$1 AND shot=$2 AND task=$3 LIMIT 1"
-	rows, err := db.Query(stmt, prj, shot, task)
-	if err != nil {
-		return false, err
-	}
-	return rows.Next(), nil
-}
-
 // GetTask는 db에서 하나의 태스크를 찾는다.
 // 해당 태스크가 없다면 nil과 NotFound 에러를 반환한다.
 func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {

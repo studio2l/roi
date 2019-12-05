@@ -111,28 +111,6 @@ func UpdateVersion(db *sql.DB, prj, shot, task string, version string, upd Updat
 	return nil
 }
 
-// VersionExist는 db에 해당 태스크가 존재하는지를 검사한다.
-func VersionExist(db *sql.DB, prj, shot, task string, version string) (bool, error) {
-	if prj == "" {
-		return false, BadRequest("show not specified")
-	}
-	if shot == "" {
-		return false, BadRequest("shot not specified")
-	}
-	if task == "" {
-		return false, BadRequest("task not specified")
-	}
-	if version == "" {
-		return false, BadRequest("version not specified")
-	}
-	stmt := "SELECT version FROM versions WHERE show=$1 AND shot=$2 AND task=$3 AND version=$4 LIMIT 1"
-	rows, err := db.Query(stmt, prj, shot, task, version)
-	if err != nil {
-		return false, err
-	}
-	return rows.Next(), nil
-}
-
 // GetVersion은 db에서 하나의 버전을 찾는다.
 // 해당 버전이 없다면 nil과 NotFound 에러를 반환한다.
 func GetVersion(db *sql.DB, prj, shot, task string, version string) (*Version, error) {

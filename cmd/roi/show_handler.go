@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -32,12 +33,11 @@ func addShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			return err
 		}
 		show := r.FormValue("show")
-		exist, err := roi.ShowExist(DB, show)
-		if err != nil {
+		_, err = roi.GetShow(DB, show)
+		if err == nil {
+			return roi.BadRequest(fmt.Sprintf("show already exist: %s", show))
+		} else if !errors.As(err, &roi.NotFoundError{}) {
 			return err
-		}
-		if exist {
-			return roi.BadRequest(fmt.Sprintf("show exist: %s", show))
 		}
 		timeForms, err := parseTimeForms(r.Form,
 			"start_date",
@@ -100,12 +100,9 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	show := r.FormValue("show")
-	exist, err := roi.ShowExist(DB, show)
+	_, err = roi.GetShow(DB, show)
 	if err != nil {
 		return err
-	}
-	if !exist {
-		return roi.BadRequest(fmt.Sprintf("show not exist: %s", show))
 	}
 	timeForms, err := parseTimeForms(r.Form,
 		"start_date",

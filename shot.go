@@ -198,16 +198,6 @@ func AddShot(db *sql.DB, prj string, s *Shot) error {
 	return nil
 }
 
-// ShotExist는 db에 해당 샷이 존재하는지를 검사한다.
-func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
-	stmt := "SELECT shot FROM shots WHERE show=$1 AND shot=$2 LIMIT 1"
-	rows, err := db.Query(stmt, prj, shot)
-	if err != nil {
-		return false, err
-	}
-	return rows.Next(), nil
-}
-
 // GetShot은 db에서 하나의 샷을 찾는다.
 // 해당 샷이 존재하지 않는다면 nil과 NotFound 에러를 반환한다.
 func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {

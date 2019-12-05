@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"time"
 
@@ -48,12 +48,9 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			return err
 		}
 		shot := r.FormValue("shot")
-		exist, err := roi.ShotExist(DB, show, shot)
+		_, err = roi.GetShot(DB, show, shot)
 		if err != nil {
 			return err
-		}
-		if exist {
-			return roi.BadRequest(fmt.Sprintf("shot exist: %s", show+"/"+shot))
 		}
 		tasks := fields(r.FormValue("working_tasks"))
 		s := &roi.Shot{
@@ -142,11 +139,11 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 				Status:  roi.TaskNotSet,
 				DueDate: time.Time{},
 			}
-			exist, err := roi.TaskExist(DB, show, shot, task)
+			t, err := roi.GetTask(DB, show, shot, task)
 			if err != nil {
-				return err
-			}
-			if !exist {
+				if !errors.As(err, &roi.NotFoundError{}) {
+					return err
+				}
 				err := roi.AddTask(DB, show, shot, t)
 				if err != nil {
 					return err
