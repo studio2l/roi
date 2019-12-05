@@ -126,7 +126,7 @@ ex) localhost
 	mux.HandleFunc("/shows", handle(showsHandler))
 	mux.HandleFunc("/add-show", handle(addShowHandler))
 	mux.HandleFunc("/update-show", handle(updateShowHandler))
-	mux.HandleFunc("/shots/", handle(shotsHandler))
+	mux.HandleFunc("/shots", handle(shotsHandler))
 	mux.HandleFunc("/add-shot", handle(addShotHandler))
 	mux.HandleFunc("/update-shot", handle(updateShotHandler))
 	mux.HandleFunc("/update-task", handle(updateTaskHandler))

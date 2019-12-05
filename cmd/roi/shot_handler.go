@@ -9,29 +9,38 @@ import (
 )
 
 func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	err := mustFields(r, "show")
+	cfg, err := roi.GetUserConfig(DB, env.SessionUser.ID)
 	if err != nil {
 		return err
 	}
-	// 어떤 프로젝트에 샷을 생성해야 하는지 체크.
 	show := r.FormValue("show")
 	if show == "" {
-		// 할일: 현재 GUI 디자인으로는 프로젝트를 선택하기 어렵기 때문에
-		// 일단 첫번째 프로젝트로 이동한다. 나중에는 에러가 나야 한다.
-		// 관련 이슈: #143
-		showRows, err := DB.Query("SELECT show FROM shows")
-		if err != nil {
-			return err
-		}
-		defer showRows.Close()
-		if !showRows.Next() {
-			return roi.BadRequest("no shows in roi")
-		}
-		if err := showRows.Scan(&show); err != nil {
-			return err
+		// 요청이 프로젝트를 가리키지 않을 경우 사용자가
+		// 보고 있던 프로젝트를 선택한다.
+		show = cfg.CurrentShow
+		if show == "" {
+			// 사용자의 현재 프로젝트 정보가 없을때는
+			// 첫번째 프로젝트를 가리킨다.
+			shows, err := roi.AllShows(DB)
+			if err != nil {
+				return err
+			}
+			if len(shows) == 0 {
+				return roi.BadRequest("no shows in roi")
+			}
+			show = shows[0].Show
 		}
 		http.Redirect(w, r, "/add-shot?show="+show, http.StatusSeeOther)
 		return nil
+	}
+	sw, err := roi.GetShow(DB, show)
+	if err != nil {
+		return err
+	}
+	cfg.CurrentShow = show
+	err = roi.UpdateUserConfig(DB, env.SessionUser.ID, cfg)
+	if err != nil {
+		return err
 	}
 	if r.Method == "POST" {
 		err := mustFields(r, "shot")
@@ -76,10 +85,6 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		}
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return nil
-	}
-	sw, err := roi.GetShow(DB, show)
-	if err != nil {
-		return err
 	}
 	recipe := struct {
 		LoggedInUser string

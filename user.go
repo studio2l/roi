@@ -11,15 +11,19 @@ import (
 
 // user는 db에 저장하는 사용자 전체 정보이다.
 type user struct {
-	ID             string `db:"id"`
-	KorName        string `db:"kor_name"`
-	Name           string `db:"name"`
-	Team           string `db:"team"`
-	Role           string `db:"role"`
-	Email          string `db:"email"`
-	PhoneNumber    string `db:"phone_number"`
-	EntryDate      string `db:"entry_date"`
+	ID          string `db:"id"`
+	KorName     string `db:"kor_name"`
+	Name        string `db:"name"`
+	Team        string `db:"team"`
+	Role        string `db:"role"`
+	Email       string `db:"email"`
+	PhoneNumber string `db:"phone_number"`
+	EntryDate   string `db:"entry_date"`
+
 	HashedPassword string `db:"hashed_password"`
+
+	// 설정
+	CurrentShow string `db:"current_show"`
 }
 
 // User는 일반적인 사용자 정보이다.
@@ -44,7 +48,8 @@ var CreateTableIfNotExistsUsersStmt = `CREATE TABLE IF NOT EXISTS users (
 	email STRING NOT NULL,
 	phone_number STRING NOT NULL,
 	entry_date STRING NOT NULL,
-	hashed_password STRING NOT NULL
+	hashed_password STRING NOT NULL,
+	current_show STRING NOT NULL
 )`
 
 // AddUser는 db에 한 명의 사용자를 추가한다.
@@ -190,6 +195,58 @@ type UpdateUserParam struct {
 func UpdateUser(db *sql.DB, id string, u UpdateUserParam) error {
 	if id == "" {
 		return errors.New("empty id")
+	}
+	ks, vs, err := dbKVs(u)
+	if err != nil {
+		return err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(dbIndices(ks), ", ")
+	stmt := fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keys, idxs, id)
+	if _, err := db.Exec(stmt, vs...); err != nil {
+		return err
+	}
+	return nil
+}
+
+type UserConfig struct {
+	CurrentShow string `db:"current_show"`
+}
+
+// UpdateUserConfig는 유저의 설정 값들을 받아온다.
+func GetUserConfig(db *sql.DB, id string) (*UserConfig, error) {
+	if id == "" {
+		return nil, errors.New("need id")
+	}
+	ks, _, err := dbKVs(&UserConfig{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", keys, id)
+	rows, err := db.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	ok := rows.Next()
+	if !ok {
+		return nil, NotFound("user", id)
+	}
+	u := &UserConfig{}
+	err = scanFromRows(rows, u)
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
+// UpdateUserConfig는 유저의 설정 값들을 업데이트 한다.
+func UpdateUserConfig(db *sql.DB, id string, u *UserConfig) error {
+	if id == "" {
+		return BadRequest("need id")
+	}
+	if u == nil {
+		return BadRequest("user config shold not nil")
 	}
 	ks, vs, err := dbKVs(u)
 	if err != nil {
