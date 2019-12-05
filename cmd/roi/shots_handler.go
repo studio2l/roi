@@ -59,7 +59,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		t, _ := timeFromString(s)
 		return t
 	}
-	shots, err := roi.SearchShots(DB, show, f["shot"], f["tag"], f["status"], f["assignee"], f["task-status"], toTime(f["task-due"]))
+	shots, err := roi.SearchShots(DB, show, f["shot"], f["tag"], f["status"], f["task"], f["assignee"], f["task-status"], toTime(f["task-due"]))
 	if err != nil {
 		return err
 	}
