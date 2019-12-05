@@ -133,20 +133,6 @@ func VersionExist(db *sql.DB, prj, shot, task string, version string) (bool, err
 	return rows.Next(), nil
 }
 
-// versionFromRows는 테이블의 한 열에서 아웃풋을 받아온다.
-func versionFromRows(rows *sql.Rows) (*Version, error) {
-	v := &Version{}
-	addrs, err := dbAddrs(v)
-	if err != nil {
-		return nil, err
-	}
-	err = rows.Scan(addrs...)
-	if err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
 // GetVersion은 db에서 하나의 버전을 찾는다.
 // 해당 버전이 없다면 nil과 NotFound 에러를 반환한다.
 func GetVersion(db *sql.DB, prj, shot, task string, version string) (*Version, error) {
@@ -165,7 +151,9 @@ func GetVersion(db *sql.DB, prj, shot, task string, version string) (*Version, e
 		id := prj + "/" + shot + "/" + task + "/" + version
 		return nil, NotFound("version", id)
 	}
-	return versionFromRows(rows)
+	v := &Version{}
+	err = scanFromRows(rows, v)
+	return v, err
 }
 
 // TaskVersions는 db에서 특정 태스크의 버전 전체를 검색해 반환한다.
@@ -182,7 +170,8 @@ func TaskVersions(db *sql.DB, prj, shot, task string) ([]*Version, error) {
 	}
 	versions := make([]*Version, 0)
 	for rows.Next() {
-		v, err := versionFromRows(rows)
+		v := &Version{}
+		err := scanFromRows(rows, v)
 		if err != nil {
 			return nil, err
 		}
@@ -205,7 +194,8 @@ func ShotVersions(db *sql.DB, prj, shot string) ([]*Version, error) {
 	}
 	versions := make([]*Version, 0)
 	for rows.Next() {
-		v, err := versionFromRows(rows)
+		v := &Version{}
+		err := scanFromRows(rows, v)
 		if err != nil {
 			return nil, err
 		}

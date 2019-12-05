@@ -198,20 +198,6 @@ func ShowExist(db *sql.DB, prj string) (bool, error) {
 	return rows.Next(), nil
 }
 
-// showFromRows는 테이블의 한 열에서 쇼를 받아온다.
-func showFromRows(rows *sql.Rows) (*Show, error) {
-	p := &Show{}
-	addrs, err := dbAddrs(p)
-	if err != nil {
-		return nil, err
-	}
-	err = rows.Scan(addrs...)
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
-}
-
 // GetShow는 db에서 하나의 쇼를 부른다.
 // 해당 쇼가 없다면 nil과 NotFoundError를 반환한다.
 func GetShow(db *sql.DB, prj string) (*Show, error) {
@@ -228,11 +214,9 @@ func GetShow(db *sql.DB, prj string) (*Show, error) {
 	if !rows.Next() {
 		return nil, NotFound("show", prj)
 	}
-	p, err := showFromRows(rows)
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
+	p := &Show{}
+	err = scanFromRows(rows, p)
+	return p, err
 }
 
 // AllShows는 db에서 모든 쇼 정보를 가져온다.
@@ -250,7 +234,8 @@ func AllShows(db *sql.DB) ([]*Show, error) {
 	}
 	prjs := make([]*Show, 0)
 	for rows.Next() {
-		p, err := showFromRows(rows)
+		p := &Show{}
+		err := scanFromRows(rows, p)
 		if err != nil {
 			return nil, err
 		}

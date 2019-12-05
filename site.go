@@ -64,20 +64,6 @@ func UpdateSite(db *sql.DB, s *Site) error {
 	return nil
 }
 
-// siteFromRows는 테이블의 한 열에서 사이트를 받아온다.
-func siteFromRows(rows *sql.Rows) (*Site, error) {
-	s := &Site{}
-	addrs, err := dbAddrs(s)
-	if err != nil {
-		return nil, err
-	}
-	err = rows.Scan(addrs...)
-	if err != nil {
-		return nil, err
-	}
-	return s, nil
-}
-
 // GetSite는 db에서 사이트 정보를 가지고 온다.
 // 사이트 정보가 존재하지 않으면 nil과 NotFound 에러를 반환한다.
 func GetSite(db *sql.DB) (*Site, error) {
@@ -95,5 +81,7 @@ func GetSite(db *sql.DB) (*Site, error) {
 	if !ok {
 		return nil, NotFound("site", "(only one yet)")
 	}
-	return siteFromRows(rows)
+	s := &Site{}
+	err = scanFromRows(rows, s)
+	return s, err
 }

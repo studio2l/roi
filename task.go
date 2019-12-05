@@ -169,20 +169,6 @@ func TaskExist(db *sql.DB, prj, shot, task string) (bool, error) {
 	return rows.Next(), nil
 }
 
-// taskFromRows는 테이블의 한 열에서 태스크를 받아온다.
-func taskFromRows(rows *sql.Rows) (*Task, error) {
-	t := &Task{}
-	addrs, err := dbAddrs(t)
-	if err != nil {
-		return nil, err
-	}
-	err = rows.Scan(addrs...)
-	if err != nil {
-		return nil, err
-	}
-	return t, nil
-}
-
 // GetTask는 db에서 하나의 태스크를 찾는다.
 // 해당 태스크가 없다면 nil과 NotFound 에러를 반환한다.
 func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
@@ -201,7 +187,9 @@ func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
 		id := prj + "/" + shot + "/" + task
 		return nil, NotFound("task", id)
 	}
-	return taskFromRows(rows)
+	t := &Task{}
+	err = scanFromRows(rows, t)
+	return t, err
 }
 
 // ShotTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
@@ -218,7 +206,8 @@ func ShotTasks(db *sql.DB, prj, shot string) ([]*Task, error) {
 	}
 	tasks := make([]*Task, 0)
 	for rows.Next() {
-		t, err := taskFromRows(rows)
+		t := &Task{}
+		err := scanFromRows(rows, t)
 		if err != nil {
 			return nil, err
 		}
@@ -248,7 +237,8 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 	}
 	tasks := make([]*Task, 0)
 	for rows.Next() {
-		t, err := taskFromRows(rows)
+		t := &Task{}
+		err := scanFromRows(rows, t)
 		if err != nil {
 			return nil, err
 		}
