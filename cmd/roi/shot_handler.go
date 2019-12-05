@@ -50,7 +50,9 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		shot := r.FormValue("shot")
 		_, err = roi.GetShot(DB, show, shot)
 		if err != nil {
-			return err
+			if !errors.As(err, &roi.NotFoundError{}) {
+				return err
+			}
 		}
 		tasks := fields(r.FormValue("working_tasks"))
 		s := &roi.Shot{
@@ -110,7 +112,9 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
 		_, err = roi.GetShot(DB, show, shot)
 		if err != nil {
-			return err
+			if !errors.As(err, &roi.NotFoundError{}) {
+				return err
+			}
 		}
 		tasks := fields(r.FormValue("working_tasks"))
 		tforms, err := parseTimeForms(r.Form, "due_date")
