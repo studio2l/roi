@@ -190,3 +190,11 @@ func dbIndices(keys []string) []string {
 	}
 	return idxs
 }
+
+func scanFromRows(rows *sql.Rows, v interface{}) error {
+	addrs, err := dbAddrs(v)
+	if err != nil {
+		return err
+	}
+	return rows.Scan(addrs...)
+}

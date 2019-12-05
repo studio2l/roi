@@ -10,29 +10,41 @@ import (
 
 // shotsHandler는 /shots/ 페이지로 사용자가 접속했을때 페이지를 반환한다.
 func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	show := r.URL.Path[len("/shots/"):]
-	ps, err := roi.AllShows(DB)
+	shows, err := roi.AllShows(DB)
 	if err != nil {
 		return err
 	}
-	shows := make([]string, len(ps))
-	for i, p := range ps {
-		shows[i] = p.Show
+	cfg, err := roi.GetUserConfig(DB, env.SessionUser.ID)
+	if err != nil {
+		return err
 	}
-	if show == "" {
-		if len(shows) != 0 {
-			// 할일: 추후 사용자가 마지막으로 선택했던 프로젝트로 이동
-			http.Redirect(w, r, "/shots/"+shows[0], http.StatusSeeOther)
-			return nil
-		}
-	}
-	if show != "" {
-		_, err := roi.GetShow(DB, show)
-		if err != nil {
-			return err
-		}
-	}
+	show := r.FormValue("show")
 	query := r.FormValue("q")
+	if show == "" {
+		// 요청이 프로젝트를 가리키지 않을 경우 사용자가
+		// 보고 있던 프로젝트를 선택한다.
+		show = cfg.CurrentShow
+		if show == "" {
+			// 사용자의 현재 프로젝트 정보가 없을때는
+			// 첫번째 프로젝트를 가리킨다.
+			if len(shows) == 0 {
+				return roi.BadRequest("no shows in roi")
+			}
+			show = shows[0].Show
+		}
+		http.Redirect(w, r, "/shots?show="+show+"&q="+query, http.StatusSeeOther)
+		return nil
+	}
+	_, err = roi.GetShow(DB, show)
+	if err != nil {
+		return err
+	}
+	cfg.CurrentShow = show
+	err = roi.UpdateUserConfig(DB, env.SessionUser.ID, cfg)
+	if err != nil {
+		return err
+	}
+
 	f := make(map[string]string)
 	for _, v := range strings.Fields(query) {
 		kv := strings.Split(v, ":")
@@ -65,7 +77,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}
 	recipe := struct {
 		LoggedInUser  string
-		Shows         []string
+		Shows         []*roi.Show
 		Show          string
 		Shots         []*roi.Shot
 		AllShotStatus []roi.ShotStatus
