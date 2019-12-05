@@ -78,7 +78,10 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 				Status:  roi.TaskNotSet,
 				DueDate: time.Time{},
 			}
-			roi.AddTask(DB, show, shot, t)
+			err := roi.AddTask(DB, show, shot, t)
+			if err != nil {
+				return err
+			}
 		}
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return nil
@@ -132,21 +135,22 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		}
 		// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
 		for _, task := range tasks {
-			t := &roi.Task{
-				Show:    show,
-				Shot:    shot,
-				Task:    task,
-				Status:  roi.TaskNotSet,
-				DueDate: time.Time{},
-			}
-			t, err := roi.GetTask(DB, show, shot, task)
+			_, err := roi.GetTask(DB, show, shot, task)
 			if err != nil {
 				if !errors.As(err, &roi.NotFoundError{}) {
 					return err
-				}
-				err := roi.AddTask(DB, show, shot, t)
-				if err != nil {
-					return err
+				} else {
+					t := &roi.Task{
+						Show:    show,
+						Shot:    shot,
+						Task:    task,
+						Status:  roi.TaskNotSet,
+						DueDate: time.Time{},
+					}
+					err = roi.AddTask(DB, show, shot, t)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
