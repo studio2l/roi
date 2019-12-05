@@ -14,6 +14,9 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if err != nil {
 		return err
 	}
+	if len(shows) == 0 {
+		return roi.BadRequest("no shows in roi")
+	}
 	cfg, err := roi.GetUserConfig(DB, env.SessionUser.ID)
 	if err != nil {
 		return err
@@ -27,9 +30,6 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		if show == "" {
 			// 사용자의 현재 프로젝트 정보가 없을때는
 			// 첫번째 프로젝트를 가리킨다.
-			if len(shows) == 0 {
-				return roi.BadRequest("no shows in roi")
-			}
 			show = shows[0].Show
 		}
 		http.Redirect(w, r, "/shots?show="+show+"&q="+query, http.StatusSeeOther)
