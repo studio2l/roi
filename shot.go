@@ -208,20 +208,6 @@ func ShotExist(db *sql.DB, prj, shot string) (bool, error) {
 	return rows.Next(), nil
 }
 
-// shotFromRows는 테이블의 한 열에서 샷을 받아온다.
-func shotFromRows(rows *sql.Rows) (*Shot, error) {
-	s := &Shot{}
-	addrs, err := dbAddrs(s)
-	if err != nil {
-		return nil, err
-	}
-	err = rows.Scan(addrs...)
-	if err != nil {
-		return nil, err
-	}
-	return s, nil
-}
-
 // GetShot은 db에서 하나의 샷을 찾는다.
 // 해당 샷이 존재하지 않는다면 nil과 NotFound 에러를 반환한다.
 func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
@@ -240,7 +226,9 @@ func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 		id := prj + "/" + shot
 		return nil, NotFound("shot", id)
 	}
-	return shotFromRows(rows)
+	s := &Shot{}
+	err = scanFromRows(rows, s)
+	return s, err
 }
 
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
@@ -313,7 +301,8 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 	hasShot := make(map[string]bool, 0)
 	shots := make([]*Shot, 0)
 	for rows.Next() {
-		s, err := shotFromRows(rows)
+		s := &Shot{}
+		err := scanFromRows(rows, s)
 		if err != nil {
 			return nil, err
 		}

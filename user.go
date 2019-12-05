@@ -108,7 +108,8 @@ func Users(db *sql.DB) ([]*User, error) {
 	}
 	us := make([]*User, 0)
 	for rows.Next() {
-		u, err := userFromRows(rows)
+		u := &User{}
+		err := scanFromRows(rows, u)
 		if err != nil {
 			return nil, err
 		}
@@ -137,25 +138,9 @@ func GetUser(db *sql.DB, id string) (*User, error) {
 	if !ok {
 		return nil, NotFound("user", id)
 	}
-	u, err := userFromRows(rows)
-	if err != nil {
-		return nil, err
-	}
-	return u, nil
-}
-
-// userFromRows는 테이블의 한 열에서 유저를 받아온다.
-func userFromRows(rows *sql.Rows) (*User, error) {
 	u := &User{}
-	addrs, err := dbAddrs(u)
-	if err != nil {
-		return nil, err
-	}
-	err = rows.Scan(addrs...)
-	if err != nil {
-		return nil, err
-	}
-	return u, nil
+	err = scanFromRows(rows, u)
+	return u, err
 }
 
 // UserPasswordMatch는 db에 저장된 사용자의 비밀번호와 입력된 비밀번호가 같은지를 비교한다.

@@ -191,6 +191,7 @@ func dbIndices(keys []string) []string {
 	return idxs
 }
 
+// scanFromRows는 sql.Rows에서 다음 열을 검색해 그 정보를 v에 넣어준다.
 func scanFromRows(rows *sql.Rows, v interface{}) error {
 	addrs, err := dbAddrs(v)
 	if err != nil {
