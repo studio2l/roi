@@ -177,41 +177,13 @@ func UserPasswordMatch(db *sql.DB, id, pw string) (bool, error) {
 // UpdateUserParam은 User에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
 // UpdateUser에서 사용한다.
 type UpdateUserParam struct {
-	KorName     string
-	Name        string
-	Team        string
-	Role        string
-	Email       string
-	PhoneNumber string
-	EntryDate   string
-}
-
-func (u UpdateUserParam) keys() []string {
-	return []string{
-		"kor_name",
-		"name",
-		"team",
-		"role",
-		"email",
-		"phone_number",
-		"entry_date",
-	}
-}
-
-func (u UpdateUserParam) indices() []string {
-	return dbIndices(u.keys())
-}
-
-func (u UpdateUserParam) values() []interface{} {
-	return []interface{}{
-		u.KorName,
-		u.Name,
-		u.Team,
-		u.Role,
-		u.Email,
-		u.PhoneNumber,
-		u.EntryDate,
-	}
+	KorName     string `db:"kor_name"`
+	Name        string `db:"name"`
+	Team        string `db:"team"`
+	Role        string `db:"role"`
+	Email       string `db:"email"`
+	PhoneNumber string `db:"phone_number"`
+	EntryDate   string `db:"entry_date"`
 }
 
 // UpdateUser는 db에 비밀번호를 제외한 사용자 필드를 업데이트 한다.
@@ -219,10 +191,14 @@ func UpdateUser(db *sql.DB, id string, u UpdateUserParam) error {
 	if id == "" {
 		return errors.New("empty id")
 	}
-	keystr := strings.Join(u.keys(), ", ")
-	idxstr := strings.Join(u.indices(), ", ")
-	stmt := fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keystr, idxstr, id)
-	if _, err := db.Exec(stmt, u.values()...); err != nil {
+	ks, vs, err := dbKVs(u)
+	if err != nil {
+		return err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(dbIndices(ks), ", ")
+	stmt := fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keys, idxs, id)
+	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
 	}
 	return nil
