@@ -222,7 +222,7 @@ func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 }
 
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
-func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status string, task_due_date time.Time) ([]*Shot, error) {
+func SearchShots(db *sql.DB, prj, shot, tag, status, task, assignee, task_status string, task_due_date time.Time) ([]*Shot, error) {
 	ks, _, err := dbKVs(&Shot{})
 	if err != nil {
 		return nil, err
@@ -256,6 +256,11 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, assignee, task_status strin
 	if status != "" {
 		where = append(where, fmt.Sprintf("shots.status=$%d", i))
 		vals = append(vals, status)
+		i++
+	}
+	if task != "" {
+		where = append(where, fmt.Sprintf("$%d::string = ANY(shots.working_tasks)", i))
+		vals = append(vals, task)
 		i++
 	}
 	if assignee != "" || task_status != "" || !task_due_date.IsZero() {
