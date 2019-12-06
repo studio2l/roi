@@ -31,8 +31,8 @@ func handle(serve HandlerFunc) http.HandlerFunc {
 					http.Redirect(w, r, "/login", http.StatusSeeOther)
 					return
 				}
-				handleError(w, err)
 				clearSession(w)
+				handleError(w, err)
 				return
 			}
 		}
