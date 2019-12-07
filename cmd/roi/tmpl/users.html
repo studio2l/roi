@@ -4,7 +4,7 @@
 <div style="padding-top: 2rem;"></div>
 <div class="ui raised very padded text container grey inverted segment">
 {{range $u := $.Users}}
-	<div><a href="/user/{{$u.ID}}">{{$u.ID}}</a></div>
+	<div><a href="/user/{{$u.ID}}" style="color:white">{{$u.ID}}</a></div>
 {{end}}
 </div>
 {{template "footer.html"}}
