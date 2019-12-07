@@ -39,40 +39,20 @@ func addShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		} else if !errors.As(err, &roi.NotFoundError{}) {
 			return err
 		}
-		timeForms, err := parseTimeForms(r.Form,
-			"start_date",
-			"release_date",
-			"crank_in",
-			"crank_up",
-			"vfx_due_date",
-		)
+		s := &roi.Show{
+			Show: show,
+		}
+		err = roi.AddShow(DB, s)
 		if err != nil {
 			return err
 		}
-		p := &roi.Show{
-			Show:          show,
-			Name:          r.FormValue("name"),
-			Status:        "waiting",
-			Client:        r.FormValue("client"),
-			Director:      r.FormValue("director"),
-			Producer:      r.FormValue("producer"),
-			VFXSupervisor: r.FormValue("vfx_supervisor"),
-			VFXManager:    r.FormValue("vfx_manager"),
-			CGSupervisor:  r.FormValue("cg_supervisor"),
-			StartDate:     timeForms["start_date"],
-			ReleaseDate:   timeForms["release_date"],
-			CrankIn:       timeForms["crank_in"],
-			CrankUp:       timeForms["crank_up"],
-			VFXDueDate:    timeForms["vfx_due_date"],
-			OutputSize:    r.FormValue("output_size"),
-			ViewLUT:       r.FormValue("view_lut"),
-			DefaultTasks:  fields(r.FormValue("default_tasks")),
-		}
-		err = roi.AddShow(DB, p)
+		cfg, err := roi.GetUserConfig(DB, env.SessionUser.ID)
 		if err != nil {
 			return err
 		}
-		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+		cfg.CurrentShow = show
+		roi.UpdateUserConfig(DB, env.SessionUser.ID, cfg)
+		http.Redirect(w, r, "/update-show?show="+show, http.StatusSeeOther)
 		return nil
 	}
 	si, err := roi.GetSite(DB)
