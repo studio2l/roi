@@ -22,27 +22,16 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			return err
 		}
 		version := r.FormValue("version")
-		timeForms, err := parseTimeForms(r.Form, "created")
-		if err != nil {
-			return err
-		}
 		_, err = roi.GetTask(DB, show, shot, task)
 		if err != nil {
 			return err
 		}
-		mov := fmt.Sprintf("data/show/%s/%s/%s/%s/1.mov", show, shot, task, version)
-		err = saveFormFile(r, "mov", mov)
-		if err != nil {
-			return err
-		}
 		v := &roi.Version{
-			Show:        show,
-			Shot:        shot,
-			Task:        task,
-			Version:     version,
-			OutputFiles: fields(r.FormValue("output_files")),
-			WorkFile:    r.FormValue("work_file"),
-			Created:     timeForms["create"],
+			Show:    show,
+			Shot:    shot,
+			Task:    task,
+			Version: version,
+			Created: time.Now(),
 		}
 		err = roi.AddVersion(DB, show, shot, task, v)
 		if err != nil {
@@ -56,16 +45,14 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser string
 		Version      *roi.Version
 	}{
-		PageType:     "add",
 		LoggedInUser: env.SessionUser.ID,
 		Version: &roi.Version{
-			Show:    show,
-			Shot:    shot,
-			Task:    task,
-			Created: time.Now(),
+			Show: show,
+			Shot: shot,
+			Task: task,
 		},
 	}
-	return executeTemplate(w, "update-version.html", recipe)
+	return executeTemplate(w, "add-version.html", recipe)
 }
 
 func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {

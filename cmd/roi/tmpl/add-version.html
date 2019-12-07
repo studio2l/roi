@@ -4,7 +4,7 @@
 <div style="padding-top: 2rem;"></div>
 <div class="ui raised very padded text container grey inverted segment">
 	<h2 class="ui dividing header">
-		버전 {{if eq $.PageType "add"}}생성{{else if eq $.PageType "update"}}수정{{end}}
+		버전 생성
 	</h2>
 	<form method="post" class="ui form" enctype="multipart/form-data">
 		<div class="field disabled"><label>프로젝트</label>
@@ -16,25 +16,10 @@
 		<div class="field disabled"><label>태스크</label>
 			<input type="text" name="task" value="{{.Version.Task}}"/>
 		</div>
-		<div class="field disabled"><label>버전</label>
+		<div class="field"><label>버전</label>
 			<input type="text" name="version" value="{{.Version.Version}}" autofocus />
 		</div>
-		<div class="field"><label>파일</label>
-			<input type="text" name="output_files" value="{{join .Version.OutputFiles ", "}}"/>
-		</div>
-		<div class="field"><label>프리뷰 이미지</label>
-			<input type="text" name="images" value="{{join .Version.Images ", "}}"/>
-		</div>
-		<div class="field"><label>프리뷰 Mov</label>
-			<input type="file" name="mov"/>
-		</div>
-		<div class="field"><label>작업 파일</label>
-			<input type="text" name="work_file" value="{{.Version.WorkFile}}"/>
-		</div>
-		<div class="field"><label>생성일</label>
-			<input type="text" name="created" value="{{stringFromTime .Version.Created}}"/>
-		</div>
-		<button class="ui button green" type="submit" value="Submit">수정</button>
+		<button class="ui button green" type="submit" value="Submit">생성</button>
 		<div style="height:2rem;"></div>
 	</form>
 </div>
