@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"image"
+	"image/png"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -91,6 +93,42 @@ func sessionUser(r *http.Request) (*roi.User, error) {
 		}
 	}
 	return u, nil
+}
+
+func saveImageFormFile(r *http.Request, field string, dst string) error {
+	f, fi, err := r.FormFile(field)
+	if err != nil {
+		if err == http.ErrMissingFile {
+			// 사용자가 파일을 업로드 하지 않은 것은 에러가 아니다.
+			return nil
+		}
+		return err
+	}
+	defer f.Close()
+	if fi.Size > (32 << 20) {
+		return roi.BadRequest(fmt.Sprintf("mov: file size too big (got %dMB, maximum 32MB)", fi.Size>>20))
+	}
+	// 어떤 타입의 이미지를 업로드하든 png로 변경한다.
+	img, _, err := image.Decode(f)
+	if err != nil {
+		if errors.Is(err, image.ErrFormat) {
+			return roi.BadRequest(err.Error())
+		}
+		return fmt.Errorf("could not read image data: %w", err)
+	}
+	err = os.MkdirAll(filepath.Dir(dst), 0755)
+	if err != nil {
+		return fmt.Errorf("could not create directory: %w", err)
+	}
+	dstf, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer dstf.Close()
+	if err := png.Encode(dstf, img); err != nil {
+		return err
+	}
+	return nil
 }
 
 func saveFormFile(r *http.Request, field string, dst string) error {

@@ -2,7 +2,7 @@ cmd/roi/roi
 cmd/roi/roi.exe
 cmd/roishot/roishot
 cmd/roishot/roishot.exe
-roi-userdata
+data
 *.pem
 cookie.hash
 cookie.block

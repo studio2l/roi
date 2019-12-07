@@ -10,6 +10,7 @@ import (
 )
 
 func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	w.Header().Set("Cache-control", "no-cache")
 	cfg, err := roi.GetUserConfig(DB, env.SessionUser.ID)
 	if err != nil {
 		return err
@@ -151,6 +152,10 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 				}
 			}
 		}
+		err = saveImageFormFile(r, "thumbnail", fmt.Sprintf("data/show/%s/%s/thumbnail.png", show, shot))
+		if err != nil {
+			return err
+		}
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return nil
 	}
@@ -172,12 +177,14 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		AllShotStatus []roi.ShotStatus
 		Tasks         map[string]*roi.Task
 		AllTaskStatus []roi.TaskStatus
+		Thumbnail     string
 	}{
 		LoggedInUser:  env.SessionUser.ID,
 		Shot:          s,
 		AllShotStatus: roi.AllShotStatus,
 		Tasks:         tm,
 		AllTaskStatus: roi.AllTaskStatus,
+		Thumbnail:     "data/show/" + show + "/" + shot + "/thumbnail.png",
 	}
 	return executeTemplate(w, "update-shot.html", recipe)
 }
