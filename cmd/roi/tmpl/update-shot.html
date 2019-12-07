@@ -4,12 +4,16 @@
 <div style="padding-top: 2rem;"></div>
 <div class="ui raised very padded text container grey inverted segment">
 	<h2 class="ui dividing header">샷 수정</h2>
-	<form method="post" class="ui form">
+	<form method="post" class="ui form" enctype="multipart/form-data">
 		<div class="field disabled"><label>프로젝트</label>
 			<input type="text" name="show" value="{{.Shot.Show}}"/>
 		</div>
 		<div class="field disabled"><label>아이디</label>
 			<input type="text" name="shot" value="{{.Shot.Shot}}"/>
+		</div>
+		<div class="field"><label>썸네일</label>
+			{{if hasThumbnail $.Shot.Show $.Shot.Shot}}<img width="288px" height="162px" src="{{$.Thumbnail}}"></img>{{end}}
+			<input type="file" name="thumbnail"/>
 		</div>
 		<div class="field"><label>마감일</label>
 			<input type="date" name="due_date" value="{{stringFromDate $.Shot.DueDate}}">
