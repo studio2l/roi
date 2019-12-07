@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -49,24 +50,16 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		}
 		shot := r.FormValue("shot")
 		_, err = roi.GetShot(DB, show, shot)
-		if err != nil {
-			if !errors.As(err, &roi.NotFoundError{}) {
-				return err
-			}
+		if err == nil {
+			return roi.BadRequest(fmt.Sprintf("shot already exist: %s", shot))
+		} else if !errors.As(err, &roi.NotFoundError{}) {
+			return err
 		}
 		tasks := fields(r.FormValue("working_tasks"))
 		s := &roi.Shot{
-			Shot:          shot,
-			Show:          show,
-			Status:        roi.ShotWaiting,
-			EditOrder:     atoi(r.FormValue("edit_order")),
-			Description:   r.FormValue("description"),
-			CGDescription: r.FormValue("cg_description"),
-			TimecodeIn:    r.FormValue("timecode_in"),
-			TimecodeOut:   r.FormValue("timecode_out"),
-			Duration:      atoi(r.FormValue("duration")),
-			Tags:          fields(r.FormValue("tags")),
-			WorkingTasks:  tasks,
+			Shot:   shot,
+			Show:   show,
+			Status: roi.ShotWaiting,
 		}
 		err = roi.AddShot(DB, show, s)
 		if err != nil {
