@@ -9,62 +9,46 @@ import (
 	"time"
 )
 
-// 샷 아이디는 시퀀스_이름, 이름 이렇게 두가지 형식이 가능하다.
+// 샷 아이디는 일반적으로 (시퀀스를 나타내는) 접두어, 샷 번호, 접미어로 나뉜다.
+// 접두어와 샷 번호는 항상 필요하지만, 접미어는 없어도 된다.
+//
+// CG0010a에서 접두어는 CG, 샷 번호는 0010, 접미어는 a이다.
+//
+// 접두어와 샷번호, 접미어를 언더바(_)를 통해서 떨어뜨리거나, 그냥 붙여쓰는것이 가능하다.
+//
+// 아래는 모두 유효한 샷 아이디이다.
+//
+// CG0010
+// CG0010a
+// CG0010_a
+// CG_0010a
+// CG_0010_a
+//
+// 마지막 샷 아이디의 경우 이름은 CG_0010, 접미어는 CG가 된다.
 
 var (
-	// reValidShotChars은 샷 아이디가 허용된 문자열로만 이루어졌는지
-	// 검사하는 정규식이다.
-	// 자세한 것은 아래 각 항목에 대한 정규식에서 검사한다.
-	reValidShotChars = regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
-
-	// reValidShotSequence는 샷의 시퀀스 문자열이 유효한지 검사하는 정규식이다.
-	reValidShotSequence = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9]*$`)
-
-	// reValidShotName은 샷 이름 문자열이 유효한지 검사하는 정규식이다.
-	reValidShotName = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9]*$`)
+	// reShotID은 샷 아이디를 나타내는 정규식이다.
+	reShotID = regexp.MustCompile(`^[a-zA-Z]+[_]?[0-9]+[_]?[a-zA-Z]*$`)
+	// reShotName은 샷 아이디에서 접미어가 빠진 이름을 나타내는 정규식이다.
+	reShotName = regexp.MustCompile(`^[a-zA-Z]+[_]?[0-9]+`)
+	// reShotName은 샷 아이디의 접두어를 나타내는 정규식이다.
+	reShotPrefix = regexp.MustCompile(`^[a-zA-Z]+`)
 )
-
-// ShotSequence은 샷 아이디에서 시퀀스 정보를 반환한다.
-func ShotSequence(shot string) string {
-	ids := strings.Split(shot, "_")
-	if len(ids) == 1 {
-		return ""
-	}
-	return ids[len(ids)-2]
-}
-
-// ShotName은 샷 아이디에서 이름을 반환한다.
-func ShotName(shot string) string {
-	ids := strings.Split(shot, "_")
-	return ids[len(ids)-1]
-}
 
 // IsValidShot은 해당 이름이 샷 아이디로 적절한지 여부를 반환한다.
 func IsValidShot(id string) bool {
-	if id == "" {
-		return false
-	}
-	if !reValidShotChars.MatchString(id) {
-		// 허용된 문자열로만 이루어져 있지 않음
-		// 예를 들어 공백이 있음
-		return false
-	}
-	ids := strings.Split(id, "_")
-	if len(ids) > 2 {
-		// 언더바가 너무 많아 씬_샷 형식에 담을수 없음
-		return false
-	}
-	seq := ShotSequence(id)
-	if seq != "" {
-		if !reValidShotSequence.MatchString(seq) {
-			return false
-		}
-	}
-	name := ShotName(id)
-	if !reValidShotName.MatchString(name) {
-		return false
-	}
-	return true
+	return reShotID.MatchString(id)
+}
+
+// ShotName은 샷 아이디에서 이름 정보를 반환한다.
+func ShotName(shot string) string {
+	return reShotName.FindString(shot)
+}
+
+// ShotPrefix은 샷 아이디에서 접두어 정보를 반환한다.
+// 일반적으로 이 접두어는 시퀀스를 가리킨다.
+func ShotPrefix(shot string) string {
+	return reShotPrefix.FindString(shot)
 }
 
 type ShotStatus string
@@ -131,6 +115,12 @@ type Shot struct {
 	Show string `db:"show"`
 	Shot string `db:"shot"`
 
+	// 주의: 아래 필드는 이 패키지 외부에서 접근하지 말 것.
+	// 원래는 소문자로 시작해야 맞으나 아직 dbKVs가 수출되지 않는 값들의
+	// 값을 받아오지 못해서 잠시 대문자로 시작하도록 하였음.
+	Name   string `db:"name"`
+	Prefix string `db:"prefix"`
+
 	// 샷 정보
 	Status        ShotStatus `db:"status"`
 	EditOrder     int        `db:"edit_order"`
@@ -159,6 +149,8 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
 	shot STRING NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %'),
+	name STRING NOT NULL,
+	prefix STRING NOT NULL,
 	status STRING NOT NULL CHECK (length(status) > 0),
 	edit_order INT NOT NULL,
 	description STRING NOT NULL,
@@ -182,6 +174,11 @@ func AddShot(db *sql.DB, prj string, s *Shot) error {
 	if s == nil {
 		return BadRequest("nil shot is invalid")
 	}
+	if !IsValidShot(s.Shot) {
+		return BadRequest(fmt.Sprintf("invalid shot id: '%s'", s.Shot))
+	}
+	s.Name = ShotName(s.Shot)
+	s.Prefix = ShotPrefix(s.Shot)
 	if !isValidShotStatus(s.Status) {
 		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", s.Status))
 	}
@@ -244,7 +241,13 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, task, assignee, task_status
 	vals = append(vals, prj)
 	i++
 	if shot != "" {
-		where = append(where, fmt.Sprintf("shots.shot=$%d", i))
+		if shot == ShotPrefix(shot) {
+			where = append(where, fmt.Sprintf("shots.prefix=$%d", i))
+		} else if shot == ShotName(shot) {
+			where = append(where, fmt.Sprintf("shots.name=$%d", i))
+		} else {
+			where = append(where, fmt.Sprintf("shots.shot=$%d", i))
+		}
 		vals = append(vals, shot)
 		i++
 	}
