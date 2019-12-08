@@ -144,6 +144,10 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 // userHandler는 루트 페이지로 사용자가 접근했을때 그 사용자에게 필요한 정보를 맞춤식으로 제공한다.
 func userHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	user := r.URL.Path[len("/user/"):]
+	_, err := roi.GetUser(DB, user)
+	if err != nil {
+		return err
+	}
 	tasks, err := roi.UserTasks(DB, user)
 	if err != nil {
 		return err
