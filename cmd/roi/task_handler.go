@@ -23,9 +23,14 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		if err != nil {
 			return err
 		}
+		assignee := r.FormValue("assignee")
+		_, err = roi.GetUser(DB, assignee)
+		if err != nil {
+			return err
+		}
 		upd := roi.UpdateTaskParam{
 			Status:   roi.TaskStatus(r.FormValue("status")),
-			Assignee: r.FormValue("assignee"),
+			Assignee: assignee,
 			DueDate:  tforms["due_date"],
 		}
 		err = roi.UpdateTask(DB, show, shot, task, upd)
