@@ -88,7 +88,10 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) erro
 			WorkFile:    r.FormValue("work_file"),
 			Created:     timeForms["created"],
 		}
-		roi.UpdateVersion(DB, show, shot, task, version, u)
+		err = roi.UpdateVersion(DB, show, shot, task, version, u)
+		if err != nil {
+			return err
+		}
 		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 		return nil
 	}
