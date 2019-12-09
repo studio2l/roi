@@ -95,8 +95,8 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 )`
 
 // AddTask는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
-func AddTask(db *sql.DB, prj, shot string, t *Task) error {
-	if prj == "" {
+func AddTask(db *sql.DB, show, shot string, t *Task) error {
+	if show == "" {
 		return BadRequest("show not specified")
 	}
 	if shot == "" {
@@ -133,8 +133,8 @@ type UpdateTaskParam struct {
 }
 
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
-func UpdateTask(db *sql.DB, prj, shot, task string, upd UpdateTaskParam) error {
-	if prj == "" {
+func UpdateTask(db *sql.DB, show, shot, task string, upd UpdateTaskParam) error {
+	if show == "" {
 		return BadRequest("show not specified")
 	}
 	if shot == "" {
@@ -152,7 +152,7 @@ func UpdateTask(db *sql.DB, prj, shot, task string, upd UpdateTaskParam) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(dbIndices(ks), ", ")
-	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s'", keys, idxs, prj, shot, task)
+	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s'", keys, idxs, show, shot, task)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
 	}
@@ -161,20 +161,20 @@ func UpdateTask(db *sql.DB, prj, shot, task string, upd UpdateTaskParam) error {
 
 // GetTask는 db에서 하나의 태스크를 찾는다.
 // 해당 태스크가 없다면 nil과 NotFound 에러를 반환한다.
-func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
+func GetTask(db *sql.DB, show, shot, task string) (*Task, error) {
 	ks, _, err := dbKVs(&Task{})
 	if err != nil {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2 AND task=$3 LIMIT 1", keys)
-	rows, err := db.Query(stmt, prj, shot, task)
+	rows, err := db.Query(stmt, show, shot, task)
 	if err != nil {
 		return nil, err
 	}
 	ok := rows.Next()
 	if !ok {
-		id := prj + "/" + shot + "/" + task
+		id := show + "/" + shot + "/" + task
 		return nil, NotFound("task", id)
 	}
 	t := &Task{}
@@ -183,14 +183,14 @@ func GetTask(db *sql.DB, prj, shot, task string) (*Task, error) {
 }
 
 // ShotTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
-func ShotTasks(db *sql.DB, prj, shot string) ([]*Task, error) {
+func ShotTasks(db *sql.DB, show, shot string) ([]*Task, error) {
 	ks, _, err := dbKVs(&Task{})
 	if err != nil {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2", keys)
-	rows, err := db.Query(stmt, prj, shot)
+	rows, err := db.Query(stmt, show, shot)
 	if err != nil {
 		return nil, err
 	}
@@ -240,8 +240,8 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 // DeleteTask는 해당 태스크와 그 하위의 모든 데이터를 db에서 지운다.
 // 해당 태스크가 없어도 에러를 내지 않기 때문에 검사를 원한다면 TaskExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
-func DeleteTask(db *sql.DB, prj, shot, task string) error {
-	_, err := GetTask(db, prj, shot, task)
+func DeleteTask(db *sql.DB, show, shot, task string) error {
+	_, err := GetTask(db, show, shot, task)
 	if err != nil {
 		return err
 	}
@@ -250,10 +250,10 @@ func DeleteTask(db *sql.DB, prj, shot, task string) error {
 		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1 AND shot=$2 AND task=$3", prj, shot, task); err != nil {
+	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1 AND shot=$2 AND task=$3", show, shot, task); err != nil {
 		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1 AND shot=$2 AND task=$3", prj, shot, task); err != nil {
+	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1 AND shot=$2 AND task=$3", show, shot, task); err != nil {
 		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
 	}
 	err = tx.Commit()

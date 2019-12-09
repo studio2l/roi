@@ -172,9 +172,9 @@ type UpdateShowParam struct {
 }
 
 // UpdateShow는 db의 쇼 정보를 수정한다.
-func UpdateShow(db *sql.DB, prj string, upd UpdateShowParam) error {
-	if !IsValidShow(prj) {
-		return BadRequest(fmt.Sprintf("invalid show id: %s", prj))
+func UpdateShow(db *sql.DB, show string, upd UpdateShowParam) error {
+	if !IsValidShow(show) {
+		return BadRequest(fmt.Sprintf("invalid show id: %s", show))
 	}
 	ks, vs, err := dbKVs(upd)
 	if err != nil {
@@ -182,7 +182,7 @@ func UpdateShow(db *sql.DB, prj string, upd UpdateShowParam) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(dbIndices(ks), ", ")
-	stmt := fmt.Sprintf("UPDATE shows SET (%s) = (%s) WHERE show='%s'", keys, idxs, prj)
+	stmt := fmt.Sprintf("UPDATE shows SET (%s) = (%s) WHERE show='%s'", keys, idxs, show)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
 	}
@@ -191,19 +191,19 @@ func UpdateShow(db *sql.DB, prj string, upd UpdateShowParam) error {
 
 // GetShow는 db에서 하나의 쇼를 부른다.
 // 해당 쇼가 없다면 nil과 NotFoundError를 반환한다.
-func GetShow(db *sql.DB, prj string) (*Show, error) {
+func GetShow(db *sql.DB, show string) (*Show, error) {
 	ks, _, err := dbKVs(&Show{})
 	if err != nil {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM shows WHERE show=$1", keys)
-	rows, err := db.Query(stmt, prj)
+	rows, err := db.Query(stmt, show)
 	if err != nil {
 		return nil, err
 	}
 	if !rows.Next() {
-		return nil, NotFound("show", prj)
+		return nil, NotFound("show", show)
 	}
 	p := &Show{}
 	err = scanFromRows(rows, p)
@@ -241,22 +241,22 @@ func AllShows(db *sql.DB) ([]*Show, error) {
 // DeleteShow는 해당 쇼와 그 하위의 모든 데이터를 db에서 지운다.
 // 해당 쇼가 없어도 에러를 내지 않기 때문에 검사를 원한다면 ShowExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
-func DeleteShow(db *sql.DB, prj string) error {
+func DeleteShow(db *sql.DB, show string) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("could not begin a transaction: %v", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	if _, err := tx.Exec("DELETE FROM shows WHERE show=$1", prj); err != nil {
+	if _, err := tx.Exec("DELETE FROM shows WHERE show=$1", show); err != nil {
 		return fmt.Errorf("could not delete data from 'shows' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM shots WHERE show=$1", prj); err != nil {
+	if _, err := tx.Exec("DELETE FROM shots WHERE show=$1", show); err != nil {
 		return fmt.Errorf("could not delete data from 'shots' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1", prj); err != nil {
+	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1", show); err != nil {
 		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
 	}
-	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1", prj); err != nil {
+	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1", show); err != nil {
 		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
 	}
 	return tx.Commit()
