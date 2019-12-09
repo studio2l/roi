@@ -167,8 +167,8 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 )`
 
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
-func AddShot(db *sql.DB, prj string, s *Shot) error {
-	if prj == "" {
+func AddShot(db *sql.DB, show string, s *Shot) error {
+	if show == "" {
 		return BadRequest("show code not specified")
 	}
 	if s == nil {
@@ -197,20 +197,20 @@ func AddShot(db *sql.DB, prj string, s *Shot) error {
 
 // GetShot은 db에서 하나의 샷을 찾는다.
 // 해당 샷이 존재하지 않는다면 nil과 NotFound 에러를 반환한다.
-func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
+func GetShot(db *sql.DB, show string, shot string) (*Shot, error) {
 	ks, _, err := dbKVs(&Shot{})
 	if err != nil {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND shot=$2 LIMIT 1", keys)
-	rows, err := db.Query(stmt, prj, shot)
+	rows, err := db.Query(stmt, show, shot)
 	if err != nil {
 		return nil, err
 	}
 	ok := rows.Next()
 	if !ok {
-		id := prj + "/" + shot
+		id := show + "/" + shot
 		return nil, NotFound("shot", id)
 	}
 	s := &Shot{}
@@ -219,7 +219,7 @@ func GetShot(db *sql.DB, prj string, shot string) (*Shot, error) {
 }
 
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
-func SearchShots(db *sql.DB, prj, shot, tag, status, task, assignee, task_status string, task_due_date time.Time) ([]*Shot, error) {
+func SearchShots(db *sql.DB, show, shot, tag, status, task, assignee, task_status string, task_due_date time.Time) ([]*Shot, error) {
 	ks, _, err := dbKVs(&Shot{})
 	if err != nil {
 		return nil, err
@@ -238,7 +238,7 @@ func SearchShots(db *sql.DB, prj, shot, tag, status, task, assignee, task_status
 	i := 1 // 인덱스가 1부터 시작이다.
 	stmt := fmt.Sprintf("SELECT %s FROM shots", keys)
 	where = append(where, fmt.Sprintf("shots.show=$%d", i))
-	vals = append(vals, prj)
+	vals = append(vals, show)
 	i++
 	if shot != "" {
 		if shot == ShotPrefix(shot) {
@@ -333,8 +333,8 @@ type UpdateShotParam struct {
 }
 
 // UpdateShot은 db에서 해당 샷을 수정한다.
-func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
-	if prj == "" {
+func UpdateShot(db *sql.DB, show, shot string, upd UpdateShotParam) error {
+	if show == "" {
 		return BadRequest("show code not specified")
 	}
 	if shot == "" {
@@ -349,7 +349,7 @@ func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(dbIndices(ks), ", ")
-	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", keys, idxs, prj, shot)
+	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", keys, idxs, show, shot)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
 	}
@@ -359,19 +359,19 @@ func UpdateShot(db *sql.DB, prj, shot string, upd UpdateShotParam) error {
 // DeleteShot은 해당 샷과 그 하위의 모든 데이터를 db에서 지운다.
 // 해당 샷이 없어도 에러를 내지 않기 때문에 검사를 원한다면 ShotExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
-func DeleteShot(db *sql.DB, prj, shot string) error {
+func DeleteShot(db *sql.DB, show, shot string) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("could not begin a transaction: %w", err)
 	}
 	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	if _, err := tx.Exec("DELETE FROM shots WHERE show=$1 AND shot=$2", prj, shot); err != nil {
+	if _, err := tx.Exec("DELETE FROM shots WHERE show=$1 AND shot=$2", show, shot); err != nil {
 		return fmt.Errorf("could not delete data from 'shots' table: %w", err)
 	}
-	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1 AND shot=$2", prj, shot); err != nil {
+	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1 AND shot=$2", show, shot); err != nil {
 		return fmt.Errorf("could not delete data from 'tasks' table: %w", err)
 	}
-	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1 AND shot=$2", prj, shot); err != nil {
+	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1 AND shot=$2", show, shot); err != nil {
 		return fmt.Errorf("could not delete data from 'versions' table: %w", err)
 	}
 	err = tx.Commit()
