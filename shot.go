@@ -168,9 +168,6 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
 func AddShot(db *sql.DB, show string, s *Shot) error {
-	if show == "" {
-		return BadRequest("show code not specified")
-	}
 	if s == nil {
 		return BadRequest("nil shot is invalid")
 	}
@@ -181,6 +178,10 @@ func AddShot(db *sql.DB, show string, s *Shot) error {
 	s.Prefix = ShotPrefix(s.Shot)
 	if !isValidShotStatus(s.Status) {
 		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", s.Status))
+	}
+	_, err := GetShow(db, show)
+	if err != nil {
+		return err
 	}
 	ks, vs, err := dbKVs(s)
 	if err != nil {
@@ -198,6 +199,16 @@ func AddShot(db *sql.DB, show string, s *Shot) error {
 // GetShot은 db에서 하나의 샷을 찾는다.
 // 해당 샷이 존재하지 않는다면 nil과 NotFound 에러를 반환한다.
 func GetShot(db *sql.DB, show string, shot string) (*Shot, error) {
+	if show == "" {
+		return nil, BadRequest("show not specified")
+	}
+	if shot == "" {
+		return nil, BadRequest("shot not specified")
+	}
+	_, err := GetShow(db, show)
+	if err != nil {
+		return nil, err
+	}
 	ks, _, err := dbKVs(&Shot{})
 	if err != nil {
 		return nil, err
@@ -334,14 +345,12 @@ type UpdateShotParam struct {
 
 // UpdateShot은 db에서 해당 샷을 수정한다.
 func UpdateShot(db *sql.DB, show, shot string, upd UpdateShotParam) error {
-	if show == "" {
-		return BadRequest("show code not specified")
-	}
-	if shot == "" {
-		return BadRequest("shot id empty")
-	}
 	if !isValidShotStatus(upd.Status) {
 		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", upd.Status))
+	}
+	_, err := GetShot(db, show, shot)
+	if err != nil {
+		return err
 	}
 	ks, vs, err := dbKVs(upd)
 	if err != nil {
@@ -360,6 +369,10 @@ func UpdateShot(db *sql.DB, show, shot string, upd UpdateShotParam) error {
 // 해당 샷이 없어도 에러를 내지 않기 때문에 검사를 원한다면 ShotExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
 func DeleteShot(db *sql.DB, show, shot string) error {
+	_, err := GetShot(db, show, shot)
+	if err != nil {
+		return err
+	}
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("could not begin a transaction: %w", err)

@@ -173,6 +173,10 @@ type UpdateShowParam struct {
 
 // UpdateShow는 db의 쇼 정보를 수정한다.
 func UpdateShow(db *sql.DB, show string, upd UpdateShowParam) error {
+	_, err := GetShow(db, show)
+	if err != nil {
+		return err
+	}
 	if !IsValidShow(show) {
 		return BadRequest(fmt.Sprintf("invalid show id: %s", show))
 	}
@@ -192,6 +196,9 @@ func UpdateShow(db *sql.DB, show string, upd UpdateShowParam) error {
 // GetShow는 db에서 하나의 쇼를 부른다.
 // 해당 쇼가 없다면 nil과 NotFoundError를 반환한다.
 func GetShow(db *sql.DB, show string) (*Show, error) {
+	if show == "" {
+		return nil, BadRequest("show not specified")
+	}
 	ks, _, err := dbKVs(&Show{})
 	if err != nil {
 		return nil, err
@@ -239,9 +246,12 @@ func AllShows(db *sql.DB) ([]*Show, error) {
 }
 
 // DeleteShow는 해당 쇼와 그 하위의 모든 데이터를 db에서 지운다.
-// 해당 쇼가 없어도 에러를 내지 않기 때문에 검사를 원한다면 ShowExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
 func DeleteShow(db *sql.DB, show string) error {
+	_, err := GetShow(db, show)
+	if err != nil {
+		return err
+	}
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("could not begin a transaction: %v", err)
