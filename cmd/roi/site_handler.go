@@ -8,21 +8,7 @@ import (
 
 func siteHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
-		s := &roi.Site{
-			VFXSupervisors:  fields(r.FormValue("vfx_supervisors")),
-			VFXProducers:    fields(r.FormValue("vfx_producers")),
-			CGSupervisors:   fields(r.FormValue("cg_supervisors")),
-			ProjectManagers: fields(r.FormValue("project_managers")),
-			Tasks:           fields(r.FormValue("tasks")),
-			DefaultTasks:    fields(r.FormValue("default_tasks")),
-			Leads:           fields(r.FormValue("leads")),
-		}
-		err := roi.UpdateSite(DB, s)
-		if err != nil {
-			return err
-		}
-		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
-		return nil
+		return sitePostHander(w, r, env)
 	}
 	s, err := roi.GetSite(DB)
 	if err != nil {
@@ -36,4 +22,22 @@ func siteHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Site:         s,
 	}
 	return executeTemplate(w, "site.html", recipe)
+}
+
+func sitePostHander(w http.ResponseWriter, r *http.Request, env *Env) error {
+	s := &roi.Site{
+		VFXSupervisors:  fields(r.FormValue("vfx_supervisors")),
+		VFXProducers:    fields(r.FormValue("vfx_producers")),
+		CGSupervisors:   fields(r.FormValue("cg_supervisors")),
+		ProjectManagers: fields(r.FormValue("project_managers")),
+		Tasks:           fields(r.FormValue("tasks")),
+		DefaultTasks:    fields(r.FormValue("default_tasks")),
+		Leads:           fields(r.FormValue("leads")),
+	}
+	err := roi.UpdateSite(DB, s)
+	if err != nil {
+		return err
+	}
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	return nil
 }

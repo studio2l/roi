@@ -9,6 +9,9 @@ import (
 )
 
 func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	if r.Method == "POST" {
+		return addVersionPostHandler(w, r, env)
+	}
 	err := mustFields(r, "show", "shot", "task")
 	if err != nil {
 		return err
@@ -16,30 +19,6 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	show := r.FormValue("show")
 	shot := r.FormValue("shot")
 	task := r.FormValue("task")
-	if r.Method == "POST" {
-		err := mustFields(r, "version")
-		if err != nil {
-			return err
-		}
-		version := r.FormValue("version")
-		_, err = roi.GetTask(DB, show, shot, task)
-		if err != nil {
-			return err
-		}
-		v := &roi.Version{
-			Show:    show,
-			Shot:    shot,
-			Task:    task,
-			Version: version,
-			Created: time.Now(),
-		}
-		err = roi.AddVersion(DB, show, shot, task, v)
-		if err != nil {
-			return err
-		}
-		http.Redirect(w, r, fmt.Sprintf("/update-version?show=%s&shot=%s&task=%s&version=%s", show, shot, task, version), http.StatusSeeOther)
-		return nil
-	}
 	recipe := struct {
 		PageType     string
 		LoggedInUser string
@@ -55,7 +34,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	return executeTemplate(w, "add-version.html", recipe)
 }
 
-func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+func addVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	err := mustFields(r, "show", "shot", "task", "version")
 	if err != nil {
 		return err
@@ -63,38 +42,34 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) erro
 	show := r.FormValue("show")
 	shot := r.FormValue("shot")
 	task := r.FormValue("task")
-	_, err = roi.GetTask(DB, show, shot, task)
+	version := r.FormValue("version")
+	v := &roi.Version{
+		Show:    show,
+		Shot:    shot,
+		Task:    task,
+		Version: version,
+		Created: time.Now(),
+	}
+	err = roi.AddVersion(DB, show, shot, task, v)
 	if err != nil {
 		return err
 	}
-	version := r.FormValue("version")
+	http.Redirect(w, r, fmt.Sprintf("/update-version?show=%s&shot=%s&task=%s&version=%s", show, shot, task, version), http.StatusSeeOther)
+	return nil
+}
+
+func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
-		_, err := roi.GetVersion(DB, show, shot, task, version)
-		if err != nil {
-			return err
-		}
-		timeForms, err := parseTimeForms(r.Form, "created")
-		if err != nil {
-			return err
-		}
-		mov := fmt.Sprintf("data/show/%s/%s/%s/%s/1.mov", show, shot, task, version)
-		err = saveFormFile(r, "mov", mov)
-		if err != nil {
-			return err
-		}
-		u := roi.UpdateVersionParam{
-			OutputFiles: fields(r.FormValue("output_files")),
-			Images:      fields(r.FormValue("images")),
-			WorkFile:    r.FormValue("work_file"),
-			Created:     timeForms["created"],
-		}
-		err = roi.UpdateVersion(DB, show, shot, task, version, u)
-		if err != nil {
-			return err
-		}
-		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
-		return nil
+		return updateVersionPostHandler(w, r, env)
 	}
+	err := mustFields(r, "show", "shot", "task", "version")
+	if err != nil {
+		return err
+	}
+	show := r.FormValue("show")
+	shot := r.FormValue("shot")
+	task := r.FormValue("task")
+	version := r.FormValue("version")
 	v, err := roi.GetVersion(DB, show, shot, task, version)
 	if err != nil {
 		return err
@@ -109,4 +84,36 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) erro
 		Version:      v,
 	}
 	return executeTemplate(w, "update-version.html", recipe)
+}
+
+func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	err := mustFields(r, "show", "shot", "task", "version")
+	if err != nil {
+		return err
+	}
+	show := r.FormValue("show")
+	shot := r.FormValue("shot")
+	task := r.FormValue("task")
+	version := r.FormValue("version")
+	timeForms, err := parseTimeForms(r.Form, "created")
+	if err != nil {
+		return err
+	}
+	mov := fmt.Sprintf("data/show/%s/%s/%s/%s/1.mov", show, shot, task, version)
+	err = saveFormFile(r, "mov", mov)
+	if err != nil {
+		return err
+	}
+	u := roi.UpdateVersionParam{
+		OutputFiles: fields(r.FormValue("output_files")),
+		Images:      fields(r.FormValue("images")),
+		WorkFile:    r.FormValue("work_file"),
+		Created:     timeForms["created"],
+	}
+	err = roi.UpdateVersion(DB, show, shot, task, version, u)
+	if err != nil {
+		return err
+	}
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	return nil
 }
