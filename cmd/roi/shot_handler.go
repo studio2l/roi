@@ -10,6 +10,9 @@ import (
 )
 
 func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	if r.Method == "POST" {
+		return addShotPostHandler(w, r, env)
+	}
 	w.Header().Set("Cache-control", "no-cache")
 	cfg, err := roi.GetUserConfig(DB, env.SessionUser.ID)
 	if err != nil {
@@ -44,44 +47,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if err != nil {
 		return err
 	}
-	if r.Method == "POST" {
-		err := mustFields(r, "shot")
-		if err != nil {
-			return err
-		}
-		shot := r.FormValue("shot")
-		_, err = roi.GetShot(DB, show, shot)
-		if err == nil {
-			return roi.BadRequest(fmt.Sprintf("shot already exist: %s", shot))
-		} else if !errors.As(err, &roi.NotFoundError{}) {
-			return err
-		}
-		tasks := fields(r.FormValue("working_tasks"))
-		s := &roi.Shot{
-			Shot:   shot,
-			Show:   show,
-			Status: roi.ShotWaiting,
-		}
-		err = roi.AddShot(DB, show, s)
-		if err != nil {
-			return err
-		}
-		for _, task := range tasks {
-			t := &roi.Task{
-				Show:    show,
-				Shot:    shot,
-				Task:    task,
-				Status:  roi.TaskNotSet,
-				DueDate: time.Time{},
-			}
-			err := roi.AddTask(DB, show, shot, t)
-			if err != nil {
-				return err
-			}
-		}
-		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
-		return nil
-	}
+
 	recipe := struct {
 		LoggedInUser string
 		Show         *roi.Show
@@ -92,7 +58,50 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	return executeTemplate(w, "add-shot.html", recipe)
 }
 
+func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	err := mustFields(r, "show", "shot")
+	if err != nil {
+		return err
+	}
+	show := r.FormValue("show")
+	shot := r.FormValue("shot")
+	_, err = roi.GetShot(DB, show, shot)
+	if err == nil {
+		return roi.BadRequest(fmt.Sprintf("shot already exist: %s", shot))
+	} else if !errors.As(err, &roi.NotFoundError{}) {
+		return err
+	}
+	tasks := fields(r.FormValue("working_tasks"))
+	s := &roi.Shot{
+		Shot:   shot,
+		Show:   show,
+		Status: roi.ShotWaiting,
+	}
+	err = roi.AddShot(DB, show, s)
+	if err != nil {
+		return err
+	}
+	for _, task := range tasks {
+		t := &roi.Task{
+			Show:    show,
+			Shot:    shot,
+			Task:    task,
+			Status:  roi.TaskNotSet,
+			DueDate: time.Time{},
+		}
+		err := roi.AddTask(DB, show, shot, t)
+		if err != nil {
+			return err
+		}
+	}
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	return nil
+}
+
 func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	if r.Method == "POST" {
+		return updateShotPostHandler(w, r, env)
+	}
 	err := mustFields(r, "show", "shot")
 	if err != nil {
 		return err
@@ -102,62 +111,6 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	_, err = roi.GetShow(DB, show)
 	if err != nil {
 		return err
-	}
-	if r.Method == "POST" {
-		_, err = roi.GetShot(DB, show, shot)
-		if err != nil {
-			if !errors.As(err, &roi.NotFoundError{}) {
-				return err
-			}
-		}
-		tasks := fields(r.FormValue("working_tasks"))
-		tforms, err := parseTimeForms(r.Form, "due_date")
-		if err != nil {
-			return err
-		}
-		upd := roi.UpdateShotParam{
-			Status:        roi.ShotStatus(r.FormValue("status")),
-			EditOrder:     atoi(r.FormValue("edit_order")),
-			Description:   r.FormValue("description"),
-			CGDescription: r.FormValue("cg_description"),
-			TimecodeIn:    r.FormValue("timecode_in"),
-			TimecodeOut:   r.FormValue("timecode_out"),
-			Duration:      atoi(r.FormValue("duration")),
-			Tags:          fields(r.FormValue("tags")),
-			WorkingTasks:  tasks,
-			DueDate:       tforms["due_date"],
-		}
-		err = roi.UpdateShot(DB, show, shot, upd)
-		if err != nil {
-			return err
-		}
-		// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
-		for _, task := range tasks {
-			_, err := roi.GetTask(DB, show, shot, task)
-			if err != nil {
-				if !errors.As(err, &roi.NotFoundError{}) {
-					return err
-				} else {
-					t := &roi.Task{
-						Show:    show,
-						Shot:    shot,
-						Task:    task,
-						Status:  roi.TaskNotSet,
-						DueDate: time.Time{},
-					}
-					err = roi.AddTask(DB, show, shot, t)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		}
-		err = saveImageFormFile(r, "thumbnail", fmt.Sprintf("data/show/%s/%s/thumbnail.png", show, shot))
-		if err != nil {
-			return err
-		}
-		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
-		return nil
 	}
 	s, err := roi.GetShot(DB, show, shot)
 	if err != nil {
@@ -187,4 +140,61 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Thumbnail:     "data/show/" + show + "/" + shot + "/thumbnail.png",
 	}
 	return executeTemplate(w, "update-shot.html", recipe)
+}
+
+func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	err := mustFields(r, "show", "shot")
+	if err != nil {
+		return err
+	}
+	show := r.FormValue("show")
+	shot := r.FormValue("shot")
+	tasks := fields(r.FormValue("working_tasks"))
+	tforms, err := parseTimeForms(r.Form, "due_date")
+	if err != nil {
+		return err
+	}
+	upd := roi.UpdateShotParam{
+		Status:        roi.ShotStatus(r.FormValue("status")),
+		EditOrder:     atoi(r.FormValue("edit_order")),
+		Description:   r.FormValue("description"),
+		CGDescription: r.FormValue("cg_description"),
+		TimecodeIn:    r.FormValue("timecode_in"),
+		TimecodeOut:   r.FormValue("timecode_out"),
+		Duration:      atoi(r.FormValue("duration")),
+		Tags:          fields(r.FormValue("tags")),
+		WorkingTasks:  tasks,
+		DueDate:       tforms["due_date"],
+	}
+	err = roi.UpdateShot(DB, show, shot, upd)
+	if err != nil {
+		return err
+	}
+	// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
+	for _, task := range tasks {
+		_, err := roi.GetTask(DB, show, shot, task)
+		if err != nil {
+			if !errors.As(err, &roi.NotFoundError{}) {
+				return err
+			} else {
+				t := &roi.Task{
+					Show:    show,
+					Shot:    shot,
+					Task:    task,
+					Status:  roi.TaskNotSet,
+					DueDate: time.Time{},
+				}
+				err = roi.AddTask(DB, show, shot, t)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	err = saveImageFormFile(r, "thumbnail", fmt.Sprintf("data/show/%s/%s/thumbnail.png", show, shot))
+	if err != nil {
+		return err
+	}
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	return nil
 }
