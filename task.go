@@ -96,12 +96,6 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 
 // AddTask는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddTask(db *sql.DB, show, shot string, t *Task) error {
-	if show == "" {
-		return BadRequest("show not specified")
-	}
-	if shot == "" {
-		return BadRequest("shot not specified")
-	}
 	if t == nil {
 		return BadRequest("nil task")
 	}
@@ -110,6 +104,10 @@ func AddTask(db *sql.DB, show, shot string, t *Task) error {
 	}
 	if !isValidTaskStatus(t.Status) {
 		return BadRequest(fmt.Sprintf("invalid task status: '%s'", t.Status))
+	}
+	_, err := GetShot(db, show, shot)
+	if err != nil {
+		return err
 	}
 	ks, vs, err := dbKVs(t)
 	if err != nil {
@@ -134,17 +132,12 @@ type UpdateTaskParam struct {
 
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
 func UpdateTask(db *sql.DB, show, shot, task string, upd UpdateTaskParam) error {
-	if show == "" {
-		return BadRequest("show not specified")
-	}
-	if shot == "" {
-		return BadRequest("shot not specified")
-	}
-	if task == "" {
-		return BadRequest("task name not specified")
-	}
 	if !isValidTaskStatus(upd.Status) {
 		return BadRequest(fmt.Sprintf("invalid task status: '%s'", upd.Status))
+	}
+	_, err := GetTask(db, show, shot, task)
+	if err != nil {
+		return err
 	}
 	ks, vs, err := dbKVs(upd)
 	if err != nil {
@@ -162,6 +155,19 @@ func UpdateTask(db *sql.DB, show, shot, task string, upd UpdateTaskParam) error 
 // GetTask는 db에서 하나의 태스크를 찾는다.
 // 해당 태스크가 없다면 nil과 NotFound 에러를 반환한다.
 func GetTask(db *sql.DB, show, shot, task string) (*Task, error) {
+	if show == "" {
+		return nil, BadRequest("show not specified")
+	}
+	if shot == "" {
+		return nil, BadRequest("shot not specified")
+	}
+	if task == "" {
+		return nil, BadRequest("task not specified")
+	}
+	_, err := GetShot(db, show, shot)
+	if err != nil {
+		return nil, err
+	}
 	ks, _, err := dbKVs(&Task{})
 	if err != nil {
 		return nil, err
@@ -184,6 +190,10 @@ func GetTask(db *sql.DB, show, shot, task string) (*Task, error) {
 
 // ShotTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
 func ShotTasks(db *sql.DB, show, shot string) ([]*Task, error) {
+	_, err := GetShot(db, show, shot)
+	if err != nil {
+		return nil, err
+	}
 	ks, _, err := dbKVs(&Task{})
 	if err != nil {
 		return nil, err
