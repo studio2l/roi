@@ -41,7 +41,7 @@ func AddSite(db *sql.DB) error {
 	}
 	keys := strings.Join(k, ", ")
 	idxs := strings.Join(dbIndices(k), ", ")
-	stmt := fmt.Sprintf("INSERT INTO sites (%s) VALUES (%s) ON CONFLICT DO NOTHING", keys, idxs)
+	stmt := fmt.Sprintf("INSERT INTO sites (%s) VALUES (%s)", keys, idxs)
 	if _, err := db.Exec(stmt, v...); err != nil {
 		return err
 	}
