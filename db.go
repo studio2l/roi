@@ -72,18 +72,19 @@ func DB() (*sql.DB, error) {
 	return db, nil
 }
 
-// dbKVs는 임의의 타입인 v에 대해서 그 db키, 값 리스트를 반환한다.
-// 참고: dbKVs는 nil 슬라이스를 빈 슬라이스로 변경한다.
-func dbKVs(v interface{}) ([]string, []interface{}, error) {
+// dbKIVs는 임의의 타입인 v에 대해서 그 db키, 인덱스, 값 리스트를 반환한다.
+// 참고: dbKIVs는 nil 슬라이스를 빈 슬라이스로 변경한다.
+func dbKIVs(v interface{}) ([]string, []string, []interface{}, error) {
 	keys, err := dbKeys(v)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
+	idxs := dbIndices(keys)
 	vals, err := dbValues(v)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return keys, vals, nil
+	return keys, idxs, vals, nil
 }
 
 // dbKeys는 임의의 타입인 v에 대해서 그 db 키 슬라이스를 반환한다.

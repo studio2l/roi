@@ -183,12 +183,12 @@ func AddShot(db *sql.DB, show string, s *Shot) error {
 	if err != nil {
 		return err
 	}
-	ks, vs, err := dbKVs(s)
+	ks, is, vs, err := dbKIVs(s)
 	if err != nil {
 		return err
 	}
 	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(dbIndices(ks), ", ")
+	idxs := strings.Join(is, ", ")
 	stmt := fmt.Sprintf("INSERT INTO shots (%s) VALUES (%s)", keys, idxs)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
@@ -209,7 +209,7 @@ func GetShot(db *sql.DB, show string, shot string) (*Shot, error) {
 	if err != nil {
 		return nil, err
 	}
-	ks, _, err := dbKVs(&Shot{})
+	ks, _, _, err := dbKIVs(&Shot{})
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +231,7 @@ func GetShot(db *sql.DB, show string, shot string) (*Shot, error) {
 
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
 func SearchShots(db *sql.DB, show, shot, tag, status, task, assignee, task_status string, task_due_date time.Time) ([]*Shot, error) {
-	ks, _, err := dbKVs(&Shot{})
+	ks, _, _, err := dbKIVs(&Shot{})
 	if err != nil {
 		return nil, err
 	}
@@ -352,12 +352,12 @@ func UpdateShot(db *sql.DB, show, shot string, upd UpdateShotParam) error {
 	if err != nil {
 		return err
 	}
-	ks, vs, err := dbKVs(upd)
+	ks, is, vs, err := dbKIVs(upd)
 	if err != nil {
 		return err
 	}
 	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(dbIndices(ks), ", ")
+	idxs := strings.Join(is, ", ")
 	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", keys, idxs, show, shot)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err

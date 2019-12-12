@@ -44,12 +44,12 @@ func AddVersion(db *sql.DB, show, shot, task string, v *Version) error {
 	if err != nil {
 		return err
 	}
-	ks, vs, err := dbKVs(v)
+	ks, is, vs, err := dbKIVs(v)
 	if err != nil {
 		return err
 	}
 	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(dbIndices(ks), ", ")
+	idxs := strings.Join(is, ", ")
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("could not begin a transaction: %v", err)
@@ -85,12 +85,12 @@ func UpdateVersion(db *sql.DB, show, shot, task string, version string, upd Upda
 	if err != nil {
 		return err
 	}
-	ks, vs, err := dbKVs(upd)
+	ks, is, vs, err := dbKIVs(upd)
 	if err != nil {
 		return err
 	}
 	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(dbIndices(ks), ", ")
+	idxs := strings.Join(is, ", ")
 	stmt := fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s' AND version='%s'", keys, idxs, show, shot, task, version)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
@@ -117,7 +117,7 @@ func GetVersion(db *sql.DB, show, shot, task string, version string) (*Version, 
 	if err != nil {
 		return nil, err
 	}
-	ks, _, err := dbKVs(&Version{})
+	ks, _, _, err := dbKIVs(&Version{})
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func TaskVersions(db *sql.DB, show, shot, task string) ([]*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	ks, _, err := dbKVs(&Version{})
+	ks, _, _, err := dbKIVs(&Version{})
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +171,7 @@ func ShotVersions(db *sql.DB, show, shot string) ([]*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	ks, _, err := dbKVs(&Version{})
+	ks, _, _, err := dbKIVs(&Version{})
 	if err != nil {
 		return nil, err
 	}

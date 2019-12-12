@@ -137,12 +137,12 @@ func AddShow(db *sql.DB, p *Show) error {
 	if !IsValidShow(p.Show) {
 		return BadRequest(fmt.Sprintf("invalid show id: %s", p.Show))
 	}
-	ks, vs, err := dbKVs(p)
+	ks, is, vs, err := dbKIVs(p)
 	if err != nil {
 		return err
 	}
 	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(dbIndices(ks), ", ")
+	idxs := strings.Join(is, ", ")
 	stmt := fmt.Sprintf("INSERT INTO shows (%s) VALUES (%s)", keys, idxs)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
@@ -180,12 +180,12 @@ func UpdateShow(db *sql.DB, show string, upd UpdateShowParam) error {
 	if !IsValidShow(show) {
 		return BadRequest(fmt.Sprintf("invalid show id: %s", show))
 	}
-	ks, vs, err := dbKVs(upd)
+	ks, is, vs, err := dbKIVs(upd)
 	if err != nil {
 		return err
 	}
 	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(dbIndices(ks), ", ")
+	idxs := strings.Join(is, ", ")
 	stmt := fmt.Sprintf("UPDATE shows SET (%s) = (%s) WHERE show='%s'", keys, idxs, show)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
@@ -199,7 +199,7 @@ func GetShow(db *sql.DB, show string) (*Show, error) {
 	if show == "" {
 		return nil, BadRequest("show not specified")
 	}
-	ks, _, err := dbKVs(&Show{})
+	ks, _, _, err := dbKIVs(&Show{})
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func GetShow(db *sql.DB, show string) (*Show, error) {
 // AllShows는 db에서 모든 쇼 정보를 가져온다.
 // 검색 중 문제가 있으면 nil, error를 반환한다.
 func AllShows(db *sql.DB) ([]*Show, error) {
-	ks, _, err := dbKVs(&Show{})
+	ks, _, _, err := dbKIVs(&Show{})
 	if err != nil {
 		return nil, err
 	}
