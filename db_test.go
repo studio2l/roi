@@ -23,18 +23,22 @@ func TestDBKVs(t *testing.T) {
 		D: []int{1, 2, 3},
 		E: nil,
 	}
-	keys, vals, err := dbKVs(testVal)
+	ks, is, vs, err := dbKIVs(testVal)
 	if err != nil {
 		t.Fatal(err)
 	}
 	wantKeys := []string{"a", "b", "c", "d", "e"}
-	if !reflect.DeepEqual(keys, wantKeys) {
-		t.Fatalf("keys: want %v, got %v", wantKeys, keys)
+	if !reflect.DeepEqual(ks, wantKeys) {
+		t.Fatalf("keys: want %v, got %v", wantKeys, ks)
+	}
+	wantIndices := []string{"$1", "$2", "$3", "$4", "$5"}
+	if !reflect.DeepEqual(is, wantIndices) {
+		t.Fatalf("keys: want %v, got %v", wantKeys, ks)
 	}
 	// 마지막이 pq.Array([]string(nil))이 아닌 이유는 dbKVs함수가 nil 슬라이스를 만들지 않기 때문이다.
 	wantVals := []interface{}{"a", 1, true, pq.Array([]int{1, 2, 3}), pq.Array([]string{})}
-	if !reflect.DeepEqual(vals, wantVals) {
-		t.Fatalf("vals: want %v, got %v", wantVals, vals)
+	if !reflect.DeepEqual(vs, wantVals) {
+		t.Fatalf("vals: want %v, got %v", wantVals, vs)
 	}
 }
 

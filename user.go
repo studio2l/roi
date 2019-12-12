@@ -70,12 +70,12 @@ func AddUser(db *sql.DB, id, pw string) error {
 		return err
 	}
 	hashed_password := string(hashed)
-	ks, vs, err := dbKVs(&user{ID: id, HashedPassword: hashed_password})
+	ks, is, vs, err := dbKIVs(&user{ID: id, HashedPassword: hashed_password})
 	if err != nil {
 		return err
 	}
 	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(dbIndices(ks), ", ")
+	idxs := strings.Join(is, ", ")
 	// 사용자 생성
 	stmt := fmt.Sprintf("INSERT INTO users (%s) VALUES (%s)", keys, idxs)
 	if _, err := db.Exec(stmt, vs...); err != nil {
@@ -85,7 +85,7 @@ func AddUser(db *sql.DB, id, pw string) error {
 }
 
 func Users(db *sql.DB) ([]*User, error) {
-	ks, _, err := dbKVs(&User{})
+	ks, _, _, err := dbKIVs(&User{})
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func Users(db *sql.DB) ([]*User, error) {
 // GetUser는 db에서 사용자를 검색한다.
 // 해당 유저를 찾지 못하면 nil과 NotFound 에러를 반환한다.
 func GetUser(db *sql.DB, id string) (*User, error) {
-	ks, _, err := dbKVs(&User{})
+	ks, _, _, err := dbKIVs(&User{})
 	if err != nil {
 		return nil, err
 	}
@@ -170,12 +170,12 @@ func UpdateUser(db *sql.DB, id string, u UpdateUserParam) error {
 	if id == "" {
 		return errors.New("empty id")
 	}
-	ks, vs, err := dbKVs(u)
+	ks, is, vs, err := dbKIVs(u)
 	if err != nil {
 		return err
 	}
 	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(dbIndices(ks), ", ")
+	idxs := strings.Join(is, ", ")
 	stmt := fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keys, idxs, id)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
@@ -192,7 +192,7 @@ func GetUserConfig(db *sql.DB, id string) (*UserConfig, error) {
 	if id == "" {
 		return nil, errors.New("need id")
 	}
-	ks, _, err := dbKVs(&UserConfig{})
+	ks, _, _, err := dbKIVs(&UserConfig{})
 	if err != nil {
 		return nil, err
 	}
@@ -222,12 +222,12 @@ func UpdateUserConfig(db *sql.DB, id string, u *UserConfig) error {
 	if u == nil {
 		return BadRequest("user config shold not nil")
 	}
-	ks, vs, err := dbKVs(u)
+	ks, is, vs, err := dbKIVs(u)
 	if err != nil {
 		return err
 	}
 	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(dbIndices(ks), ", ")
+	idxs := strings.Join(is, ", ")
 	stmt := fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keys, idxs, id)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err

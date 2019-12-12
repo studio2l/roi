@@ -35,14 +35,14 @@ var CreateTableIfNotExistsSitesStmt = `CREATE TABLE IF NOT EXISTS sites (
 
 // AddSite는 DB에 빈 사이트를 생성한다.
 func AddSite(db *sql.DB) error {
-	k, v, err := dbKVs(&Site{Site: "only"})
+	ks, is, vs, err := dbKIVs(&Site{Site: "only"})
 	if err != nil {
 		return err
 	}
-	keys := strings.Join(k, ", ")
-	idxs := strings.Join(dbIndices(k), ", ")
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(is, ", ")
 	stmt := fmt.Sprintf("INSERT INTO sites (%s) VALUES (%s)", keys, idxs)
-	if _, err := db.Exec(stmt, v...); err != nil {
+	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
 	}
 	return nil
@@ -51,14 +51,14 @@ func AddSite(db *sql.DB) error {
 // UpdateSite는 DB의 사이트 정보를 업데이트한다.
 func UpdateSite(db *sql.DB, s *Site) error {
 	s.Site = "only"
-	k, v, err := dbKVs(s)
+	ks, is, vs, err := dbKIVs(s)
 	if err != nil {
 		return err
 	}
-	keys := strings.Join(k, ", ")
-	idxs := strings.Join(dbIndices(k), ", ")
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(is, ", ")
 	stmt := fmt.Sprintf("UPDATE sites SET (%s) = (%s) WHERE site='only'", keys, idxs)
-	if _, err := db.Exec(stmt, v...); err != nil {
+	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
 	}
 	return nil
@@ -67,11 +67,11 @@ func UpdateSite(db *sql.DB, s *Site) error {
 // GetSite는 db에서 사이트 정보를 가지고 온다.
 // 사이트 정보가 존재하지 않으면 nil과 NotFound 에러를 반환한다.
 func GetSite(db *sql.DB) (*Site, error) {
-	k, _, err := dbKVs(&Site{Site: "only"})
+	ks, _, _, err := dbKIVs(&Site{Site: "only"})
 	if err != nil {
 		return nil, err
 	}
-	keys := strings.Join(k, ", ")
+	keys := strings.Join(ks, ", ")
 	stmt := fmt.Sprintf("SELECT %s FROM sites LIMIT 1", keys)
 	rows, err := db.Query(stmt)
 	if err != nil {

@@ -109,12 +109,12 @@ func AddTask(db *sql.DB, show, shot string, t *Task) error {
 	if err != nil {
 		return err
 	}
-	ks, vs, err := dbKVs(t)
+	ks, is, vs, err := dbKIVs(t)
 	if err != nil {
 		return err
 	}
 	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(dbIndices(ks), ", ")
+	idxs := strings.Join(is, ", ")
 	stmt := fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", keys, idxs)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
@@ -139,12 +139,12 @@ func UpdateTask(db *sql.DB, show, shot, task string, upd UpdateTaskParam) error 
 	if err != nil {
 		return err
 	}
-	ks, vs, err := dbKVs(upd)
+	ks, is, vs, err := dbKIVs(upd)
 	if err != nil {
 		return err
 	}
 	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(dbIndices(ks), ", ")
+	idxs := strings.Join(is, ", ")
 	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s'", keys, idxs, show, shot, task)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
@@ -168,7 +168,7 @@ func GetTask(db *sql.DB, show, shot, task string) (*Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	ks, _, err := dbKVs(&Task{})
+	ks, _, _, err := dbKIVs(&Task{})
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func ShotTasks(db *sql.DB, show, shot string) ([]*Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	ks, _, err := dbKVs(&Task{})
+	ks, _, _, err := dbKIVs(&Task{})
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func ShotTasks(db *sql.DB, show, shot string) ([]*Task, error) {
 // UserTasks는 해당 유저의 모든 태스크를 db에서 검색해 반환한다.
 func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 	// 샷의 working_tasks에 속하지 않은 태스크는 보이지 않는다.
-	ks, _, err := dbKVs(&Task{})
+	ks, _, _, err := dbKIVs(&Task{})
 	if err != nil {
 		return nil, err
 	}
