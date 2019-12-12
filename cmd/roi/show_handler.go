@@ -79,6 +79,9 @@ func addShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 // updateShowHandler는 /update-show 페이지로 사용자가 접속했을때 페이지를 반환한다.
 // 만일 POST로 프로젝트 정보가 오면 프로젝트 정보를 수정한다.
 func updateShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	if r.Method == "POST" {
+		return updateShowPostHandler(w, r, env)
+	}
 	err := mustFields(r, "show")
 	if err != nil {
 		return err
