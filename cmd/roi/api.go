@@ -57,7 +57,7 @@ func addShowApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiInternalServerError(w)
 		return
 	}
-	tasks := fields(r.FormValue("default_tasks"))
+	tasks := fieldSplit(r.FormValue("default_tasks"))
 	p := &roi.Show{
 		Show:         show,
 		DefaultTasks: tasks,
@@ -135,7 +135,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		duration = int(f)
 	}
-	tasks := fields(r.FormValue("working_tasks"))
+	tasks := fieldSplit(r.FormValue("working_tasks"))
 	if len(tasks) == 0 {
 		p, err := roi.GetShow(DB, show)
 		if err != nil {
@@ -154,7 +154,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		TimecodeIn:    r.PostFormValue("timecode_in"),
 		TimecodeOut:   r.PostFormValue("timecode_out"),
 		Duration:      duration,
-		Tags:          fields(r.PostFormValue("tags")),
+		Tags:          fieldSplit(r.PostFormValue("tags")),
 		WorkingTasks:  tasks,
 	}
 	err = roi.AddShot(DB, show, s)

@@ -20,10 +20,10 @@
 			<input type="text" name="version" value="{{.Version.Version}}" autofocus />
 		</div>
 		<div class="field"><label>파일</label>
-			<input type="text" name="output_files" value="{{join .Version.OutputFiles ", "}}"/>
+			<input type="text" name="output_files" value="{{fieldJoin .Version.OutputFiles}}"/>
 		</div>
 		<div class="field"><label>프리뷰 이미지</label>
-			<input type="text" name="images" value="{{join .Version.Images ", "}}"/>
+			<input type="text" name="images" value="{{fieldJoin .Version.Images}}"/>
 		</div>
 		<div class="field"><label>프리뷰 Mov</label>
 			<input type="file" name="mov"/>

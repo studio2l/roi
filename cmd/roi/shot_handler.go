@@ -71,7 +71,7 @@ func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	} else if !errors.As(err, &roi.NotFoundError{}) {
 		return err
 	}
-	tasks := fields(r.FormValue("working_tasks"))
+	tasks := fieldSplit(r.FormValue("working_tasks"))
 	s := &roi.Shot{
 		Shot:   shot,
 		Show:   show,
@@ -149,7 +149,7 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	}
 	show := r.FormValue("show")
 	shot := r.FormValue("shot")
-	tasks := fields(r.FormValue("working_tasks"))
+	tasks := fieldSplit(r.FormValue("working_tasks"))
 	tforms, err := parseTimeForms(r.Form, "due_date")
 	if err != nil {
 		return err
@@ -162,7 +162,7 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		TimecodeIn:    r.FormValue("timecode_in"),
 		TimecodeOut:   r.FormValue("timecode_out"),
 		Duration:      atoi(r.FormValue("duration")),
-		Tags:          fields(r.FormValue("tags")),
+		Tags:          fieldSplit(r.FormValue("tags")),
 		WorkingTasks:  tasks,
 		DueDate:       tforms["due_date"],
 	}

@@ -5,12 +5,12 @@ import (
 	"strings"
 )
 
-// fields는 문자열을 콤마로 잘라 슬라이스로 반환한다.
+// fieldSplit는 문자열을 콤마로 잘라 슬라이스로 반환한다.
 // 잘린 문자열 양 옆의 빈 문자열은 함께 지워진다.
 // 혹시 필드가 빈 문자열이라면 그 항목은 포함되지 않는다.
 //
-// 예) fields("a, b, c,, ") => []string{"a", "b", "c"}
-func fields(s string) []string {
+// 예) fieldSplit("a, b, c,, ") => []string{"a", "b", "c"}
+func fieldSplit(s string) []string {
 	ss := strings.Split(s, ",")
 	fs := make([]string, 0, len(ss))
 	for _, f := range ss {
@@ -20,6 +20,11 @@ func fields(s string) []string {
 		}
 	}
 	return fs
+}
+
+// fieldJoin은 문자열 슬라이스를 콤마로 이은 문자열을 반환한다.
+func fieldJoin(ss []string) string {
+	return strings.Join(ss, ", ")
 }
 
 // atoi는 받아 들인 문자열을 정수로 변환한다.

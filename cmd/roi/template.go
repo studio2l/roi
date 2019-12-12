@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -38,7 +37,7 @@ func parseTemplate() {
 		"dayColorInTimeline":  dayColorInTimeline,
 		"mod":                 func(i, m int) int { return i % m },
 		"sub":                 func(a, b int) int { return a - b },
-		"join":                strings.Join,
+		"fieldJoin":           fieldJoin,
 	}).ParseGlob("tmpl/*.html"))
 }
 

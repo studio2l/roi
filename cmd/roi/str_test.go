@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestFields(t *testing.T) {
+func TestFieldSplit(t *testing.T) {
 	cases := []struct {
 		s    string
 		sep  string
@@ -21,7 +21,7 @@ func TestFields(t *testing.T) {
 		},
 	}
 	for _, c := range cases {
-		got := fields(c.s)
+		got := fieldSplit(c.s)
 		if !reflect.DeepEqual(got, c.want) {
 			t.Fatalf("fleids: got: %v, want: %v", got, c.want)
 		}
