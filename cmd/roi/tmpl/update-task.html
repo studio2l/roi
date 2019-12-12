@@ -15,7 +15,7 @@
 			<input type="text" name="name" value="{{.Task.Task}}"/>
 		</div>
 		<div class="field"><label>담당</label>
-			<input type="text" name="assignee" value="{{.Task.Assignee}}"/>
+			<input id="autocomplete-user" type="text" name="assignee" value="{{.Task.Assignee}}"/>
 		</div>
 		<div class="field"><label>마감일</label>
 			<input type="date" name="due_date" value="{{stringFromDate $.Task.DueDate}}">
@@ -46,5 +46,19 @@
 </div>
 
 <script>
+let userName = {
+	{{range $u := $.Users -}}
+	"{{$u.ID}}": {{$u.Name}},
+	{{end}}
+}
+
+let users = [
+	{{range $u := $.Users -}}
+	"{{$u.ID}}",
+	{{end}}
+]
+users.sort()
+
+autocomplete(document.getElementById("autocomplete-user"), users, userName)
 </script>
 {{template "footer.html"}}

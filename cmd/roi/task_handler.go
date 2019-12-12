@@ -25,16 +25,22 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if err != nil {
 		return err
 	}
+	us, err := roi.Users(DB)
+	if err != nil {
+		return err
+	}
 	recipe := struct {
 		LoggedInUser  string
 		Task          *roi.Task
 		AllTaskStatus []roi.TaskStatus
 		Versions      []*roi.Version // 역순
+		Users         []*roi.User
 	}{
 		LoggedInUser:  env.SessionUser.ID,
 		Task:          t,
 		AllTaskStatus: roi.AllTaskStatus,
 		Versions:      vers,
+		Users:         us,
 	}
 	return executeTemplate(w, "update-task.html", recipe)
 }
