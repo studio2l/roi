@@ -136,7 +136,7 @@ func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		VFXDueDate:    timeForms["vfx_due_date"],
 		OutputSize:    r.FormValue("output_size"),
 		ViewLUT:       r.FormValue("view_lut"),
-		DefaultTasks:  fields(r.FormValue("default_tasks")),
+		DefaultTasks:  fieldSplit(r.FormValue("default_tasks")),
 	}
 	err = roi.UpdateShow(DB, show, upd)
 	if err != nil {

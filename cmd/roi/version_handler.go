@@ -105,8 +105,8 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 		return err
 	}
 	u := roi.UpdateVersionParam{
-		OutputFiles: fields(r.FormValue("output_files")),
-		Images:      fields(r.FormValue("images")),
+		OutputFiles: fieldSplit(r.FormValue("output_files")),
+		Images:      fieldSplit(r.FormValue("images")),
 		WorkFile:    r.FormValue("work_file"),
 		Created:     timeForms["created"],
 	}
