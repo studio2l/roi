@@ -29,6 +29,15 @@ hr {
 	border-top: 1px solid #CCCCCC;
 }
 
+.field > input {
+	margin-top: 0.3rem !important;
+}
+
+
+.field > select {
+	margin-top: 0.3rem !important;
+}
+
 #main {
 	padding: 8px;
 }

@@ -158,3 +158,17 @@ func saveFormFile(r *http.Request, field string, dst string) error {
 	}
 	return nil
 }
+
+// formValues는 http 요청에서 슬라이스 형식의 필드값을 가지고 온다.
+// 그 중 비어있는 값은 슬라이스에서 빠진다.
+// formValues는 요청의 폼 정보를 자동으로 파싱한다.
+func formValues(r *http.Request, field string) []string {
+	r.ParseForm()
+	vals := make([]string, 0)
+	for _, v := range r.Form[field] {
+		if v != "" {
+			vals = append(vals, v)
+		}
+	}
+	return vals
+}
