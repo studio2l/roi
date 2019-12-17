@@ -26,13 +26,13 @@ func siteHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 
 func sitePostHander(w http.ResponseWriter, r *http.Request, env *Env) error {
 	s := &roi.Site{
-		VFXSupervisors:  fieldSplit(r.FormValue("vfx_supervisors")),
-		VFXProducers:    fieldSplit(r.FormValue("vfx_producers")),
-		CGSupervisors:   fieldSplit(r.FormValue("cg_supervisors")),
-		ProjectManagers: fieldSplit(r.FormValue("project_managers")),
-		Tasks:           fieldSplit(r.FormValue("tasks")),
-		DefaultTasks:    fieldSplit(r.FormValue("default_tasks")),
-		Leads:           fieldSplit(r.FormValue("leads")),
+		VFXSupervisors:  formValues(r, "vfx_supervisors"),
+		VFXProducers:    formValues(r, "vfx_producers"),
+		CGSupervisors:   formValues(r, "cg_supervisors"),
+		ProjectManagers: formValues(r, "project_managers"),
+		Tasks:           formValues(r, "tasks"),
+		DefaultTasks:    formValues(r, "default_tasks"),
+		Leads:           formValues(r, "leads"),
 	}
 	err := roi.UpdateSite(DB, s)
 	if err != nil {

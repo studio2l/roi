@@ -1,3 +1,16 @@
+// appendFieldInput은 가까운 부모 field에 첫번째 인풋과 같은 형식의 새 인풋을 추가한다.
+function appendFieldInput(el) {
+	let field = el.closest(".field")
+	// 숨겨진 첫번째 인풋은 생성될 타입과 이름을 가진 레퍼런스 인풋이다.
+	let refInput = field.getElementsByTagName("input")[0]
+	let input = document.createElement("input")
+	input.type = refInput.type
+	input.name = refInput.name
+	input.value = ""
+	input.style.marginTop = "0.5rem"
+	field.appendChild(input)
+}
+
 // autocomplete takes input tag and possible autocompleted values and label.
 function autocomplete(inp, vals, label) {
 	// turn-off browser's default autocomplete behavior
