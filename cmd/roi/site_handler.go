@@ -14,12 +14,18 @@ func siteHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if err != nil {
 		return err
 	}
+	us, err := roi.Users(DB)
+	if err != nil {
+		return err
+	}
 	recipe := struct {
 		LoggedInUser string
 		Site         *roi.Site
+		Users        []*roi.User
 	}{
 		LoggedInUser: env.SessionUser.ID,
 		Site:         s,
+		Users:        us,
 	}
 	return executeTemplate(w, "site.html", recipe)
 }

@@ -8,74 +8,136 @@
 		<div class="field">
 			<div style="display:flex;color:black">
 				<label>VFX 수퍼바이저</label>
-				<div style="margin-left:0.5rem;cursor:pointer" onclick="appendFieldInput(this)">+</div>
+				<div class="multi-input-add-button" onclick='appendTemplate("vfx_supervisors_g", "vfx_supervisors_t")'>+</div>
 			</div>
-			<input hidden type="text" name="vfx_supervisors" value=""/>
-			{{range .Site.VFXSupervisors}}
-			<input type="text" name="vfx_supervisors" value="{{.}}"/>
-			{{end}}
+			<template id="vfx_supervisors_t">
+				<div class="autocomplete"><input class="suggest-user" type="text" name="vfx_supervisors" onkeydown="suggest(this)" value="" /></div>
+			</template>
+			<div id="vfx_supervisors_g" class="multi-input">
+				{{range .Site.VFXSupervisors}}
+				<div class="autocomplete"><input class="suggest-user" type="text" name="vfx_supervisors" onkeydown="suggest(this)" value="{{.}}" /></div>
+				{{end}}
+			</div>
 		</div>
 		<div class="field">
 			<div style="display:flex;color:black">
 				<label>VFX 프로듀서</label>
-				<div style="margin-left:0.5rem;cursor:pointer" onclick="appendFieldInput(this)">+</div>
+				<div class="multi-input-add-button" onclick='appendTemplate("vfx_producers_g", "vfx_producers_t")'>+</div>
 			</div>
-			<input hidden type="text" name="vfx_producers" value=""/>
-			{{range .Site.VFXProducers}}
-			<input type="text" name="vfx_producers" value="{{.}}"/>
-			{{end}}
+			<template id="vfx_producers_t">
+				<div class="autocomplete"><input class="suggest-user" type="text" name="vfx_producers" onkeydown="suggest(this)" value="" /></div>
+			</template>
+			<div id="vfx_producers_g" class="multi-input">
+				{{range .Site.VFXProducers}}
+				<div class="autocomplete"><input class="suggest-user" type="text" name="vfx_producers" onkeydown="suggest(this)" value="{{.}}" /></div>
+				{{end}}
+			</div>
 		</div>
 		<div class="field">
 			<div style="display:flex;color:black">
 				<label>CG 수퍼바이저</label>
-				<div style="margin-left:0.5rem;cursor:pointer" onclick="appendFieldInput(this)">+</div>
+				<div class="multi-input-add-button" onclick='appendTemplate("cg_supervisors_g", "cg_supervisors_t")'>+</div>
 			</div>
-			<input hidden type="text" name="cg_supervisors" value=""/>
-			{{range .Site.CGSupervisors}}
-			<input type="text" name="cg_supervisors" value="{{.}}"/>
-			{{end}}
+			<template id="cg_supervisors_t">
+				<div class="autocomplete"><input class="suggest-user" type="text" name="cg_supervisors" onkeydown="suggest(this)" value="" /></div>
+			</template>
+			<div id="cg_supervisors_g" class="multi-input">
+				{{range .Site.CGSupervisors}}
+				<div class="autocomplete"><input class="suggest-user" type="text" name="cg_supervisors" onkeydown="suggest(this)" value="{{.}}" /></div>
+				{{end}}
+			</div>
 		</div>
 		<div class="field">
 			<div style="display:flex;color:black">
 				<label>프로젝트 매니저</label>
-				<div style="margin-left:0.5rem;cursor:pointer" onclick="appendFieldInput(this)">+</div>
+				<div class="multi-input-add-button" onclick='appendTemplate("project_managers_g", "project_managers_t")'>+</div>
 			</div>
-			<input hidden type="text" name="project_managers" value=""/>
-			{{range .Site.ProjectManagers}}
-			<input type="text" name="project_managers" value="{{.}}"/>
-			{{end}}
+			<template id="project_managers_t">
+				<div class="autocomplete"><input class="suggest-user" type="text" name="project_managers" onkeydown="suggest(this)" value="" />
+			</template>
+			<div id="project_managers_g" class="multi-input">
+				{{range .Site.ProjectManagers}}
+				<div class="autocomplete"><input class="suggest-user" type="text" name="project_managers" onkeydown="suggest(this)" value="{{.}}"/></div>
+				{{end}}
+			</div>
 		</div>
 		<div class="field">
 			<div style="display:flex;color:black">
 				<label>태스크</label>
-				<div style="margin-left:0.5rem;cursor:pointer" onclick="appendFieldInput(this)">+</div>
+				<div class="multi-input-add-button" onclick='appendTemplate("tasks_g", "tasks_t")'>+</div>
 			</div>
-			<input hidden type="text" name="tasks" value=""/>
-			{{range .Site.Tasks}}
-			<input type="text" name="tasks" value="{{.}}"/>
-			{{end}}
+			<template id="tasks_t">
+				<input type="text" name="tasks" value=""/>
+			</template>
+			<div id="tasks_g" class="multi-input">
+				{{range .Site.Tasks}}
+				<input type="text" name="tasks" value="{{.}}"/>
+				{{end}}
+			</div>
 		</div>
 		<div class="field">
 			<div style="display:flex;color:black">
 				<label>기본 태스크</label>
-				<div style="margin-left:0.5rem;cursor:pointer" onclick="appendFieldInput(this)">+</div>
+				<div class="multi-input-add-button" onclick='appendTemplate("default_tasks_g", "default_tasks_t")'>+</div>
 			</div>
-			<input hidden type="text" name="default_tasks" value=""/>
-			{{range .Site.DefaultTasks}}
-			<input type="text" name="default_tasks" value="{{.}}"/>
-			{{end}}
+			<template id="default_tasks_t">
+				<input type="text" name="default_tasks" onkeydown="suggest(this)" value=""/>
+			</template>
+			<div id="default_tasks_g" class="multi-input">
+				{{range .Site.DefaultTasks}}
+				<input type="text" name="default_tasks" onkeydown="suggest(this)" value="{{.}}"/>
+				{{end}}
+			</div>
 		</div>
 		<div class="field">
 			<div style="display:flex;color:black">
 				<label>리드</label>
-				<div style="margin-left:0.5rem;cursor:pointer" onclick="appendFieldInput(this)">+</div>
+				<div class="multi-input-add-button" onclick='appendTemplate("leads_g", "leads_t")'>+</div>
 			</div>
-			<input hidden type="text" name="leads" value=""/>
-			{{range .Site.Leads}}
-			<input type="text" name="leads" value="{{.}}"/>
-			{{end}}
+			<template id="leads_t">
+				<input type="text" name="leads" placeholder="task: user[, user ...]" value=""/>
+			</template>
+			<div id="leads_g" class="multi-input" style="grid-template-columns: 1fr 1fr">
+				{{range .Site.Leads}}
+				<input type="text" name="leads" placeholder="task: user[, user ...]" value="{{.}}"/>
+				{{end}}
+			</div>
 		</div>
 		<button class="ui button green" type="submit" value="Submit">수정</button>
 	</form>
 </div>
+<script>
+let userName = {
+	{{range $u := $.Users -}}
+	"{{$u.ID}}": {{$u.Name}},
+	{{end}}
+}
+
+let users = [
+	{{range $u := $.Users -}}
+	"{{$u.ID}}",
+	{{end}}
+]
+users.sort()
+
+// suggest는 input 태그에 사용자 아이디를 제안하는 함수를 바인딩한다.
+//
+// 현재 각 인풋의 onkeydown에 매핑되어 있지만 이는 더 적적한 바인딩
+// 위치를 찾지 못했기 때문이고 매번 키를 누를 때마다 새로 바인딩 하는
+// 것은 아니다.
+// 각 인풋의 첫 키 입력에만 바인딩을 진행한다.
+let auto = {}
+let idx = 0
+function suggest(inp) {
+	if (inp.id == "") {
+		inp.id = "auto" + String(idx)
+		idx++
+	}
+	if (auto[inp.id]) {
+		return
+	}
+	auto[inp.id] = true
+	autocomplete(inp, users, userName)
+}
+</script>
 {{template "footer.html"}}

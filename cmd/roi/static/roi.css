@@ -78,3 +78,15 @@ hr {
 	background-color: rgb(193, 168, 68) !important;
 	color: #000000;
 }
+
+.multi-input {
+	display:grid;
+	grid-template-columns:repeat(4, 1fr);
+	column-gap:0.5em;
+	row-gap:0.5em;
+}
+
+.multi-input-add-button {
+	margin-left: 0.5rem;
+	cursor:pointer;
+}
