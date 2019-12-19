@@ -30,19 +30,10 @@ func addShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
 		return addShowPostHandler(w, r, env)
 	}
-	si, err := roi.GetSite(DB)
-	if err != nil {
-		return err
-	}
-	s := &roi.Show{
-		DefaultTasks: si.DefaultTasks,
-	}
 	recipe := struct {
 		LoggedInUser string
-		Show         *roi.Show
 	}{
 		LoggedInUser: env.SessionUser.ID,
-		Show:         s,
 	}
 	return executeTemplate(w, "add-show.html", recipe)
 }
@@ -59,8 +50,13 @@ func addShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	} else if !errors.As(err, &roi.NotFoundError{}) {
 		return err
 	}
+	si, err := roi.GetSite(DB)
+	if err != nil {
+		return err
+	}
 	s := &roi.Show{
-		Show: show,
+		Show:         show,
+		DefaultTasks: si.DefaultTasks,
 	}
 	err = roi.AddShow(DB, s)
 	if err != nil {
