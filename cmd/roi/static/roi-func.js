@@ -11,6 +11,12 @@ function appendFieldInput(el) {
 	field.appendChild(input)
 }
 
+// appendTemplate는 부모 요소에 템플릿 안의 내용을 추가한다.
+function appendTemplate(parent, tmpl) {
+	let c = document.getElementById(tmpl).content.cloneNode(true)
+	document.getElementById(parent).appendChild(c)
+}
+
 // autocomplete takes input tag and possible autocompleted values and label.
 function autocomplete(inp, vals, label) {
 	// turn-off browser's default autocomplete behavior
@@ -88,10 +94,10 @@ function autocomplete(inp, vals, label) {
 			focus--
 			setActive(bs)
 		} else if (e.key == "Enter") {
-			e.preventDefault()
 			if (bs.length == 0) {
 				return
 			}
+			e.preventDefault()
 			if (focus == -1) {
 				focus = 0
 			}

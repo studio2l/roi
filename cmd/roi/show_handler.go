@@ -83,10 +83,6 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	show := r.FormValue("show")
-	_, err = roi.GetShow(DB, show)
-	if err != nil {
-		return err
-	}
 	p, err := roi.GetShow(DB, show)
 	if err != nil {
 		return err
