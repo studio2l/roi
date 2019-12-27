@@ -168,7 +168,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 			Show:    show,
 			Shot:    shot,
 			Task:    task,
-			Status:  roi.TaskNotSet,
+			Status:  roi.TaskInProgress,
 			DueDate: time.Time{},
 		}
 		err := roi.AddTask(DB, show, shot, t)

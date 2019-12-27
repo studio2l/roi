@@ -86,7 +86,7 @@ func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 			Show:    show,
 			Shot:    shot,
 			Task:    task,
-			Status:  roi.TaskNotSet,
+			Status:  roi.TaskInProgress,
 			DueDate: time.Time{},
 		}
 		err := roi.AddTask(DB, show, shot, t)
@@ -181,7 +181,7 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 					Show:    show,
 					Shot:    shot,
 					Task:    task,
-					Status:  roi.TaskNotSet,
+					Status:  roi.TaskInProgress,
 					DueDate: time.Time{},
 				}
 				err = roi.AddTask(DB, show, shot, t)
