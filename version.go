@@ -7,33 +7,85 @@ import (
 	"time"
 )
 
-// Version은 특정 태스크의 하나의 버전이다.
-type Version struct {
-	Show string `db:"show"`
-	Shot string `db:"shot"`
-	Task string `db:"task"`
-
-	Version     string    `db:"version"`      // 버전명
-	OutputFiles []string  `db:"output_files"` // 결과물 경로
-	Images      []string  `db:"images"`       // 결과물을 확인할 수 있는 이미지
-	Mov         string    `db:"mov"`          // 결과물을 영상으로 볼 수 있는 경로
-	WorkFile    string    `db:"work_file"`    // 이 결과물을 만든 작업 파일
-	Created     time.Time `db:"created"`      // 결과물이 만들어진 시간
-}
-
 var CreateTableIfNotExistsVersionsStmt = `CREATE TABLE IF NOT EXISTS versions (
 	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
 	shot STRING NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %'),
 	task STRING NOT NULL CHECK (length(task) > 0) CHECK (task NOT LIKE '% %'),
 	version STRING NOT NULL CHECK (length(version) > 0),
+	owner STRING NOT NULL CHECK (length(owner) > 0),
+	status STRING NOT NULL,
 	output_files STRING[] NOT NULL,
 	images STRING[] NOT NULL,
 	mov STRING NOT NULL,
 	work_file STRING NOT NULL,
-	created TIMESTAMPTZ NOT NULL,
+	start_date TIMESTAMPTZ NOT NULL,
+	end_date TIMESTAMPTZ NOT NULL,
 	UNIQUE(show, shot, task, version)
 )`
+
+// Version은 특정 태스크의 하나의 버전이다.
+type Version struct {
+	Show    string `db:"show"`
+	Shot    string `db:"shot"`
+	Task    string `db:"task"`
+	Version string `db:"version"` // 버전명
+
+	Owner       string        `db:"owner"`        // 버전 소유자
+	Status      VersionStatus `db:"status"`       // 버전 상태
+	OutputFiles []string      `db:"output_files"` // 결과물 경로
+	Images      []string      `db:"images"`       // 결과물을 확인할 수 있는 이미지
+	Mov         string        `db:"mov"`          // 결과물을 영상으로 볼 수 있는 경로
+	WorkFile    string        `db:"work_file"`    // 이 결과물을 만든 작업 파일
+	StartDate   time.Time     `db:"start_date"`   // 버전 작업 시작 시간
+	EndDate     time.Time     `db:"end_date"`     // 버전 작업 마감 시간
+}
+
+type VersionStatus string
+
+const (
+	VersionWaiting    = VersionStatus("waiting")
+	VersionInProgress = VersionStatus("in-progress")
+	VersionNeedReview = VersionStatus("need-review")
+	VersionRetake     = VersionStatus("retake")
+	VersionApproved   = VersionStatus("approved")
+)
+
+var AllVersionStatus = []VersionStatus{
+	VersionWaiting,
+	VersionInProgress,
+	VersionNeedReview,
+	VersionRetake,
+	VersionApproved,
+}
+
+// isValidVersionStatus는 해당 태스크 상태가 유효한지를 반환한다.
+func isValidVersionStatus(ts VersionStatus) bool {
+	for _, s := range AllVersionStatus {
+		if ts == s {
+			return true
+		}
+	}
+	return false
+}
+
+// UIString은 UI안에서 사용하는 현지화된 문자열이다.
+// 할일: 한국어 외의 문자열 지원
+func (s VersionStatus) UIString() string {
+	switch s {
+	case VersionWaiting:
+		return "대기중"
+	case VersionInProgress:
+		return "진행중"
+	case VersionNeedReview:
+		return "리뷰요청"
+	case VersionRetake:
+		return "리테이크"
+	case VersionApproved:
+		return "승인됨"
+	}
+	return ""
+}
 
 // AddVersion은 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddVersion(db *sql.DB, show, shot, task string, v *Version) error {
@@ -50,23 +102,11 @@ func AddVersion(db *sql.DB, show, shot, task string, v *Version) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("could not begin a transaction: %v", err)
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("INSERT INTO versions (%s) VALUES (%s)", keys, idxs), vs...),
+		dbStmt("UPDATE tasks SET (working_version, working_version_status) = ($1, $2) WHERE show=$3 AND shot=$4 AND task=$5", v.Version, v.Status, show, shot, task),
 	}
-	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	stmt := fmt.Sprintf("INSERT INTO versions (%s) VALUES (%s)", keys, idxs)
-	if _, err := tx.Exec(stmt, vs...); err != nil {
-		return fmt.Errorf("could not insert versions: %v", err)
-	}
-	if _, err := tx.Exec("UPDATE tasks SET status=$1, last_version=$2 WHERE show=$3 AND shot=$4 AND task=$5", TaskInProgress, v.Version, show, shot, task); err != nil {
-		return fmt.Errorf("could not update last version of task: %v", err)
-	}
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("could not commit the transaction: %v", err)
-	}
-	return nil
+	return dbExec(db, stmts)
 }
 
 // UpdateVersionParam은 Version에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
@@ -76,7 +116,8 @@ type UpdateVersionParam struct {
 	Images      []string  `db:"images"`
 	Mov         string    `db:"mov"`
 	WorkFile    string    `db:"work_file"`
-	Created     time.Time `db:"created"`
+	StartDate   time.Time `db:"start_date"`
+	EndDate     time.Time `db:"end_date"`
 }
 
 // UpdateVersion은 db의 특정 태스크를 업데이트 한다.
@@ -96,6 +137,30 @@ func UpdateVersion(db *sql.DB, show, shot, task string, version string, upd Upda
 		return err
 	}
 	return nil
+}
+
+// UpdateVersionStatus은 db의 특정 태스크를 업데이트 한다.
+func UpdateVersionStatus(db *sql.DB, show, shot, task, version string, status VersionStatus) error {
+	if !isValidVersionStatus(status) {
+		return BadRequest(fmt.Sprintf("invalid version status: %s", status))
+	}
+	t, err := GetTask(db, show, shot, task)
+	if err != nil {
+		return err
+	}
+	_, err = GetVersion(db, show, shot, task, version)
+	if err != nil {
+		return err
+	}
+	stmts := []dbStatement{
+		dbStmt("UPDATE versions SET (status) = ($1) WHERE show=$2 AND shot=$3 AND task=$4 AND version=$5", status, show, shot, task, version),
+	}
+	// 작업중인 버전의 상태는 태스크에도 업데이트 되어야한다.
+	if version == t.WorkingVersion {
+		stmt := dbStmt("UPDATE tasks SET (working_version_status) = ($1) WHERE show=$2 AND shot=$3 AND task=$4", status, show, shot, task)
+		stmts = append(stmts, stmt)
+	}
+	return dbExec(db, stmts)
 }
 
 // GetVersion은 db에서 하나의 버전을 찾는다.

@@ -38,10 +38,10 @@
 						<td class="ui one wide left aligned">
 							<div style="display:flex;padding:0 0.5rem;">
 								<div style="flex:1;"><a href="/update-task?show={{$.Show}}&shot={{.Shot}}&task={{.Task}}" style="color:white;flex:1;">{{.Task}}</a></div>
-								<div style="flex:1;"><a href="/user/{{.Assignee}}" style="color:#AAAAAA;">{{.Assignee}}</a></div>
-								<div style="flex:1;"><a href="/update-version?show={{.Show}}&shot={{.Shot}}&task={{.Task}}&version={{.LastVersion}}" style="color:#AAAAAA;">{{.LastVersion}}</a></div>
-								<div style="flex:1;">{{.Status.UIString}}</div>
 								<div style="flex:1;">{{shortStringFromDate .DueDate}}</div>
+								<div style="flex:1;"><a href="/user/{{.Assignee}}" style="color:#AAAAAA;">{{.Assignee}}</a></div>
+								<div style="flex:1;">{{if .WorkingVersion}}<a href="/update-version?show={{.Show}}&shot={{.Shot}}&task={{.Task}}&version={{.WorkingVersion}}" style="color:#AAAAAA;">{{.WorkingVersion}} / {{.WorkingVersionStatus.UIString}}</a>{{end}}</div>
+								<div style="flex:1;">{{if .PublishVersion}}<a href="/update-version?show={{.Show}}&shot={{.Shot}}&task={{.Task}}&version={{.PublishVersion}}" style="color:#AAAAAA;">{{.PublishVersion}} / 퍼블리시</a>{{end}}</div>
 							</div>
 						</td>
 					</tr>

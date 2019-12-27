@@ -7,28 +7,32 @@ import (
 	"time"
 )
 
+var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
+	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
+	shot STRING NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %'),
+	task STRING NOT NULL CHECK (length(task) > 0) CHECK (task NOT LIKE '% %'),
+	status STRING NOT NULL CHECK (length(status) > 0),
+	due_date TIMESTAMPTZ NOT NULL,
+	assignee STRING NOT NULL,
+	publish_version STRING NOT NULL,
+	working_version STRING NOT NULL,
+	working_version_status STRING NOT NULL,
+	UNIQUE(show, shot, task)
+)`
+
 type TaskStatus string
 
 const (
-	TaskNotSet     = TaskStatus("not-set")
-	TaskAssigned   = TaskStatus("assigned")
 	TaskInProgress = TaskStatus("in-progress")
-	TaskAskConfirm = TaskStatus("ask-confirm")
-	TaskRetake     = TaskStatus("retake")
-	TaskDone       = TaskStatus("done")
 	TaskHold       = TaskStatus("hold")
-	TaskOmit       = TaskStatus("omit")
+	TaskDone       = TaskStatus("done")
 )
 
 var AllTaskStatus = []TaskStatus{
-	TaskNotSet,
-	TaskAssigned,
 	TaskInProgress,
-	TaskAskConfirm,
-	TaskRetake,
-	TaskDone,
 	TaskHold,
-	TaskOmit,
+	TaskDone,
 }
 
 // isValidTaskStatus는 해당 태스크 상태가 유효한지를 반환한다.
@@ -45,22 +49,12 @@ func isValidTaskStatus(ts TaskStatus) bool {
 // 할일: 한국어 외의 문자열 지원
 func (s TaskStatus) UIString() string {
 	switch s {
-	case TaskNotSet:
-		return "-"
-	case TaskAssigned:
-		return "할당됨"
 	case TaskInProgress:
-		return "진행중"
-	case TaskAskConfirm:
-		return "컨펌요청"
-	case TaskRetake:
-		return "리테이크"
-	case TaskDone:
-		return "완료"
+		return "진행"
 	case TaskHold:
 		return "홀드"
-	case TaskOmit:
-		return "오밋"
+	case TaskDone:
+		return "완료"
 	}
 	return ""
 }
@@ -69,30 +63,23 @@ type Task struct {
 	// 관련 아이디
 	Show string `db:"show"`
 	Shot string `db:"shot"`
+	Task string `db:"task"` // 타입 또는 타입_요소로 구성된다. 예) fx, fx_fire
 
-	// 태스크 정보
-	Task        string     `db:"task"` // 이름은 타입 또는 타입_요소로 구성된다. 예) fx, fx_fire
-	Status      TaskStatus `db:"status"`
-	Assignee    string     `db:"assignee"`
-	LastVersion string     `db:"last_version"`
-	StartDate   time.Time  `db:"start_date"`
-	EndDate     time.Time  `db:"end_date"`
-	DueDate     time.Time  `db:"due_date"`
+	Status   TaskStatus `db:"status"`
+	DueDate  time.Time  `db:"due_date"`
+	Assignee string     `db:"assignee"`
+
+	// WorkingVersion은 현재 작업중인 버전이다.
+	WorkingVersion string `db:"working_version"`
+	// WorkingVersionStatus는 현재 작업중인 버전의 상태이다.
+	// 물론 버전의 상태를 검사해보면 얻을수 있지만 샷 페이지에 띄워야 할
+	// 중요한 정보이기 때문에 태스크에도 함께 저장한다.
+	// 둘은 항상 싱크가 되어있어야 한다.
+	WorkingVersionStatus VersionStatus `db:"working_version_status"`
+
+	// PublishVersion은 퍼블리시된 버전이다.
+	PublishVersion string `db:"publish_version"`
 }
-
-var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
-	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
-	shot STRING NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %'),
-	task STRING NOT NULL CHECK (length(task) > 0) CHECK (task NOT LIKE '% %'),
-	status STRING NOT NULL CHECK (length(status) > 0),
-	assignee STRING NOT NULL,
-	last_version STRING NOT NULL,
-	start_date TIMESTAMPTZ NOT NULL,
-	end_date TIMESTAMPTZ NOT NULL,
-	due_date TIMESTAMPTZ NOT NULL,
-	UNIQUE(show, shot, task)
-)`
 
 // AddTask는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddTask(db *sql.DB, show, shot string, t *Task) error {
@@ -150,6 +137,31 @@ func UpdateTask(db *sql.DB, show, shot, task string, upd UpdateTaskParam) error 
 		return err
 	}
 	return nil
+}
+
+// UpdateTaskWorkingVersion는 db의 특정 태스크의 현재 작업중인 버전을 업데이트 한다.
+func UpdateTaskWorkingVersion(db *sql.DB, show, shot, task, version string) error {
+	v, err := GetVersion(db, show, shot, task, version)
+	if err != nil {
+		return err
+	}
+	stmts := []dbStatement{
+		dbStmt("UPDATE tasks SET (working_version) = ($1) WHERE show=$2 AND shot=$3 AND task=$4", version, show, shot, task),
+		dbStmt("UPDATE tasks SET (working_version_status) = ($1) WHERE show=$2 AND shot=$3 AND task=$4", v.Status, show, shot, task),
+	}
+	return dbExec(db, stmts)
+}
+
+// UpdateTaskPublishVersion는 db의 특정 태스크의 현재 퍼블리시 버전을 업데이트 한다.
+func UpdateTaskPublishVersion(db *sql.DB, show, shot, task, version string) error {
+	_, err := GetVersion(db, show, shot, task, version)
+	if err != nil {
+		return err
+	}
+	stmts := []dbStatement{
+		dbStmt("UPDATE tasks SET (publish_version) = ($1) WHERE show=$2 AND shot=$3 AND task=$4", version, show, shot, task),
+	}
+	return dbExec(db, stmts)
 }
 
 // GetTask는 db에서 하나의 태스크를 찾는다.

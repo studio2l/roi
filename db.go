@@ -72,6 +72,33 @@ func DB() (*sql.DB, error) {
 	return db, nil
 }
 
+type dbStatement struct {
+	s  string
+	vs []interface{}
+}
+
+func dbStmt(s string, vs ...interface{}) dbStatement {
+	return dbStatement{
+		s:  s,
+		vs: vs,
+	}
+}
+
+func dbExec(db *sql.DB, stmts []dbStatement) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for _, stmt := range stmts {
+		_, err := tx.Exec(stmt.s, stmt.vs...)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 // dbKIVs는 임의의 타입인 v에 대해서 그 db키, 인덱스, 값 리스트를 반환한다.
 // 참고: dbKIVs는 nil 슬라이스를 빈 슬라이스로 변경한다.
 func dbKIVs(v interface{}) ([]string, []string, []interface{}, error) {

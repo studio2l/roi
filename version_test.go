@@ -7,19 +7,21 @@ import (
 )
 
 var testVersionA = &Version{
-	Show: testShow.Show,
-	Shot: testShotA.Shot,
-	Task: testTaskA.Task,
+	Show:    testShow.Show,
+	Shot:    testShotA.Shot,
+	Task:    testTaskA.Task,
+	Version: "v001",
 
-	Version:     "v001",
+	Owner:       "admin",
 	OutputFiles: []string{"/project/test/FOO_0010/scene/test.v001.abc"},
 	Images: []string{
 		"/project/test/FOO_0010/render/test.v001.0001.jpg",
 		"/project/test/FOO_0010/render/test.v001.0002.jpg",
 	},
-	Mov:      "/project/test/FOO_0010/render/test.v001.mov",
-	WorkFile: "/project/test/FOO_0010/scene/test.v001.hip",
-	Created:  time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
+	Mov:       "/project/test/FOO_0010/render/test.v001.mov",
+	WorkFile:  "/project/test/FOO_0010/scene/test.v001.hip",
+	StartDate: time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
+	EndDate:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 }
 
 func TestVersion(t *testing.T) {
