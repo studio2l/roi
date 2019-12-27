@@ -8,7 +8,7 @@ var testTaskA = &Task{
 	Show:     testShotA.Show,
 	Shot:     testShotA.Shot,
 	Task:     "fx_fire",
-	Status:   TaskNotSet,
+	Status:   TaskInProgress,
 	Assignee: "kybin",
 }
 

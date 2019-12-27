@@ -84,7 +84,7 @@ func dbStmt(s string, vs ...interface{}) dbStatement {
 	}
 }
 
-func exec(db *sql.DB, stmts []dbStatement) error {
+func dbExec(db *sql.DB, stmts []dbStatement) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err

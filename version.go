@@ -106,7 +106,7 @@ func AddVersion(db *sql.DB, show, shot, task string, v *Version) error {
 		dbStmt(fmt.Sprintf("INSERT INTO versions (%s) VALUES (%s)", keys, idxs), vs...),
 		dbStmt("UPDATE tasks SET (working_version, working_version_status) = ($1, $2) WHERE show=$3 AND shot=$4 AND task=$5", v.Version, v.Status, show, shot, task),
 	}
-	return exec(db, stmts)
+	return dbExec(db, stmts)
 }
 
 // UpdateVersionParam은 Version에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
@@ -160,7 +160,7 @@ func UpdateVersionStatus(db *sql.DB, show, shot, task, version string, status Ve
 		stmt := dbStmt("UPDATE tasks SET (working_version_status) = ($1) WHERE show=$2 AND shot=$3 AND task=$4", status, show, shot, task)
 		stmts = append(stmts, stmt)
 	}
-	return exec(db, stmts)
+	return dbExec(db, stmts)
 }
 
 // GetVersion은 db에서 하나의 버전을 찾는다.

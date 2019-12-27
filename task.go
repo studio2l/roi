@@ -149,7 +149,7 @@ func UpdateTaskWorkingVersion(db *sql.DB, show, shot, task, version string) erro
 		dbStmt("UPDATE tasks SET (working_version) = ($1) WHERE show=$2 AND shot=$3 AND task=$4", version, show, shot, task),
 		dbStmt("UPDATE tasks SET (working_version_status) = ($1) WHERE show=$2 AND shot=$3 AND task=$4", v.Status, show, shot, task),
 	}
-	return exec(db, stmts)
+	return dbExec(db, stmts)
 }
 
 // UpdateTaskPublishVersion는 db의 특정 태스크의 현재 퍼블리시 버전을 업데이트 한다.
@@ -161,7 +161,7 @@ func UpdateTaskPublishVersion(db *sql.DB, show, shot, task, version string) erro
 	stmts := []dbStatement{
 		dbStmt("UPDATE tasks SET (publish_version) = ($1) WHERE show=$2 AND shot=$3 AND task=$4", version, show, shot, task),
 	}
-	return exec(db, stmts)
+	return dbExec(db, stmts)
 }
 
 // GetTask는 db에서 하나의 태스크를 찾는다.
