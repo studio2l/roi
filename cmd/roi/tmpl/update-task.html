@@ -3,17 +3,18 @@
 <!--상단 고정 메뉴로 인해 위치 조정-->
 <div style="padding-top: 2rem;"></div>
 <div class="ui raised very padded text container grey inverted segment">
-	<h2 class="ui dividing header">태스크 수정</h2>
+	{{with $t := $.Task}}
+	<h2 class="ui header">태스크 수정</h2>
+	<h3 class="ui dividing header" style="color:#818181">
+		<a href="/update-show?show={{$t.Show}}" style="color:#9f9f9f">{{$t.Show}}</a> /
+		<a href="/update-shot?show={{$t.Show}}&shot={{$t.Shot}}" style="color:#9f9f9f">{{$t.Shot}}</a> /
+		<span style="color:#ccc">{{$t.Task}}</span>
+	</h3>
+	{{end}}
 	<form method="post" class="ui form">
-		<div class="field"><label>프로젝트</label>
-			<input readonly type="text" name="show" value="{{.Task.Show}}"/>
-		</div>
-		<div class="field"><label>샷</label>
-			<input readonly type="text" name="shot" value="{{.Task.Shot}}"/>
-		</div>
-		<div class="field"><label>태스크</label>
-			<input readonly type="text" name="name" value="{{.Task.Task}}"/>
-		</div>
+		<input hidden type="text" name="show" value="{{.Task.Show}}"/>
+		<input hidden type="text" name="shot" value="{{.Task.Shot}}"/>
+		<input hidden type="text" name="name" value="{{.Task.Task}}"/>
 		<div class="field"><label>마감일</label>
 			<input type="date" name="due_date" value="{{stringFromDate $.Task.DueDate}}">
 		</div>
@@ -34,7 +35,6 @@
 		<button class="ui button green" type="submit" value="Submit">수정</button>
 		<div style="height:2rem;"></div>
 	</form>
-
 	<h2 class="ui dividing header">
 		버전
 		<a href="/add-version?show={{$.Task.Show}}&shot={{$.Task.Shot}}&task={{$.Task.Task}}" class="ui right floated mini basic inverted button">추가</a>
