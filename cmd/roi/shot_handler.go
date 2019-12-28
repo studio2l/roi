@@ -71,11 +71,16 @@ func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	} else if !errors.As(err, &roi.NotFoundError{}) {
 		return err
 	}
-	tasks := fieldSplit(r.FormValue("working_tasks"))
+	sh, err := roi.GetShow(DB, show)
+	if err != nil {
+		return err
+	}
+	tasks := sh.DefaultTasks
 	s := &roi.Shot{
-		Shot:   shot,
-		Show:   show,
-		Status: roi.ShotWaiting,
+		Shot:         shot,
+		Show:         show,
+		Status:       roi.ShotWaiting,
+		WorkingTasks: tasks,
 	}
 	err = roi.AddShot(DB, show, s)
 	if err != nil {
