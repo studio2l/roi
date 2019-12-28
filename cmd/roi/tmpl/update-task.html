@@ -5,14 +5,14 @@
 <div class="ui raised very padded text container grey inverted segment">
 	<h2 class="ui dividing header">태스크 수정</h2>
 	<form method="post" class="ui form">
-		<div class="field disabled"><label>프로젝트</label>
-			<input type="text" name="show" value="{{.Task.Show}}"/>
+		<div class="field"><label>프로젝트</label>
+			<input readonly type="text" name="show" value="{{.Task.Show}}"/>
 		</div>
-		<div class="field disabled"><label>샷</label>
-			<input type="text" name="shot" value="{{.Task.Shot}}"/>
+		<div class="field"><label>샷</label>
+			<input readonly type="text" name="shot" value="{{.Task.Shot}}"/>
 		</div>
-		<div class="field disabled"><label>태스크</label>
-			<input type="text" name="name" value="{{.Task.Task}}"/>
+		<div class="field"><label>태스크</label>
+			<input readonly type="text" name="name" value="{{.Task.Task}}"/>
 		</div>
 		<div class="field"><label>마감일</label>
 			<input type="date" name="due_date" value="{{stringFromDate $.Task.DueDate}}">
