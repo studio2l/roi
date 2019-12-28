@@ -90,3 +90,11 @@ hr {
 	margin-left: 0.5rem;
 	cursor:pointer;
 }
+
+input:read-only {
+	background-color: #BBBBBB !important;
+}
+
+input:-moz-read-only {
+	background-color: #BBBBBB !important;
+}

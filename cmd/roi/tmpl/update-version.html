@@ -8,27 +8,23 @@
 	</h2>
 	{{with $v := $.Version}}
 	<form method="post" class="ui form" enctype="multipart/form-data">
-		<div class="field disabled"><label>프로젝트</label>
-			<input type="text" name="show" value="{{$v.Show}}"/>
+		<div class="field"><label>프로젝트</label>
+			<input readonly type="text" name="show" value="{{$v.Show}}"/>
 		</div>
-		<div class="field disabled"><label>샷</label>
-			<input type="text" name="shot" value="{{$v.Shot}}"/>
+		<div class="field"><label>샷</label>
+			<input readonly type="text" name="shot" value="{{$v.Shot}}"/>
 		</div>
-		<div class="field disabled"><label>태스크</label>
-			<input type="text" name="task" value="{{$v.Task}}"/>
+		<div class="field"><label>태스크</label>
+			<input readonly type="text" name="task" value="{{$v.Task}}"/>
 		</div>
-		<div class="field disabled"><label>버전</label>
-			<input type="text" name="version" value="{{$v.Version}}" />
+		<div class="field"><label>버전</label>
+			<input readonly type="text" name="version" value="{{$v.Version}}" />
 		</div>
-		<div class="field disabled"><label>소유자</label>
-			<input type="text" name="owner" value="{{$v.Owner}}" />
+		<div class="field"><label>소유자</label>
+			<input readonly type="text" name="owner" value="{{$v.Owner}}" />
 		</div>
-		<div class="field disabled"><label>상태</label>
-			<select type="text" name="status">
-				{{range $vs := $.AllVersionStatus}}
-				<option value="{{$vs}}" {{if eq $vs $v.Status}}selected{{end}}>{{$vs.UIString}}</option>
-				{{end}}
-			</select>
+		<div class="field"><label>상태</label>
+			<input readonly type="text" name="status" value="{{$v.Status.UIString}}" />
 		</div>
 		<div class="field"><label>프리뷰 이미지</label>
 			<input type="text" name="images" value="{{fieldJoin $v.Images}}"/>
