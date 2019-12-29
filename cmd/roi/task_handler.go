@@ -33,7 +33,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser  string
 		Task          *roi.Task
 		AllTaskStatus []roi.TaskStatus
-		Versions      []*roi.Version // 역순
+		Versions      []*roi.Version
 		Users         []*roi.User
 	}{
 		LoggedInUser:  env.SessionUser.ID,
