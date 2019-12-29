@@ -54,7 +54,7 @@ ex) localhost:80:443
 when only one port is specified, the port will be used for current protocol.
 ex) localhost:80, localhost:443
 
-when no port is specified, default port for current protocol will be used.
+when no port is specified, it is same as :80:443.
 ex) localhost
 
 `)
@@ -179,6 +179,10 @@ ex) localhost
 			httpsPort = addrs[2]
 		} else if len(addrs) == 2 {
 			httpsPort = addrs[1]
+		} else if len(addrs) == 1 {
+			portForwarding = true
+			httpPort = "80"
+			httpsPort = "443"
 		}
 	}
 	if site == "" {
@@ -206,6 +210,7 @@ ex) localhost
 		log.Fatal(http.ListenAndServe(site+":"+httpPort, mux))
 	} else {
 		if portForwarding {
+			log.Printf("http(:%s) request will redirected to https(:%s)", httpPort, httpsPort)
 			go func() {
 				log.Fatal(http.ListenAndServe(site+":"+httpPort, http.HandlerFunc(redirectToHttps)))
 			}()
