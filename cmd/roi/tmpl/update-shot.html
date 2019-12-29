@@ -3,14 +3,16 @@
 <!--상단 고정 메뉴로 인해 위치 조정-->
 <div style="padding-top: 2rem;"></div>
 <div class="ui raised very padded text container grey inverted segment">
-	<h2 class="ui dividing header">샷 수정</h2>
+	{{with $s := $.Shot}}
+	<h2 class="ui header">샷 수정</h2>
+	<h3 class="ui dividing header" style="color:#818181">
+		<a href="/update-show?show={{$s.Show}}" style="color:#9f9f9f">{{$s.Show}}</a> /
+		<span style="color:#ccc">{{$s.Shot}}</span>
+	</h3>
+	{{end}}
 	<form method="post" class="ui form" enctype="multipart/form-data">
-		<div class="field"><label>프로젝트</label>
-			<input readonly type="text" name="show" value="{{.Shot.Show}}"/>
-		</div>
-		<div class="field"><label>아이디</label>
-			<input readonly type="text" name="shot" value="{{.Shot.Shot}}"/>
-		</div>
+		<input hidden type="text" name="show" value="{{.Shot.Show}}"/>
+		<input hidden type="text" name="shot" value="{{.Shot.Shot}}"/>
 		<div class="field"><label>썸네일</label>
 			{{if hasThumbnail $.Shot.Show $.Shot.Shot}}<img width="288px" height="162px" src="{{$.Thumbnail}}"></img>{{end}}
 			<input type="file" name="thumbnail"/>
