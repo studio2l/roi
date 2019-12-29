@@ -3,6 +3,7 @@ package roi
 import (
 	"database/sql"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 )
@@ -227,6 +228,9 @@ func TaskVersions(db *sql.DB, show, shot, task string) ([]*Version, error) {
 		}
 		versions = append(versions, v)
 	}
+	sort.Slice(versions, func(i, j int) bool {
+		return strings.Compare(versions[i].Version, versions[j].Version) < 0
+	})
 	return versions, nil
 }
 
@@ -255,6 +259,9 @@ func ShotVersions(db *sql.DB, show, shot string) ([]*Version, error) {
 		}
 		versions = append(versions, v)
 	}
+	sort.Slice(versions, func(i, j int) bool {
+		return strings.Compare(versions[i].Version, versions[j].Version) < 0
+	})
 	return versions, nil
 }
 
