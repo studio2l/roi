@@ -20,10 +20,27 @@ import (
 
 func shotMain(args []string) {
 	var (
-		show  string
-		sheet string
+		addr     string
+		insecure bool
+		show     string
+		sheet    string
 	)
 	shotFlag := flag.NewFlagSet("shot", flag.ExitOnError)
+	shotFlag.StringVar(&addr, "addr", "localhost:80:443", `binding address and it's http/https port.
+
+when two ports are specified, first port is for http and second is for https.
+unless -insecure flag set, it will transfer data through https port.
+with -insecure flag, it will use http port.
+ex) localhost:80:443
+
+when only one port is specified, the port will be used for current protocol.
+ex) localhost:80, localhost:443
+
+when no port is specified, it is same as :80:443.
+ex) localhost
+
+`)
+	shotFlag.BoolVar(&insecure, "insecure", false, "use insecure http protocol instead of https.")
 	shotFlag.StringVar(&show, "show", "", "샷을 추가할 프로젝트, 없으면 엑셀 파일이름을 따른다.")
 	shotFlag.StringVar(&sheet, "sheet", "Sheet1", "엑셀 시트명")
 	shotFlag.Parse(args)
@@ -59,10 +76,32 @@ func shotMain(args []string) {
 			title[j] = cell
 		}
 	}
+	protocol := "https://"
+	if insecure {
+		protocol = "http://"
+	}
+	addrs := strings.Split(addr, ":")
+	site := addrs[0]
+	port := ""
+	if len(addrs) == 3 {
+		port = addrs[2]
+		if insecure {
+			port = addrs[1]
+		}
+	} else if len(addrs) == 2 {
+		port = addrs[1]
+	} else if len(addrs) == 1 {
+		port = "443"
+		if insecure {
+			port = "80"
+		}
+	} else {
+		log.Fatalf("invalid -addr flag value: %s\n", addr)
+	}
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
 		InsecureSkipVerify: true,
 	}
-	_, err = http.PostForm("https://localhost/api/v1/show/add", url.Values{
+	_, err = http.PostForm(protocol+site+":"+port+"/api/v1/show/add", url.Values{
 		"show":          []string{"test"},
 		"default_tasks": []string{"fx, lit"},
 	})
@@ -79,7 +118,7 @@ func shotMain(args []string) {
 		}
 		formData.Set("show", show)
 		formData.Set("shot", formData.Get("shot"))
-		resp, err := http.PostForm("https://localhost/api/v1/shot/add", formData)
+		resp, err := http.PostForm(protocol+site+":"+port+"/api/v1/shot/add", formData)
 		if err != nil {
 			log.Fatal(err)
 		}
