@@ -65,7 +65,7 @@ func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	}
 	show := r.FormValue("show")
 	shot := r.FormValue("shot")
-	_, err = roi.GetShot(DB, show, shot)
+	_, err = roi.GetShot(DB, show+"/"+shot)
 	if err == nil {
 		return roi.BadRequest(fmt.Sprintf("shot already exist: %s", shot))
 	} else if !errors.As(err, &roi.NotFoundError{}) {
@@ -82,7 +82,7 @@ func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 		Status:       roi.ShotWaiting,
 		WorkingTasks: tasks,
 	}
-	err = roi.AddShot(DB, show, s)
+	err = roi.AddShot(DB, s)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 			Status:  roi.TaskInProgress,
 			DueDate: time.Time{},
 		}
-		err := roi.AddTask(DB, show, shot, t)
+		err := roi.AddTask(DB, t)
 		if err != nil {
 			return err
 		}
@@ -117,11 +117,11 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if err != nil {
 		return err
 	}
-	s, err := roi.GetShot(DB, show, shot)
+	s, err := roi.GetShot(DB, show+"/"+shot)
 	if err != nil {
 		return err
 	}
-	ts, err := roi.ShotTasks(DB, show, shot)
+	ts, err := roi.ShotTasks(DB, show+"/"+shot)
 	if err != nil {
 		return err
 	}
@@ -171,13 +171,13 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		WorkingTasks:  tasks,
 		DueDate:       tforms["due_date"],
 	}
-	err = roi.UpdateShot(DB, show, shot, upd)
+	err = roi.UpdateShot(DB, show+"/"+shot, upd)
 	if err != nil {
 		return err
 	}
 	// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
 	for _, task := range tasks {
-		_, err := roi.GetTask(DB, show, shot, task)
+		_, err := roi.GetTask(DB, show+"/"+shot+"/"+task)
 		if err != nil {
 			if !errors.As(err, &roi.NotFoundError{}) {
 				return err
@@ -189,7 +189,7 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 					Status:  roi.TaskInProgress,
 					DueDate: time.Time{},
 				}
-				err = roi.AddTask(DB, show, shot, t)
+				err = roi.AddTask(DB, t)
 				if err != nil {
 					return err
 				}

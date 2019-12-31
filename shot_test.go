@@ -62,11 +62,11 @@ func TestShot(t *testing.T) {
 	}
 
 	for _, s := range want {
-		err = AddShot(db, testShow.Show, s)
+		err = AddShot(db, s)
 		if err != nil {
 			t.Fatalf("could not add shot to shots table: %s", err)
 		}
-		got, err := GetShot(db, testShow.Show, s.Shot)
+		got, err := GetShot(db, s.ID())
 		if err != nil {
 			t.Fatalf("could not get shot from shots table: %s", err)
 		}
@@ -106,17 +106,17 @@ func TestShot(t *testing.T) {
 	}
 
 	for _, s := range want {
-		err = UpdateShot(db, testShow.Show, s.Shot, UpdateShotParam{Status: ShotWaiting})
+		err = UpdateShot(db, s.ID(), UpdateShotParam{Status: ShotWaiting})
 		if err != nil {
 			t.Fatalf("could not clear(update) shot: %s", err)
 		}
-		err = DeleteShot(db, testShow.Show, s.Shot)
+		err = DeleteShot(db, s.ID())
 		if err != nil {
 			t.Fatalf("could not delete shot from shots table: %s", err)
 		}
 	}
 
-	err = DeleteShow(db, testShow.Show)
+	err = DeleteShow(db, testShow.ID())
 	if err != nil {
 		t.Fatalf("could not delete project: %s", err)
 	}

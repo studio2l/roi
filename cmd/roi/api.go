@@ -96,7 +96,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("shot id '%s' is not valid", shot))
 		return
 	}
-	_, err = roi.GetShot(DB, show, shot)
+	_, err = roi.GetShot(DB, show+"/"+shot)
 	if err == nil {
 		apiBadRequest(w, fmt.Errorf("shot already exist: %v", shot))
 		return
@@ -157,7 +157,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		Tags:          fieldSplit(r.PostFormValue("tags")),
 		WorkingTasks:  tasks,
 	}
-	err = roi.AddShot(DB, show, s)
+	err = roi.AddShot(DB, s)
 	if err != nil {
 		log.Printf("could not add shot: %v", err)
 		apiInternalServerError(w)
@@ -171,7 +171,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 			Status:  roi.TaskInProgress,
 			DueDate: time.Time{},
 		}
-		err := roi.AddTask(DB, show, shot, t)
+		err := roi.AddTask(DB, t)
 		if err != nil {
 			log.Printf("could not add task for shot: %v", err)
 			apiInternalServerError(w)

@@ -17,11 +17,11 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	show := r.FormValue("show")
 	shot := r.FormValue("shot")
 	task := r.FormValue("task")
-	t, err := roi.GetTask(DB, show, shot, task)
+	t, err := roi.GetTask(DB, show+"/"+shot+"/"+task)
 	if err != nil {
 		return err
 	}
-	vers, err := roi.TaskVersions(DB, show, shot, task)
+	vers, err := roi.TaskVersions(DB, show+"/"+shot+"/"+task)
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		Assignee: assignee,
 		DueDate:  tforms["due_date"],
 	}
-	err = roi.UpdateTask(DB, show, shot, task, upd)
+	err = roi.UpdateTask(DB, show+"/"+shot+"/"+task, upd)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func updateTaskWorkingVersionHandler(w http.ResponseWriter, r *http.Request, env
 	shot := r.FormValue("shot")
 	task := r.FormValue("task")
 	version := r.FormValue("version")
-	err = roi.UpdateTaskWorkingVersion(DB, show, shot, task, version)
+	err = roi.UpdateTaskWorkingVersion(DB, show+"/"+shot+"/"+task, version)
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func updateTaskPublishVersionHandler(w http.ResponseWriter, r *http.Request, env
 	shot := r.FormValue("shot")
 	task := r.FormValue("task")
 	version := r.FormValue("version")
-	err = roi.UpdateTaskPublishVersion(DB, show, shot, task, version)
+	err = roi.UpdateTaskPublishVersion(DB, show+"/"+shot+"/"+task, version)
 	if err != nil {
 		return err
 	}

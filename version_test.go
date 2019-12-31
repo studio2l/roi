@@ -34,59 +34,56 @@ func TestVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add project: %v", err)
 	}
-	err = AddShot(db, testVersionA.Show, testShotA)
+	err = AddShot(db, testShotA)
 	if err != nil {
 		t.Fatalf("could not add shot: %v", err)
 	}
-	err = AddTask(db, testVersionA.Show, testVersionA.Shot, testTaskA)
+	err = AddTask(db, testTaskA)
 	if err != nil {
 		t.Fatalf("could not add task: %v", err)
 	}
-
-	err = AddVersion(db, testVersionA.Show, testVersionA.Shot, testVersionA.Task, testVersionA)
+	err = AddVersion(db, testVersionA)
 	if err != nil {
 		t.Fatalf("could not add version: %v", err)
 	}
-	want := testVersionA
-	want.Version = "v001"
-	got, err := GetVersion(db, testVersionA.Show, testVersionA.Shot, testVersionA.Task, want.Version)
+	got, err := GetVersion(db, testVersionA.ID())
 	if err != nil {
 		t.Fatalf("could not get version: %v", err)
 	}
-	shotVersions, err := ShotVersions(db, testVersionA.Show, testVersionA.Shot)
+	if !reflect.DeepEqual(got, testVersionA) {
+		t.Fatalf("added version is not expected: got %v, want %v", got, testVersionA)
+	}
+	shotVersions, err := ShotVersions(db, testShotA.ID())
 	if err != nil {
 		t.Fatalf("could not get versions of shot: %v", err)
 	}
 	if len(shotVersions) != 1 {
 		t.Fatalf("shot should have 1 version at this time.")
 	}
-	taskVersions, err := TaskVersions(db, testVersionA.Show, testVersionA.Shot, testVersionA.Task)
+	taskVersions, err := TaskVersions(db, testTaskA.ID())
 	if err != nil {
 		t.Fatalf("could not get versions of task: %v", err)
 	}
 	if len(taskVersions) != 1 {
 		t.Fatalf("task should have 1 version at this time.")
 	}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("added version is not expected: got %v, want %v", got, want)
-	}
-	err = UpdateVersion(db, testVersionA.Show, testVersionA.Shot, testVersionA.Task, testVersionA.Version, UpdateVersionParam{})
+	err = UpdateVersion(db, testVersionA.ID(), UpdateVersionParam{})
 	if err != nil {
 		t.Fatalf("could not clear(update) version: %v", err)
 	}
-	err = DeleteVersion(db, testVersionA.Show, testVersionA.Shot, testVersionA.Task, testVersionA.Version)
+	err = DeleteVersion(db, testVersionA.ID())
 	if err != nil {
 		t.Fatalf("could not delete version: %v", err)
 	}
-	err = DeleteTask(db, testVersionA.Show, testVersionA.Shot, testVersionA.Task)
+	err = DeleteTask(db, testTaskA.ID())
 	if err != nil {
 		t.Fatalf("could not delete task: %v", err)
 	}
-	err = DeleteShot(db, testVersionA.Show, testVersionA.Shot)
+	err = DeleteShot(db, testShotA.ID())
 	if err != nil {
 		t.Fatalf("could not delete shot: %v", err)
 	}
-	err = DeleteShow(db, testVersionA.Show)
+	err = DeleteShow(db, testShow.ID())
 	if err != nil {
 		t.Fatalf("could not delete project: %v", err)
 	}
