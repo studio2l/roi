@@ -71,6 +71,21 @@ func (s *Shot) ID() string {
 	return s.Show + "/" + s.Shot
 }
 
+// splitShotID는 받아들인 샷 아이디를 쇼, 샷으로 분리해서 반환한다.
+// 만일 샷 아이디가 유효하지 않다면 에러를 반환한다.
+func splitShotID(id string) (string, string, error) {
+	ns := strings.Split(id, "/")
+	if len(ns) != 2 {
+		return "", "", BadRequest(fmt.Sprintf("invalid shot id: %s", id))
+	}
+	show := ns[0]
+	shot := ns[1]
+	if show == "" || shot == "" {
+		return "", "", BadRequest(fmt.Sprintf("invalid shot id: %s", id))
+	}
+	return show, shot, nil
+}
+
 // 샷 이름은 일반적으로 (시퀀스를 나타내는) 접두어, 샷 번호, 접미어로 나뉜다.
 // 접두어와 샷 번호는 항상 필요하지만, 접미어는 없어도 된다.
 //
@@ -114,7 +129,7 @@ func ShotPrefix(shot string) string {
 }
 
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
-func AddShot(db *sql.DB, show string, s *Shot) error {
+func AddShot(db *sql.DB, s *Shot) error {
 	if s == nil {
 		return BadRequest("nil shot is invalid")
 	}
@@ -126,7 +141,7 @@ func AddShot(db *sql.DB, show string, s *Shot) error {
 	if !isValidShotStatus(s.Status) {
 		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", s.Status))
 	}
-	_, err := GetShow(db, show)
+	_, err := GetShow(db, s.Show)
 	if err != nil {
 		return err
 	}
@@ -145,14 +160,12 @@ func AddShot(db *sql.DB, show string, s *Shot) error {
 
 // GetShot은 db에서 하나의 샷을 찾는다.
 // 해당 샷이 존재하지 않는다면 nil과 NotFound 에러를 반환한다.
-func GetShot(db *sql.DB, show string, shot string) (*Shot, error) {
-	if show == "" {
-		return nil, BadRequest("show not specified")
+func GetShot(db *sql.DB, id string) (*Shot, error) {
+	show, shot, err := splitShotID(id)
+	if err != nil {
+		return nil, err
 	}
-	if shot == "" {
-		return nil, BadRequest("shot not specified")
-	}
-	_, err := GetShow(db, show)
+	_, err = GetShow(db, show)
 	if err != nil {
 		return nil, err
 	}
@@ -291,11 +304,15 @@ type UpdateShotParam struct {
 }
 
 // UpdateShot은 db에서 해당 샷을 수정한다.
-func UpdateShot(db *sql.DB, show, shot string, upd UpdateShotParam) error {
+func UpdateShot(db *sql.DB, id string, upd UpdateShotParam) error {
+	show, shot, err := splitShotID(id)
+	if err != nil {
+		return err
+	}
 	if !isValidShotStatus(upd.Status) {
 		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", upd.Status))
 	}
-	_, err := GetShot(db, show, shot)
+	_, err = GetShot(db, id)
 	if err != nil {
 		return err
 	}
@@ -315,8 +332,12 @@ func UpdateShot(db *sql.DB, show, shot string, upd UpdateShotParam) error {
 // DeleteShot은 해당 샷과 그 하위의 모든 데이터를 db에서 지운다.
 // 해당 샷이 없어도 에러를 내지 않기 때문에 검사를 원한다면 ShotExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
-func DeleteShot(db *sql.DB, show, shot string) error {
-	_, err := GetShot(db, show, shot)
+func DeleteShot(db *sql.DB, id string) error {
+	show, shot, err := splitShotID(id)
+	if err != nil {
+		return err
+	}
+	_, err = GetShot(db, id)
 	if err != nil {
 		return err
 	}

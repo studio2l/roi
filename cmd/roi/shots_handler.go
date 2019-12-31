@@ -65,7 +65,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}
 	tasks := make(map[string]map[string]*roi.Task)
 	for _, s := range shots {
-		ts, err := roi.ShotTasks(DB, show, s.Shot)
+		ts, err := roi.ShotTasks(DB, s.ID())
 		if err != nil {
 			return err
 		}

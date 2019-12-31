@@ -52,7 +52,7 @@ func addVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		StartDate: time.Now(),
 		Owner:     env.SessionUser.ID,
 	}
-	err = roi.AddVersion(DB, show, shot, task, v)
+	err = roi.AddVersion(DB, v)
 	if err != nil {
 		return err
 	}
@@ -72,11 +72,11 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) erro
 	shot := r.FormValue("shot")
 	task := r.FormValue("task")
 	version := r.FormValue("version")
-	t, err := roi.GetTask(DB, show, shot, task)
+	t, err := roi.GetTask(DB, show+"/"+shot+"/"+task)
 	if err != nil {
 		return err
 	}
-	v, err := roi.GetVersion(DB, show, shot, task, version)
+	v, err := roi.GetVersion(DB, show+"/"+shot+"/"+task+"/"+version)
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 		StartDate:   timeForms["start_date"],
 		EndDate:     timeForms["end_date"],
 	}
-	err = roi.UpdateVersion(DB, show, shot, task, version, u)
+	err = roi.UpdateVersion(DB, show+"/"+shot+"/"+task+"/"+version, u)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func updateVersionStatusHandler(w http.ResponseWriter, r *http.Request, env *Env
 	task := r.FormValue("task")
 	version := r.FormValue("version")
 	status := roi.VersionStatus(r.FormValue("update-status"))
-	err = roi.UpdateVersionStatus(DB, show, shot, task, version, status)
+	err = roi.UpdateVersionStatus(DB, show+"/"+shot+"/"+task+"/"+version, status)
 	if err != nil {
 		return err
 	}

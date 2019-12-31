@@ -27,38 +27,34 @@ var testShow = &Show{
 }
 
 func TestShow(t *testing.T) {
-	want := testShow
-
 	db, err := testDB()
 	if err != nil {
 		t.Fatalf("could not connect to database: %v", err)
 	}
-	err = AddShow(db, want)
+	err = AddShow(db, testShow)
 	if err != nil {
 		t.Fatalf("could not add project to projects table: %s", err)
 	}
-	got, err := GetShow(db, want.Show)
+	got, err := GetShow(db, testShow.ID())
 	if err != nil {
 		t.Fatalf("could not get project from projects table: %s", err)
 	}
-	if !IsValidShow(got.Show) {
-		if err != nil {
-			t.Fatalf("find project with invalid id from projects table: %s", err)
-		}
+	if !reflect.DeepEqual(got, testShow) {
+		t.Fatalf("got: %v, want: %v", got, testShow)
 	}
 	gotAll, err := AllShows(db)
 	if err != nil {
 		t.Fatalf("could not get all projects from projects table: %s", err)
 	}
-	wantAll := []*Show{want}
+	wantAll := []*Show{testShow}
 	if !reflect.DeepEqual(gotAll, wantAll) {
-		t.Fatalf("got: %v, want: %v", got, want)
+		t.Fatalf("got: %v, want: %v", gotAll, wantAll)
 	}
-	err = UpdateShow(db, want.Show, UpdateShowParam{})
+	err = UpdateShow(db, testShow.ID(), UpdateShowParam{})
 	if err != nil {
 		t.Fatalf("could not clear(update) project: %s", err)
 	}
-	err = DeleteShow(db, want.Show)
+	err = DeleteShow(db, testShow.ID())
 	if err != nil {
 		t.Fatalf("could not delete project: %s", err)
 	}

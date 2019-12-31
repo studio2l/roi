@@ -21,11 +21,11 @@ func TestTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add project: %s", err)
 	}
-	err = AddShot(db, testTaskA.Show, testShotA)
+	err = AddShot(db, testShotA)
 	if err != nil {
 		t.Fatalf("could not add shot: %s", err)
 	}
-	err = AddTask(db, testTaskA.Show, testTaskA.Shot, testTaskA)
+	err = AddTask(db, testTaskA)
 	if err != nil {
 		t.Fatalf("could not add task: %s", err)
 	}
@@ -40,15 +40,15 @@ func TestTask(t *testing.T) {
 	if len(tasks) != 0 {
 		t.Fatalf("invalid number of user tasks: want 0, got %d", len(tasks))
 	}
-	err = DeleteTask(db, testTaskA.Show, testTaskA.Shot, testTaskA.Task)
+	err = DeleteTask(db, testTaskA.ID())
 	if err != nil {
 		t.Fatalf("could not delete task: %s", err)
 	}
-	err = DeleteShot(db, testTaskA.Show, testTaskA.Shot)
+	err = DeleteShot(db, testShotA.ID())
 	if err != nil {
 		t.Fatalf("could not delete shot: %s", err)
 	}
-	err = DeleteShow(db, testTaskA.Show)
+	err = DeleteShow(db, testShow.ID())
 	if err != nil {
 		t.Fatalf("could not delete project: %s", err)
 	}
