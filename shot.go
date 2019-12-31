@@ -9,6 +9,63 @@ import (
 	"time"
 )
 
+// CreateTableIfNotExistShowsStmt는 DB에 shots 테이블을 생성하는 sql 구문이다.
+// 테이블은 타입보다 많은 정보를 담고 있을수도 있다.
+var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
+	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
+	shot STRING NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %'),
+	name STRING NOT NULL,
+	prefix STRING NOT NULL,
+	status STRING NOT NULL CHECK (length(status) > 0),
+	edit_order INT NOT NULL,
+	description STRING NOT NULL,
+	cg_description STRING NOT NULL,
+	timecode_in STRING NOT NULL,
+	timecode_out STRING NOT NULL,
+	duration INT NOT NULL,
+	tags STRING[] NOT NULL,
+	working_tasks STRING[] NOT NULL,
+	start_date TIMESTAMPTZ NOT NULL,
+	end_date TIMESTAMPTZ NOT NULL,
+	due_date TIMESTAMPTZ NOT NULL,
+	UNIQUE(show, shot)
+)`
+
+type Shot struct {
+	Show string `db:"show"`
+	Shot string `db:"shot"`
+
+	// 주의: 아래 필드는 이 패키지 외부에서 접근하지 말 것.
+	// 원래는 소문자로 시작해야 맞으나 아직 dbKVs가 수출되지 않는 값들의
+	// 값을 받아오지 못해서 잠시 대문자로 시작하도록 하였음.
+	Name   string `db:"name"`
+	Prefix string `db:"prefix"`
+
+	// 샷 정보
+	Status        ShotStatus `db:"status"`
+	EditOrder     int        `db:"edit_order"`
+	Description   string     `db:"description"`
+	CGDescription string     `db:"cg_description"`
+	TimecodeIn    string     `db:"timecode_in"`
+	TimecodeOut   string     `db:"timecode_out"`
+	Duration      int        `db:"duration"`
+	Tags          []string   `db:"tags"`
+
+	// WorkingTasks는 샷에 작업중인 어떤 태스크가 있는지를 나타낸다.
+	// 웹 페이지에는 여기에 포함된 태스크만 이 순서대로 보여져야 한다.
+	//
+	// 참고: 여기에 포함되어 있다면 db내에 해당 태스크가 존재해야 한다.
+	// 반대로 여기에 포함되어 있지 않지만 db내에는 존재하는 태스크가 있을 수 있다.
+	// 그 태스크는 (예를 들어 태스크가 Omit 되는 등의 이유로) 숨겨진 태스크이며,
+	// 직접 지우지 않는 한 db에 보관된다.
+	WorkingTasks []string `db:"working_tasks"`
+
+	StartDate time.Time `db:"start_date"`
+	EndDate   time.Time `db:"end_date"`
+	DueDate   time.Time `db:"due_date"`
+}
+
 // 샷 아이디는 일반적으로 (시퀀스를 나타내는) 접두어, 샷 번호, 접미어로 나뉜다.
 // 접두어와 샷 번호는 항상 필요하지만, 접미어는 없어도 된다.
 //
@@ -50,121 +107,6 @@ func ShotName(shot string) string {
 func ShotPrefix(shot string) string {
 	return reShotPrefix.FindString(shot)
 }
-
-type ShotStatus string
-
-const (
-	ShotWaiting    = ShotStatus("waiting")
-	ShotInProgress = ShotStatus("in-progress")
-	ShotDone       = ShotStatus("done")
-	ShotHold       = ShotStatus("hold")
-	ShotOmit       = ShotStatus("omit")
-)
-
-var AllShotStatus = []ShotStatus{
-	ShotWaiting,
-	ShotInProgress,
-	ShotDone,
-	ShotHold,
-	ShotOmit,
-}
-
-// isValidShotStatus는 해당 샷 상태가 유효한지를 반환한다.
-func isValidShotStatus(ss ShotStatus) bool {
-	for _, s := range AllShotStatus {
-		if ss == s {
-			return true
-		}
-	}
-	return false
-}
-
-func (s ShotStatus) UIString() string {
-	switch s {
-	case ShotWaiting:
-		return "대기"
-	case ShotInProgress:
-		return "진행"
-	case ShotDone:
-		return "완료"
-	case ShotHold:
-		return "홀드"
-	case ShotOmit:
-		return "오밋"
-	}
-	return ""
-}
-
-func (s ShotStatus) UIColor() string {
-	switch s {
-	case ShotWaiting:
-		return "yellow"
-	case ShotInProgress:
-		return "green"
-	case ShotDone:
-		return "blue"
-	case ShotHold:
-		return "grey"
-	case ShotOmit:
-		return "black"
-	}
-	return ""
-}
-
-type Shot struct {
-	Show string `db:"show"`
-	Shot string `db:"shot"`
-
-	// 주의: 아래 필드는 이 패키지 외부에서 접근하지 말 것.
-	// 원래는 소문자로 시작해야 맞으나 아직 dbKVs가 수출되지 않는 값들의
-	// 값을 받아오지 못해서 잠시 대문자로 시작하도록 하였음.
-	Name   string `db:"name"`
-	Prefix string `db:"prefix"`
-
-	// 샷 정보
-	Status        ShotStatus `db:"status"`
-	EditOrder     int        `db:"edit_order"`
-	Description   string     `db:"description"`
-	CGDescription string     `db:"cg_description"`
-	TimecodeIn    string     `db:"timecode_in"`
-	TimecodeOut   string     `db:"timecode_out"`
-	Duration      int        `db:"duration"`
-	Tags          []string   `db:"tags"`
-
-	// WorkingTasks는 샷에 작업중인 어떤 태스크가 있는지를 나타낸다.
-	// 웹 페이지에는 여기에 포함된 태스크만 이 순서대로 보여져야 한다.
-	//
-	// 참고: 여기에 포함되어 있다면 db내에 해당 태스크가 존재해야 한다.
-	// 반대로 여기에 포함되어 있지 않지만 db내에는 존재하는 태스크가 있을 수 있다.
-	// 그 태스크는 (예를 들어 태스크가 Omit 되는 등의 이유로) 숨겨진 태스크이며,
-	// 직접 지우지 않는 한 db에 보관된다.
-	WorkingTasks []string `db:"working_tasks"`
-
-	StartDate time.Time `db:"start_date"`
-	EndDate   time.Time `db:"end_date"`
-	DueDate   time.Time `db:"due_date"`
-}
-
-var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
-	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
-	shot STRING NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %'),
-	name STRING NOT NULL,
-	prefix STRING NOT NULL,
-	status STRING NOT NULL CHECK (length(status) > 0),
-	edit_order INT NOT NULL,
-	description STRING NOT NULL,
-	cg_description STRING NOT NULL,
-	timecode_in STRING NOT NULL,
-	timecode_out STRING NOT NULL,
-	duration INT NOT NULL,
-	tags STRING[] NOT NULL,
-	working_tasks STRING[] NOT NULL,
-	start_date TIMESTAMPTZ NOT NULL,
-	end_date TIMESTAMPTZ NOT NULL,
-	due_date TIMESTAMPTZ NOT NULL,
-	UNIQUE(show, shot)
-)`
 
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
 func AddShot(db *sql.DB, show string, s *Shot) error {
