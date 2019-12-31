@@ -44,6 +44,11 @@ type Version struct {
 	EndDate     time.Time     `db:"end_date"`     // 버전 작업 마감 시간
 }
 
+// ID는 Version의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
+func (v *Version) ID() string {
+	return v.Show + "/" + v.Shot + "/" + v.Task + "/" + v.Version
+}
+
 // AddVersion은 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddVersion(db *sql.DB, show, shot, task string, v *Version) error {
 	if v == nil {
