@@ -66,14 +66,19 @@ type Shot struct {
 	DueDate   time.Time `db:"due_date"`
 }
 
-// 샷 아이디는 일반적으로 (시퀀스를 나타내는) 접두어, 샷 번호, 접미어로 나뉜다.
+// ID는 Shot의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
+func (s *Shot) ID() string {
+	return s.Show + "/" + s.Shot
+}
+
+// 샷 이름은 일반적으로 (시퀀스를 나타내는) 접두어, 샷 번호, 접미어로 나뉜다.
 // 접두어와 샷 번호는 항상 필요하지만, 접미어는 없어도 된다.
 //
 // CG0010a에서 접두어는 CG, 샷 번호는 0010, 접미어는 a이다.
 //
 // 접두어와 샷번호, 접미어를 언더바(_)를 통해서 떨어뜨리거나, 그냥 붙여쓰는것이 가능하다.
 //
-// 아래는 모두 유효한 샷 아이디이다.
+// 아래는 모두 유효한 샷 이름이다.
 //
 // CG0010
 // CG0010a
@@ -81,28 +86,28 @@ type Shot struct {
 // CG_0010a
 // CG_0010_a
 //
-// 마지막 샷 아이디의 경우 이름은 CG_0010, 접미어는 CG가 된다.
+// 마지막 샷 이름의 경우 기본 이름은 CG_0010, 접미어는 CG가 된다.
 
 var (
-	// reShotID은 샷 아이디를 나타내는 정규식이다.
-	reShotID = regexp.MustCompile(`^[a-zA-Z]+[_]?[0-9]+[_]?[a-zA-Z]*$`)
-	// reShotName은 샷 아이디에서 접미어가 빠진 이름을 나타내는 정규식이다.
-	reShotName = regexp.MustCompile(`^[a-zA-Z]+[_]?[0-9]+`)
-	// reShotName은 샷 아이디의 접두어를 나타내는 정규식이다.
+	// reShotName은 샷 이름을 나타내는 정규식이다.
+	reShotName = regexp.MustCompile(`^[a-zA-Z]+[_]?[0-9]+[_]?[a-zA-Z]*$`)
+	// reShotBase는 샷 이름에서 접미어가 빠진 이름을 나타내는 정규식이다.
+	reShotBase = regexp.MustCompile(`^[a-zA-Z]+[_]?[0-9]+`)
+	// reShotBase는 샷 이름의 접두어를 나타내는 정규식이다.
 	reShotPrefix = regexp.MustCompile(`^[a-zA-Z]+`)
 )
 
-// IsValidShot은 해당 이름이 샷 아이디로 적절한지 여부를 반환한다.
-func IsValidShot(id string) bool {
-	return reShotID.MatchString(id)
+// IsValidShot은 해당 이름이 샷 이름으로 적절한지 여부를 반환한다.
+func IsValidShot(shot string) bool {
+	return reShotName.MatchString(shot)
 }
 
-// ShotName은 샷 아이디에서 이름 정보를 반환한다.
-func ShotName(shot string) string {
-	return reShotName.FindString(shot)
+// ShotBase는 샷 이름에서 접미어를 제외한 기본 이름 정보를 반환한다.
+func ShotBase(shot string) string {
+	return reShotBase.FindString(shot)
 }
 
-// ShotPrefix은 샷 아이디에서 접두어 정보를 반환한다.
+// ShotPrefix은 샷 이름에서 접두어 정보를 반환한다.
 // 일반적으로 이 접두어는 시퀀스를 가리킨다.
 func ShotPrefix(shot string) string {
 	return reShotPrefix.FindString(shot)
@@ -116,7 +121,7 @@ func AddShot(db *sql.DB, show string, s *Shot) error {
 	if !IsValidShot(s.Shot) {
 		return BadRequest(fmt.Sprintf("invalid shot id: '%s'", s.Shot))
 	}
-	s.Name = ShotName(s.Shot)
+	s.Name = ShotBase(s.Shot)
 	s.Prefix = ShotPrefix(s.Shot)
 	if !isValidShotStatus(s.Status) {
 		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", s.Status))
@@ -196,7 +201,7 @@ func SearchShots(db *sql.DB, show, shot, tag, status, task, assignee, task_statu
 	if shot != "" {
 		if shot == ShotPrefix(shot) {
 			where = append(where, fmt.Sprintf("shots.prefix=$%d", i))
-		} else if shot == ShotName(shot) {
+		} else if shot == ShotBase(shot) {
 			where = append(where, fmt.Sprintf("shots.name=$%d", i))
 		} else {
 			where = append(where, fmt.Sprintf("shots.shot=$%d", i))

@@ -56,6 +56,11 @@ type Show struct {
 	DefaultTasks []string `db:"default_tasks"`
 }
 
+// ID는 Show의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
+func (s *Show) ID() string {
+	return s.Show
+}
+
 var reValidShow = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 
 func IsValidShow(id string) bool {

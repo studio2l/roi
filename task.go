@@ -45,6 +45,11 @@ type Task struct {
 	PublishVersion string `db:"publish_version"`
 }
 
+// ID는 Task의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
+func (t *Task) ID() string {
+	return t.Show + "/" + t.Shot + "/" + t.Task
+}
+
 // AddTask는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddTask(db *sql.DB, show, shot string, t *Task) error {
 	if t == nil {
