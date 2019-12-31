@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+// CreateTableIfNotExistShowsStmt는 DB에 versions 테이블을 생성하는 sql 구문이다.
+// 테이블은 타입보다 많은 정보를 담고 있을수도 있다.
 var CreateTableIfNotExistsVersionsStmt = `CREATE TABLE IF NOT EXISTS versions (
 	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
@@ -40,52 +42,6 @@ type Version struct {
 	WorkFile    string        `db:"work_file"`    // 이 결과물을 만든 작업 파일
 	StartDate   time.Time     `db:"start_date"`   // 버전 작업 시작 시간
 	EndDate     time.Time     `db:"end_date"`     // 버전 작업 마감 시간
-}
-
-type VersionStatus string
-
-const (
-	VersionWaiting    = VersionStatus("waiting")
-	VersionInProgress = VersionStatus("in-progress")
-	VersionNeedReview = VersionStatus("need-review")
-	VersionRetake     = VersionStatus("retake")
-	VersionApproved   = VersionStatus("approved")
-)
-
-var AllVersionStatus = []VersionStatus{
-	VersionWaiting,
-	VersionInProgress,
-	VersionNeedReview,
-	VersionRetake,
-	VersionApproved,
-}
-
-// isValidVersionStatus는 해당 태스크 상태가 유효한지를 반환한다.
-func isValidVersionStatus(ts VersionStatus) bool {
-	for _, s := range AllVersionStatus {
-		if ts == s {
-			return true
-		}
-	}
-	return false
-}
-
-// UIString은 UI안에서 사용하는 현지화된 문자열이다.
-// 할일: 한국어 외의 문자열 지원
-func (s VersionStatus) UIString() string {
-	switch s {
-	case VersionWaiting:
-		return "대기중"
-	case VersionInProgress:
-		return "진행중"
-	case VersionNeedReview:
-		return "리뷰요청"
-	case VersionRetake:
-		return "리테이크"
-	case VersionApproved:
-		return "승인됨"
-	}
-	return ""
 }
 
 // AddVersion은 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.

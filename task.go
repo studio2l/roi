@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// CreateTableIfNotExistShowsStmt는 DB에 tasks 테이블을 생성하는 sql 구문이다.
+// 테이블은 타입보다 많은 정보를 담고 있을수도 있다.
 var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
@@ -20,44 +22,6 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	working_version_status STRING NOT NULL,
 	UNIQUE(show, shot, task)
 )`
-
-type TaskStatus string
-
-const (
-	TaskInProgress = TaskStatus("in-progress")
-	TaskHold       = TaskStatus("hold")
-	TaskDone       = TaskStatus("done")
-)
-
-var AllTaskStatus = []TaskStatus{
-	TaskInProgress,
-	TaskHold,
-	TaskDone,
-}
-
-// isValidTaskStatus는 해당 태스크 상태가 유효한지를 반환한다.
-func isValidTaskStatus(ts TaskStatus) bool {
-	for _, s := range AllTaskStatus {
-		if ts == s {
-			return true
-		}
-	}
-	return false
-}
-
-// UIString은 UI안에서 사용하는 현지화된 문자열이다.
-// 할일: 한국어 외의 문자열 지원
-func (s TaskStatus) UIString() string {
-	switch s {
-	case TaskInProgress:
-		return "진행"
-	case TaskHold:
-		return "홀드"
-	case TaskDone:
-		return "완료"
-	}
-	return ""
-}
 
 type Task struct {
 	// 관련 아이디
