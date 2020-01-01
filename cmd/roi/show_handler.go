@@ -78,12 +78,12 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
 		return updateShowPostHandler(w, r, env)
 	}
-	err := mustFields(r, "show")
+	err := mustFields(r, "id")
 	if err != nil {
 		return err
 	}
-	show := r.FormValue("show")
-	p, err := roi.GetShow(DB, show)
+	id := r.FormValue("id")
+	p, err := roi.GetShow(DB, id)
 	if err != nil {
 		return err
 	}
@@ -100,11 +100,11 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 }
 
 func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	err := mustFields(r, "show")
+	err := mustFields(r, "id")
 	if err != nil {
 		return err
 	}
-	show := r.FormValue("show")
+	id := r.FormValue("id")
 	timeForms, err := parseTimeForms(r.Form,
 		"start_date",
 		"release_date",
@@ -133,7 +133,7 @@ func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		ViewLUT:       r.FormValue("view_lut"),
 		DefaultTasks:  fieldSplit(r.FormValue("default_tasks")),
 	}
-	err = roi.UpdateShow(DB, show, upd)
+	err = roi.UpdateShow(DB, id, upd)
 	if err != nil {
 		return err
 	}

@@ -8,16 +8,13 @@
 		버전 수정
 	</h2>
 	<h3 class="ui dividing header" style="color:#818181">
-		<a href="/update-show?show={{$v.Show}}" style="color:#9f9f9f">{{$v.Show}}</a> /
-		<a href="/update-shot?show={{$v.Show}}&shot={{$v.Shot}}" style="color:#9f9f9f">{{$v.Shot}}</a> /
-		<a href="/update-task?show={{$v.Show}}&shot={{$v.Shot}}&task={{$v.Task}}" style="color:#9f9f9f">{{$v.Task}}</a> /
+		<a href="/update-show?id={{$v.Show}}" style="color:#9f9f9f">{{$v.Show}}</a> /
+		<a href="/update-shot?id={{$v.Show}}/{{$v.Shot}}" style="color:#9f9f9f">{{$v.Shot}}</a> /
+		<a href="/update-task?id={{$v.Show}}/{{$v.Shot}}/{{$v.Task}}" style="color:#9f9f9f">{{$v.Task}}</a> /
 		<span style="color:#ccc">{{$v.Version}}</span>
 	</h3>
 	<form method="post" class="ui form" enctype="multipart/form-data">
-		<input hidden type="text" name="show" value="{{$v.Show}}"/>
-		<input hidden type="text" name="shot" value="{{$v.Shot}}"/>
-		<input hidden type="text" name="task" value="{{$v.Task}}"/>
-		<input hidden type="text" name="version" value="{{$v.Version}}" />
+		<input hidden type="text" name="id" value="{{$v.ID}}" />
 		<div class="field"><label>소유자</label>
 			<input readonly type="text" name="owner" value="{{$v.Owner}}" />
 		</div>
@@ -42,24 +39,28 @@
 		<div class="field"><label>(예상)종료일</label>
 			<input type="date" name="end_date" value="{{stringFromDate $v.EndDate}}"/>
 		</div>
-		<div style="display:flex">
 		<button class="ui button green" type="submit" value="Submit">수정</button>
-		<div style="flex:1"></div>
-		{{if $.IsWorkingVersion}}
+		<div style="height:2rem"></div>
+	</form>
+	<form method="post">
+		<div style="display:flex">
+			<div style="flex:1"></div>
 			{{if eq $v.Status "approved"}}
-			<button class="ui button" type="submit" value="Publish" formaction="/update-task-publish-version">퍼블리시</button>
+				{{if not $.IsPublishVersion}}
+				<button class="ui button" type="submit" value="Publish" formaction="/update-task-publish-version?id={{$v.TaskID}}&version={{$v.Version}}">퍼블리시</button>
+				{{end}}
 			{{else}}
-			<!-- 아래 /update-version-status에 update-status 필드를 쓰는 이유는 status로 했을 경우 form의 status에 의해 덮어 씌어지기 때문이다. -->
-			<button class="ui button" type="submit" value="Waiting" formaction="/update-version-status?update-status=waiting">대기</button>
-			<button class="ui button" type="submit" value="InProgress" formaction="/update-version-status?update-status=in-progress">진행</button>
-			<button class="ui button" type="submit" value="NeedReview" formaction="/update-version-status?update-status=need-review">리뷰요청</button>
-			<button class="ui button" type="submit" value="NeedReview" formaction="/update-version-status?update-status=approved">승인(임시)</button>
+				{{if $.IsWorkingVersion}}
+				<!-- 아래 /update-version-status에 update-status 필드를 쓰는 이유는 status로 했을 경우 form의 status에 의해 덮어 씌어지기 때문이다. -->
+				<button class="ui button" type="submit" value="Waiting" formaction="/update-version-status?id={{$v.ID}}&update-status=waiting">대기</button>
+				<button class="ui button" type="submit" value="InProgress" formaction="/update-version-status?id={{$v.ID}}&update-status=in-progress">진행</button>
+				<button class="ui button" type="submit" value="NeedReview" formaction="/update-version-status?id={{$v.ID}}&update-status=need-review">리뷰요청</button>
+				<button class="ui button" type="submit" value="Approved" formaction="/update-version-status?id={{$v.ID}}&update-status=approved">승인(임시)</button>
+				{{else}}
+				<button class="ui button" type="submit" value="SetWorkingVersion" formaction="/update-task-working-version?id={{$v.TaskID}}&version={{$v.Version}}">이 버전을 작업중으로 표시</button>
+				{{end}}
 			{{end}}
-		{{else}}
-		<button class="ui button" type="submit" value="SetWorkingVersion" formaction="/update-task-working-version">이 버전을 작업중으로 표시</button>
-		{{end}}
 		</div>
-		<div style="height:2rem;"></div>
 	</form>
 	{{end}}
 </div>

@@ -8,7 +8,7 @@
 	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;">
 		<div class="ui" style="width:288px;margin-right:22px;display:flex;align-items:end;">
 				<div style="display:flex;flex-direction:column;">
-					<a href="/update-shot?show={{$.Show}}&shot={{.Shot}}" style="font-size:1.3rem;color:white;border-bottom:solid 1px var(--{{.Status.UIColor}});">
+					<a href="/update-shot?id={{$.Show}}/{{.Shot}}" style="font-size:1.3rem;color:white;border-bottom:solid 1px var(--{{.Status.UIColor}});">
 						<b>{{.Shot}}</b>
 					</a>
 				</div>
@@ -37,11 +37,11 @@
 					<tr style="font-size:0.9rem;color:#AAAAAA">
 						<td class="ui one wide left aligned">
 							<div style="display:flex;padding:0 0.5rem;">
-								<div style="flex:1;"><a href="/update-task?show={{$.Show}}&shot={{.Shot}}&task={{.Task}}" style="color:white;flex:1;">{{.Task}}</a></div>
+								<div style="flex:1;"><a href="/update-task?id={{$.Show}}/{{.Shot}}/{{.Task}}" style="color:white;flex:1;">{{.Task}}</a></div>
 								<div style="flex:1;">{{shortStringFromDate .DueDate}}</div>
 								<div style="flex:1;"><a href="/user/{{.Assignee}}" style="color:#AAAAAA;">{{.Assignee}}</a></div>
-								<div style="flex:1;">{{if .WorkingVersion}}<a href="/update-version?show={{.Show}}&shot={{.Shot}}&task={{.Task}}&version={{.WorkingVersion}}" style="color:#AAAAAA;">{{.WorkingVersion}} / {{.WorkingVersionStatus.UIString}}</a>{{end}}</div>
-								<div style="flex:1;">{{if .PublishVersion}}<a href="/update-version?show={{.Show}}&shot={{.Shot}}&task={{.Task}}&version={{.PublishVersion}}" style="color:#AAAAAA;">{{.PublishVersion}} / 퍼블리시</a>{{end}}</div>
+								<div style="flex:1;">{{if .WorkingVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.WorkingVersion}}" style="color:#AAAAAA;">{{.WorkingVersion}} / {{.WorkingVersionStatus.UIString}}</a>{{end}}</div>
+								<div style="flex:1;">{{if .PublishVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.PublishVersion}}" style="color:#AAAAAA;">{{.PublishVersion}} / 퍼블리시</a>{{end}}</div>
 							</div>
 						</td>
 					</tr>

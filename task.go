@@ -50,9 +50,14 @@ func (t *Task) ID() string {
 	return t.Show + "/" + t.Shot + "/" + t.Task
 }
 
-// splitTaskID는 받아들인 샷 아이디를 쇼, 샷, 태스크로 분리해서 반환한다.
+// ShotID는 부모 샷의 아이디를 반환한다.
+func (t *Task) ShotID() string {
+	return t.Show + "/" + t.Shot
+}
+
+// SplitTaskID는 받아들인 샷 아이디를 쇼, 샷, 태스크로 분리해서 반환한다.
 // 만일 샷 아이디가 유효하지 않다면 에러를 반환한다.
-func splitTaskID(id string) (string, string, string, error) {
+func SplitTaskID(id string) (string, string, string, error) {
 	ns := strings.Split(id, "/")
 	if len(ns) != 3 {
 		return "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
@@ -66,12 +71,18 @@ func splitTaskID(id string) (string, string, string, error) {
 	return show, shot, task, nil
 }
 
+// VerifyTaskID는 받아들인 태스크 아이디가 유효하지 않다면 에러를 반환한다.
+func VerifyTaskID(id string) error {
+	_, _, _, err := SplitTaskID(id)
+	return err
+}
+
 // AddTask는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddTask(db *sql.DB, t *Task) error {
 	if t == nil {
 		return BadRequest("nil task")
 	}
-	show, shot, _, err := splitTaskID(t.ID())
+	show, shot, _, err := SplitTaskID(t.ID())
 	if err != nil {
 		return err
 	}
@@ -105,7 +116,7 @@ type UpdateTaskParam struct {
 
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
 func UpdateTask(db *sql.DB, id string, upd UpdateTaskParam) error {
-	show, shot, task, err := splitTaskID(id)
+	show, shot, task, err := SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -131,7 +142,7 @@ func UpdateTask(db *sql.DB, id string, upd UpdateTaskParam) error {
 
 // UpdateTaskWorkingVersion는 db의 특정 태스크의 현재 작업중인 버전을 업데이트 한다.
 func UpdateTaskWorkingVersion(db *sql.DB, id, version string) error {
-	show, shot, task, err := splitTaskID(id)
+	show, shot, task, err := SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -148,7 +159,11 @@ func UpdateTaskWorkingVersion(db *sql.DB, id, version string) error {
 
 // UpdateTaskPublishVersion는 db의 특정 태스크의 현재 퍼블리시 버전을 업데이트 한다.
 func UpdateTaskPublishVersion(db *sql.DB, id, version string) error {
-	show, shot, task, err := splitTaskID(id)
+	show, shot, task, err := SplitTaskID(id)
+	if err != nil {
+		return err
+	}
+	t, err := GetTask(db, id)
 	if err != nil {
 		return err
 	}
@@ -159,13 +174,16 @@ func UpdateTaskPublishVersion(db *sql.DB, id, version string) error {
 	stmts := []dbStatement{
 		dbStmt("UPDATE tasks SET (publish_version) = ($1) WHERE show=$2 AND shot=$3 AND task=$4", version, show, shot, task),
 	}
+	if version == t.WorkingVersion {
+		stmts = append(stmts, dbStmt("UPDATE tasks SET (working_version) = ('') WHERE show=$1 AND shot=$2 AND task=$3", show, shot, task))
+	}
 	return dbExec(db, stmts)
 }
 
 // GetTask는 db에서 하나의 태스크를 찾는다.
 // 해당 태스크가 없다면 nil과 NotFound 에러를 반환한다.
 func GetTask(db *sql.DB, id string) (*Task, error) {
-	show, shot, task, err := splitTaskID(id)
+	show, shot, task, err := SplitTaskID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +213,7 @@ func GetTask(db *sql.DB, id string) (*Task, error) {
 
 // ShotTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
 func ShotTasks(db *sql.DB, id string) ([]*Task, error) {
-	show, shot, err := splitShotID(id)
+	show, shot, err := SplitShotID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -260,7 +278,7 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 // 해당 태스크가 없어도 에러를 내지 않기 때문에 검사를 원한다면 TaskExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
 func DeleteTask(db *sql.DB, id string) error {
-	show, shot, task, err := splitTaskID(id)
+	show, shot, task, err := SplitTaskID(id)
 	if err != nil {
 		return err
 	}

@@ -71,9 +71,9 @@ func (s *Shot) ID() string {
 	return s.Show + "/" + s.Shot
 }
 
-// splitShotID는 받아들인 샷 아이디를 쇼, 샷으로 분리해서 반환한다.
+// SplitShotID는 받아들인 샷 아이디를 쇼, 샷으로 분리해서 반환한다.
 // 만일 샷 아이디가 유효하지 않다면 에러를 반환한다.
-func splitShotID(id string) (string, string, error) {
+func SplitShotID(id string) (string, string, error) {
 	ns := strings.Split(id, "/")
 	if len(ns) != 2 {
 		return "", "", BadRequest(fmt.Sprintf("invalid shot id: %s", id))
@@ -84,6 +84,12 @@ func splitShotID(id string) (string, string, error) {
 		return "", "", BadRequest(fmt.Sprintf("invalid shot id: %s", id))
 	}
 	return show, shot, nil
+}
+
+// VerifyShotID는 받아들인 샷 아이디가 유효하지 않다면 에러를 반환한다.
+func VerifyShotID(id string) error {
+	_, _, err := SplitShotID(id)
+	return err
 }
 
 // 샷 이름은 일반적으로 (시퀀스를 나타내는) 접두어, 샷 번호, 접미어로 나뉜다.
@@ -161,7 +167,7 @@ func AddShot(db *sql.DB, s *Shot) error {
 // GetShot은 db에서 하나의 샷을 찾는다.
 // 해당 샷이 존재하지 않는다면 nil과 NotFound 에러를 반환한다.
 func GetShot(db *sql.DB, id string) (*Shot, error) {
-	show, shot, err := splitShotID(id)
+	show, shot, err := SplitShotID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +311,7 @@ type UpdateShotParam struct {
 
 // UpdateShot은 db에서 해당 샷을 수정한다.
 func UpdateShot(db *sql.DB, id string, upd UpdateShotParam) error {
-	show, shot, err := splitShotID(id)
+	show, shot, err := SplitShotID(id)
 	if err != nil {
 		return err
 	}
@@ -333,7 +339,7 @@ func UpdateShot(db *sql.DB, id string, upd UpdateShotParam) error {
 // 해당 샷이 없어도 에러를 내지 않기 때문에 검사를 원한다면 ShotExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
 func DeleteShot(db *sql.DB, id string) error {
-	show, shot, err := splitShotID(id)
+	show, shot, err := SplitShotID(id)
 	if err != nil {
 		return err
 	}
