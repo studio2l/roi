@@ -4,7 +4,7 @@
 <div style="padding:15px 10px 15px 10px;z-index:0;">
 <!--검색 결과-->
 {{range $s := .Shots}}
-<div class="ui inverted segment">
+<div id="{{$.Show}}/{{.Shot}}" class="ui inverted segment shot">
 	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;">
 		<div class="ui" style="width:288px;margin-right:22px;display:flex;align-items:end;">
 				<div style="display:flex;flex-direction:column;">
@@ -20,9 +20,9 @@
 	<div class="shot-main" style="display:flex;margin-bottom:6px;">
 		<div style="width:288px;margin-right:22px;">
 			{{if hasThumbnail $.Show .Shot}}
-			<img style="width:288px;height:162px;" src="/data/show/{{$.Show}}/{{.Shot}}/thumbnail.png" />
+			<img style="width:288px;height:162px;" src="{{if hasThumbnail $.Show .Shot}}/data/show/{{$.Show}}/{{.Shot}}/thumbnail.png{{end}}" onclick="selectShot(this)" />
 			{{else}}
-			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;">{{.Description}}</div>
+			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;"  onclick="selectShot(this)">{{.Description}}</div>
 			{{end}}
 			<div style="display:flex;justify-content:space-between;font-size:11px;color:gray;margin:0px;">
 				<div>{{.TimecodeIn}} - {{.TimecodeOut}}</div>
@@ -73,5 +73,23 @@ function showChanged() {
 	show = document.getElementById("show-select").value;
 	document.location.href = "?show=" + show;
 };
+
+let selectedShots = {}
+function selectShot(thumbEl) {
+	let shotEl = thumbEl.closest(".shot")
+	let shot = shotEl.id
+	if (selectedShots[shot]) {
+		delete selectedShots[shot]
+	} else {
+		selectedShots[shot] = true
+	}
+	for (let el of document.getElementsByClassName("shot")) {
+		el.classList.remove("selected-shot")
+	}
+	for (let shot in selectedShots) {
+		let el = document.getElementById(shot)
+		el.classList.add("selected-shot")
+	}
+}
 </script>
 {{template "footer.html"}}
