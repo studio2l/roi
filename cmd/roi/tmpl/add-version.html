@@ -7,14 +7,8 @@
 		버전 생성
 	</h2>
 	<form method="post" class="ui form" enctype="multipart/form-data">
-		<div class="field"><label>프로젝트</label>
-			<input readonly type="text" name="show" value="{{.Version.Show}}"/>
-		</div>
-		<div class="field"><label>샷</label>
-			<input readonly type="text" name="shot" value="{{.Version.Shot}}"/>
-		</div>
 		<div class="field"><label>태스크</label>
-			<input readonly type="text" name="task" value="{{.Version.Task}}"/>
+			<input readonly type="text" name="id" value="{{.Version.TaskID}}"/>
 		</div>
 		<div class="field"><label>버전</label>
 			<input type="text" name="version" value="{{.Version.Version}}" autofocus />

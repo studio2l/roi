@@ -18,12 +18,12 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if err != nil {
 		return err
 	}
-	show := r.FormValue("show")
-	if show == "" {
+	id := r.FormValue("id")
+	if id == "" {
 		// 요청이 프로젝트를 가리키지 않을 경우 사용자가
 		// 보고 있던 프로젝트를 선택한다.
-		show = cfg.CurrentShow
-		if show == "" {
+		id = cfg.CurrentShow
+		if id == "" {
 			// 사용자의 현재 프로젝트 정보가 없을때는
 			// 첫번째 프로젝트를 가리킨다.
 			shows, err := roi.AllShows(DB)
@@ -33,16 +33,16 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			if len(shows) == 0 {
 				return roi.BadRequest("no shows in roi")
 			}
-			show = shows[0].Show
+			id = shows[0].Show
 		}
-		http.Redirect(w, r, "/add-shot?show="+show, http.StatusSeeOther)
+		http.Redirect(w, r, "/add-shot?id="+id, http.StatusSeeOther)
 		return nil
 	}
-	sw, err := roi.GetShow(DB, show)
+	sw, err := roi.GetShow(DB, id)
 	if err != nil {
 		return err
 	}
-	cfg.CurrentShow = show
+	cfg.CurrentShow = id
 	err = roi.UpdateUserConfig(DB, env.SessionUser.ID, cfg)
 	if err != nil {
 		return err
@@ -59,36 +59,29 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 }
 
 func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	err := mustFields(r, "show", "shot")
+	err := mustFields(r, "id", "shot")
 	if err != nil {
 		return err
 	}
-	show := r.FormValue("show")
+	id := r.FormValue("id")
 	shot := r.FormValue("shot")
-	_, err = roi.GetShot(DB, show+"/"+shot)
-	if err == nil {
-		return roi.BadRequest(fmt.Sprintf("shot already exist: %s", shot))
-	} else if !errors.As(err, &roi.NotFoundError{}) {
-		return err
-	}
-	sh, err := roi.GetShow(DB, show)
+	sh, err := roi.GetShow(DB, id)
 	if err != nil {
 		return err
 	}
-	tasks := sh.DefaultTasks
 	s := &roi.Shot{
+		Show:         id,
 		Shot:         shot,
-		Show:         show,
 		Status:       roi.ShotWaiting,
-		WorkingTasks: tasks,
+		WorkingTasks: sh.DefaultTasks,
 	}
 	err = roi.AddShot(DB, s)
 	if err != nil {
 		return err
 	}
-	for _, task := range tasks {
+	for _, task := range sh.DefaultTasks {
 		t := &roi.Task{
-			Show:    show,
+			Show:    id,
 			Shot:    shot,
 			Task:    task,
 			Status:  roi.TaskInProgress,
@@ -107,21 +100,20 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
 		return updateShotPostHandler(w, r, env)
 	}
-	err := mustFields(r, "show", "shot")
+	err := mustFields(r, "id")
 	if err != nil {
 		return err
 	}
-	show := r.FormValue("show")
-	shot := r.FormValue("shot")
-	_, err = roi.GetShow(DB, show)
+	id := r.FormValue("id")
+	err = roi.VerifyShotID(id)
 	if err != nil {
 		return err
 	}
-	s, err := roi.GetShot(DB, show+"/"+shot)
+	s, err := roi.GetShot(DB, id)
 	if err != nil {
 		return err
 	}
-	ts, err := roi.ShotTasks(DB, show+"/"+shot)
+	ts, err := roi.ShotTasks(DB, id)
 	if err != nil {
 		return err
 	}
@@ -142,18 +134,21 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		AllShotStatus: roi.AllShotStatus,
 		Tasks:         tm,
 		AllTaskStatus: roi.AllTaskStatus,
-		Thumbnail:     "data/show/" + show + "/" + shot + "/thumbnail.png",
+		Thumbnail:     "data/show/" + id + "/thumbnail.png",
 	}
 	return executeTemplate(w, "update-shot.html", recipe)
 }
 
 func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	err := mustFields(r, "show", "shot")
+	err := mustFields(r, "id")
 	if err != nil {
 		return err
 	}
-	show := r.FormValue("show")
-	shot := r.FormValue("shot")
+	id := r.FormValue("id")
+	show, shot, err := roi.SplitShotID(id)
+	if err != nil {
+		return err
+	}
 	tasks := fieldSplit(r.FormValue("working_tasks"))
 	tforms, err := parseTimeForms(r.Form, "due_date")
 	if err != nil {
@@ -171,13 +166,13 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		WorkingTasks:  tasks,
 		DueDate:       tforms["due_date"],
 	}
-	err = roi.UpdateShot(DB, show+"/"+shot, upd)
+	err = roi.UpdateShot(DB, id, upd)
 	if err != nil {
 		return err
 	}
 	// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
 	for _, task := range tasks {
-		_, err := roi.GetTask(DB, show+"/"+shot+"/"+task)
+		_, err := roi.GetTask(DB, id+"/"+task)
 		if err != nil {
 			if !errors.As(err, &roi.NotFoundError{}) {
 				return err

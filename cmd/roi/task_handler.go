@@ -10,18 +10,20 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
 		return updateTaskPostHandler(w, r, env)
 	}
-	err := mustFields(r, "show", "shot", "task")
+	err := mustFields(r, "id")
 	if err != nil {
 		return err
 	}
-	show := r.FormValue("show")
-	shot := r.FormValue("shot")
-	task := r.FormValue("task")
-	t, err := roi.GetTask(DB, show+"/"+shot+"/"+task)
+	id := r.FormValue("id")
+	err = roi.VerifyTaskID(id)
 	if err != nil {
 		return err
 	}
-	vers, err := roi.TaskVersions(DB, show+"/"+shot+"/"+task)
+	t, err := roi.GetTask(DB, id)
+	if err != nil {
+		return err
+	}
+	vers, err := roi.TaskVersions(DB, id)
 	if err != nil {
 		return err
 	}
@@ -46,13 +48,15 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 }
 
 func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	err := mustFields(r, "show", "shot", "task")
+	err := mustFields(r, "id")
 	if err != nil {
 		return err
 	}
-	show := r.FormValue("show")
-	shot := r.FormValue("shot")
-	task := r.FormValue("task")
+	id := r.FormValue("id")
+	err = roi.VerifyTaskID(id)
+	if err != nil {
+		return err
+	}
 	tforms, err := parseTimeForms(r.Form, "due_date")
 	if err != nil {
 		return err
@@ -69,7 +73,7 @@ func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		Assignee: assignee,
 		DueDate:  tforms["due_date"],
 	}
-	err = roi.UpdateTask(DB, show+"/"+shot+"/"+task, upd)
+	err = roi.UpdateTask(DB, id, upd)
 	if err != nil {
 		return err
 	}
@@ -83,15 +87,17 @@ func updateTaskWorkingVersionHandler(w http.ResponseWriter, r *http.Request, env
 	if r.Method != "POST" {
 		return roi.BadRequest("only post method allowed")
 	}
-	err := mustFields(r, "show", "shot", "task", "version")
+	err := mustFields(r, "id", "version")
 	if err != nil {
 		return err
 	}
-	show := r.FormValue("show")
-	shot := r.FormValue("shot")
-	task := r.FormValue("task")
+	id := r.FormValue("id")
+	err = roi.VerifyTaskID(id)
+	if err != nil {
+		return err
+	}
 	version := r.FormValue("version")
-	err = roi.UpdateTaskWorkingVersion(DB, show+"/"+shot+"/"+task, version)
+	err = roi.UpdateTaskWorkingVersion(DB, id, version)
 	if err != nil {
 		return err
 	}
@@ -105,15 +111,17 @@ func updateTaskPublishVersionHandler(w http.ResponseWriter, r *http.Request, env
 	if r.Method != "POST" {
 		return roi.BadRequest("only post method allowed")
 	}
-	err := mustFields(r, "show", "shot", "task", "version")
+	err := mustFields(r, "id", "version")
 	if err != nil {
 		return err
 	}
-	show := r.FormValue("show")
-	shot := r.FormValue("shot")
-	task := r.FormValue("task")
+	id := r.FormValue("id")
+	err = roi.VerifyTaskID(id)
+	if err != nil {
+		return err
+	}
 	version := r.FormValue("version")
-	err = roi.UpdateTaskPublishVersion(DB, show+"/"+shot+"/"+task, version)
+	err = roi.UpdateTaskPublishVersion(DB, id, version)
 	if err != nil {
 		return err
 	}

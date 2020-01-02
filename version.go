@@ -49,9 +49,19 @@ func (v *Version) ID() string {
 	return v.Show + "/" + v.Shot + "/" + v.Task + "/" + v.Version
 }
 
-// splitVersionID는 받아들인 버전 아이디를 쇼, 샷, 태스크, 버전으로 분리해서 반환한다.
+// ShotID는 부모 샷의 아이디를 반환한다.
+func (v *Version) ShotID() string {
+	return v.Show + "/" + v.Shot
+}
+
+// TaskID는 부모 태스크의 아이디를 반환한다.
+func (v *Version) TaskID() string {
+	return v.Show + "/" + v.Shot + "/" + v.Task
+}
+
+// SplitVersionID는 받아들인 버전 아이디를 쇼, 샷, 태스크, 버전으로 분리해서 반환한다.
 // 만일 버전 아이디가 유효하지 않다면 에러를 반환한다.
-func splitVersionID(id string) (string, string, string, string, error) {
+func SplitVersionID(id string) (string, string, string, string, error) {
 	ns := strings.Split(id, "/")
 	if len(ns) != 4 {
 		return "", "", "", "", BadRequest(fmt.Sprintf("invalid version id: %s", id))
@@ -66,9 +76,15 @@ func splitVersionID(id string) (string, string, string, string, error) {
 	return show, shot, task, version, nil
 }
 
+// VerifyVersionID는 받아들인 버전 아이디가 유효하지 않다면 에러를 반환한다.
+func VerifyVersionID(id string) error {
+	_, _, _, _, err := SplitVersionID(id)
+	return err
+}
+
 // AddVersion은 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddVersion(db *sql.DB, v *Version) error {
-	show, shot, task, _, err := splitVersionID(v.ID())
+	show, shot, task, _, err := SplitVersionID(v.ID())
 	if err != nil {
 		return err
 	}
@@ -105,7 +121,7 @@ type UpdateVersionParam struct {
 
 // UpdateVersion은 db의 특정 태스크를 업데이트 한다.
 func UpdateVersion(db *sql.DB, id string, upd UpdateVersionParam) error {
-	show, shot, task, version, err := splitVersionID(id)
+	show, shot, task, version, err := SplitVersionID(id)
 	if err != nil {
 		return err
 	}
@@ -128,7 +144,7 @@ func UpdateVersion(db *sql.DB, id string, upd UpdateVersionParam) error {
 
 // UpdateVersionStatus은 db의 특정 태스크를 업데이트 한다.
 func UpdateVersionStatus(db *sql.DB, id string, status VersionStatus) error {
-	show, shot, task, version, err := splitVersionID(id)
+	show, shot, task, version, err := SplitVersionID(id)
 	if err != nil {
 		return err
 	}
@@ -157,7 +173,7 @@ func UpdateVersionStatus(db *sql.DB, id string, status VersionStatus) error {
 // GetVersion은 db에서 하나의 버전을 찾는다.
 // 해당 버전이 없다면 nil과 NotFound 에러를 반환한다.
 func GetVersion(db *sql.DB, id string) (*Version, error) {
-	show, shot, task, version, err := splitVersionID(id)
+	show, shot, task, version, err := SplitVersionID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +203,7 @@ func GetVersion(db *sql.DB, id string) (*Version, error) {
 
 // TaskVersions는 db에서 특정 태스크의 버전 전체를 검색해 반환한다.
 func TaskVersions(db *sql.DB, id string) ([]*Version, error) {
-	show, shot, task, err := splitTaskID(id)
+	show, shot, task, err := SplitTaskID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +238,7 @@ func TaskVersions(db *sql.DB, id string) ([]*Version, error) {
 
 // ShotVersions는 db에서 특정 샷의 버전 전체를 검색해 반환한다.
 func ShotVersions(db *sql.DB, id string) ([]*Version, error) {
-	show, shot, err := splitShotID(id)
+	show, shot, err := SplitShotID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +275,7 @@ func ShotVersions(db *sql.DB, id string) ([]*Version, error) {
 // 해당 버전이 없어도 에러를 내지 않기 때문에 검사를 원한다면 VersionExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
 func DeleteVersion(db *sql.DB, id string) error {
-	show, shot, task, version, err := splitVersionID(id)
+	show, shot, task, version, err := SplitVersionID(id)
 	if err != nil {
 		return err
 	}
