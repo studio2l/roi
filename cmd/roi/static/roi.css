@@ -98,3 +98,7 @@ input:read-only {
 input:-moz-read-only {
 	background-color: #BBBBBB !important;
 }
+
+.selected-shot {
+	box-shadow: 0 0 0 1px yellow !important;
+}
