@@ -67,6 +67,26 @@
 </div>
 {{end}}
 </div>
+<div id="bottom-bar" hidden style="position:fixed;bottom:0%;width:100%;border-top:solid 1px #111">
+	<div hidden id="review-bar" class="optional-bar" style="background-color:#555;padding:1rem;">
+		<form method="post" action="/review-multi-shots">
+			<div style="display:flex;">
+				<textarea name="review" style="flex:1"></textarea>
+				<button type="submit">리뷰추가</button>
+			</div>
+		</form>
+	</div>
+	<div id="bottom-bar-menu" style="background-color:#333;display:flex;height:3rem;">
+		<div id="review-bar-button" class="bottom-bar-button" onclick="showReviewBar()" style="border-left:0">리뷰</div>
+		<div id="shot-bar-button" class="bottom-bar-button" onclick="showShotBar()">샷</div>
+		<div id="task-bar-button" class="bottom-bar-button" onclick="showTaskBar()">태스크</div>
+		<div class="bottom-bar-button" style="flex:1;justify-content:end;">
+			<button onclick="selectAllShots()" style="height:2rem;margin-right:0.5rem">전체선택</button>
+			<button onclick="deselectAllShots()" style="height:2rem;margin-right:0.5rem">전체해제</button>
+		</div>
+	</div>
+	<div id="bottom-bar-notifier" style="color:white;background-color:#444;padding:0.5rem;border-top:solid 1px #222"></div>
+</div>
 <!--검색 결과 끝-->
 <script>
 function showChanged() {
@@ -75,20 +95,90 @@ function showChanged() {
 };
 
 let selectedShots = {}
+
 function selectShot(thumbEl) {
-	let shotEl = thumbEl.closest(".shot")
-	let shot = shotEl.id
+	let shot = thumbEl.closest(".shot").id
 	if (selectedShots[shot]) {
 		delete selectedShots[shot]
 	} else {
 		selectedShots[shot] = true
 	}
+	redrawBottomBar()
+}
+
+function selectAllShots() {
+	selectedShots = {}
+	for (let el of document.getElementsByClassName("shot")) {
+		selectedShots[el.id] = true
+	}
+	redrawBottomBar()
+}
+
+function deselectAllShots() {
+	selectedShots = {}
+	redrawBottomBar()
+}
+
+let bottomBarExplicitlyHidden = false // Esc로 켰다 끈다.
+
+function redrawBottomBar() {
 	for (let el of document.getElementsByClassName("shot")) {
 		el.classList.remove("selected-shot")
 	}
 	for (let shot in selectedShots) {
 		let el = document.getElementById(shot)
 		el.classList.add("selected-shot")
+	}
+	let bar = document.getElementById("bottom-bar")
+	if (Object.keys(selectedShots).length == 0 || bottomBarExplicitlyHidden) {
+		bar.hidden = true
+	} else {
+		bar.hidden = false
+	}
+	let notifier = document.getElementById("bottom-bar-notifier")
+	notifier.innerHTML = String(Object.keys(selectedShots).length) + "개의 샷이 선택되었습니다."
+}
+
+function showReviewBar() {
+	for (let el of document.getElementsByClassName("bottom-bar-button")) {
+		el.classList.remove("active")
+	}
+	document.getElementById("review-bar-button").classList.add("active")
+	for (let el of document.getElementsByClassName("optional-bar")) {
+		el.hidden = true
+	}
+	document.getElementById("review-bar").hidden = false
+}
+
+function showShotBar() {
+	for (let el of document.getElementsByClassName("bottom-bar-button")) {
+		el.classList.remove("active")
+	}
+	document.getElementById("shot-bar-button").classList.add("active")
+	for (let el of document.getElementsByClassName("optional-bar")) {
+		el.hidden = true
+	}
+	// TODO: 샷 속성을 수정하는 바 보이기
+}
+
+function showTaskBar() {
+	for (let el of document.getElementsByClassName("bottom-bar-button")) {
+		el.classList.remove("active")
+	}
+	document.getElementById("task-bar-button").classList.add("active")
+	for (let el of document.getElementsByClassName("optional-bar")) {
+		el.hidden = true
+	}
+	// TODO: 태스크 속성을 수정하는 바 보이기
+}
+
+showReviewBar()
+
+document.onkeydown = function(ev) {
+	if (ev.key == "Escape") {
+		ev.preventDefault()
+		bottomBarExplicitlyHidden = !bottomBarExplicitlyHidden
+		redrawBottomBar()
 	}
 }
 </script>

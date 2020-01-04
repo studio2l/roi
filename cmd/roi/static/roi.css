@@ -102,3 +102,20 @@ input:-moz-read-only {
 .selected-shot {
 	box-shadow: 0 0 0 1px yellow !important;
 }
+
+.bottom-bar-button {
+	cursor: pointer;
+	width: 5rem;
+	color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-top:solid 1px #303030;
+}
+
+.bottom-bar-button.active {
+	border-top:0;
+	background-color: #555;
+	border-left:solid 1px #303030;
+	border-right:solid 1px #303030;
+}
