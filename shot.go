@@ -335,6 +335,29 @@ func UpdateShot(db *sql.DB, id string, upd UpdateShotParam) error {
 	return nil
 }
 
+// UpdateShotAll은 Shot 전체를 업데이트 한다.
+func UpdateShotAll(db *sql.DB, s *Shot) error {
+	show, shot, err := SplitShotID(s.ID())
+	if err != nil {
+		return err
+	}
+	_, err = GetShot(db, s.ID())
+	if err != nil {
+		return err
+	}
+	ks, is, vs, err := dbKIVs(s)
+	if err != nil {
+		return err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(is, ", ")
+	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) where show='%s' AND SHOT= '%s'", keys, idxs, show, shot)
+	if _, err := db.Exec(stmt, vs...); err != nil {
+		return err
+	}
+	return nil
+}
+
 // DeleteShot은 해당 샷과 그 하위의 모든 데이터를 db에서 지운다.
 // 해당 샷이 없어도 에러를 내지 않기 때문에 검사를 원한다면 ShotExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
