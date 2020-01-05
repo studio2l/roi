@@ -67,19 +67,59 @@
 </div>
 {{end}}
 </div>
-<div id="bottom-bar" hidden style="position:fixed;bottom:0%;width:100%;border-top:solid 1px #111">
-	<div hidden id="review-bar" class="optional-bar" style="background-color:#555;padding:1rem;">
-		<form method="post" action="/review-multi-shots">
-			<div style="display:flex;">
-				<textarea name="review" style="flex:1"></textarea>
-				<button type="submit">리뷰추가</button>
-			</div>
-		</form>
-	</div>
+<div id="bottom-bar" hidden style="position:fixed;bottom:0;width:100%;border-top:solid 1px #333">
+	<form hidden id="shot-status-bar" class="optional-bar" onsubmit="return fillIDs(this)">
+		<select style="width:5rem">
+			{{range $s := .AllShotStatus}}
+			<option value="{{$s}}">{{$s.UIString}}</option>
+			{{end}}
+		</select>
+		<textarea style="flex:1"></textarea>
+		<button>변경</button>
+	</form>
+	<form hidden id="shot-duedate-bar" class="optional-bar" onsubmit="return fillIDs(this)">
+		<input hidden type="text" name="key" value="duedate"/>
+		<input type="date" name="val" style="flex:1"/>
+		<button>변경</button>
+	</form>
+	<form hidden method="post" action="/update-multi-shots" id="shot-tag-bar" class="optional-bar" onsubmit="return fillIDs(this)">
+		<input hidden class="ids-input" type="text" name="ids" value="" />
+		<input hidden type="text" name="key" value="tag"/>
+		<input type="text" name="val" style="flex:1"/>
+		<button name="typ" value="add">추가</button>
+		<button type="submit" name="typ" value="sub">삭제</button>
+	</form>
+	<form hidden id="shot-task-bar" class="optional-bar" onsubmit="return fillIDs(this)">
+		샷 태스크
+	</form>
+	<form hidden id="task-status-bar" class="optional-bar" onsubmit="return fillIDs(this)">
+		태스크 상태
+	</form>
+	<form hidden id="task-duedate-bar" class="optional-bar" onsubmit="return fillIDs(this)">
+		태스크 마감일
+	</form>
+	<form hidden id="task-assignee-bar" class="optional-bar" onsubmit="return fillIDs(this)">
+		태스크 담당
+	</form>
 	<div id="bottom-bar-menu" style="background-color:#333;display:flex;height:3rem;">
-		<div id="review-bar-button" class="bottom-bar-button" onclick="showReviewBar()" style="border-left:0">리뷰</div>
-		<div id="shot-bar-button" class="bottom-bar-button" onclick="showShotBar()">샷</div>
-		<div id="task-bar-button" class="bottom-bar-button" onclick="showTaskBar()">태스크</div>
+		<div class="bottom-bar-button" style="display:flex;justify-content:center;align-items:center;margin:0 0.5rem 0 0.5rem;width:8rem">
+			<select id="bottom-bar-select" style="flex:1;height:2rem;box-sizing:content-box;padding:0" onchange="showShotOrTaskBars()">
+				<option value="">샷</option>
+				{{range $t := .Site.Tasks}}
+				<option value="{{$t}}">{{$t}}</option>
+				{{end}}
+			</select>
+		</div>
+		<!-- 샷 -->
+		<div id="shot-status-bar-button" class="bottom-bar-button shot-bar" onclick="showShotBar('status')">상태</div>
+		<div id="shot-duedate-bar-button" class="bottom-bar-button shot-bar" onclick="showShotBar('duedate')">마감일</div>
+		<div id="shot-tag-bar-button" class="bottom-bar-button shot-bar" onclick="showShotBar('tag')">태그</div>
+		<div id="shot-task-bar-button" class="bottom-bar-button shot-bar" onclick="showShotBar('task')">태스크</div>
+		<!-- 태스크 -->
+		<div id="task-status-bar-button" class="bottom-bar-button task-bar" onclick="showTaskBar('status')">상태</div>
+		<div id="task-duedate-bar-button" class="bottom-bar-button task-bar" onclick="showTaskBar('duedate')">마감일</div>
+		<div id="task-assignee-bar-button" class="bottom-bar-button task-bar" onclick="showTaskBar('assignee')">담당</div>
+		<!-- -->
 		<div class="bottom-bar-button" style="flex:1;justify-content:end;">
 			<button onclick="selectAllShots()" style="height:2rem;margin-right:0.5rem">전체선택</button>
 			<button onclick="deselectAllShots()" style="height:2rem;margin-right:0.5rem">전체해제</button>
@@ -139,40 +179,52 @@ function redrawBottomBar() {
 	notifier.innerHTML = String(Object.keys(selectedShots).length) + "개의 샷이 선택되었습니다."
 }
 
-function showReviewBar() {
+function showShotOrTaskBars() {
+	let select = document.getElementById("bottom-bar-select")
+	let showShot = (select.value == "")
+	for (let el of document.getElementsByClassName("task-bar")) {
+		el.hidden = showShot
+	}
+	for (let el of document.getElementsByClassName("shot-bar")) {
+		el.hidden = !showShot
+	}
+	// 첫번째 바를 띄운다.
+	if (showShot) {
+		showShotBar("status")
+	} else {
+		showTaskBar("status")
+	}
+}
+
+showShotOrTaskBars()
+
+function showShotBar(name) {
 	for (let el of document.getElementsByClassName("bottom-bar-button")) {
 		el.classList.remove("active")
 	}
-	document.getElementById("review-bar-button").classList.add("active")
+	document.getElementById("shot-" + name + "-bar-button").classList.add("active")
 	for (let el of document.getElementsByClassName("optional-bar")) {
 		el.hidden = true
 	}
-	document.getElementById("review-bar").hidden = false
+	document.getElementById("shot-" + name + "-bar").hidden = false
 }
 
-function showShotBar() {
+function showTaskBar(name) {
 	for (let el of document.getElementsByClassName("bottom-bar-button")) {
 		el.classList.remove("active")
 	}
-	document.getElementById("shot-bar-button").classList.add("active")
+	document.getElementById("task-" + name + "-bar-button").classList.add("active")
 	for (let el of document.getElementsByClassName("optional-bar")) {
 		el.hidden = true
 	}
-	// TODO: 샷 속성을 수정하는 바 보이기
+	document.getElementById("task-" + name + "-bar").hidden = false
 }
 
-function showTaskBar() {
-	for (let el of document.getElementsByClassName("bottom-bar-button")) {
-		el.classList.remove("active")
-	}
-	document.getElementById("task-bar-button").classList.add("active")
-	for (let el of document.getElementsByClassName("optional-bar")) {
-		el.hidden = true
-	}
-	// TODO: 태스크 속성을 수정하는 바 보이기
+function fillIDs(form) {
+	let el = form.getElementsByClassName("ids-input")[0]
+	el.value = Object.keys(selectedShots).join()
+	return true
 }
-
-showReviewBar()
 
 document.onkeydown = function(ev) {
 	if (ev.key == "Escape") {

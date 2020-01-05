@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -75,8 +76,13 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		}
 		tasks[s.Shot] = tm
 	}
+	site, err := roi.GetSite(DB)
+	if err != nil {
+		return err
+	}
 	recipe := struct {
 		LoggedInUser  string
+		Site          *roi.Site
 		Shows         []*roi.Show
 		Show          string
 		Shots         []*roi.Shot
@@ -86,6 +92,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Query         string
 	}{
 		LoggedInUser:  env.SessionUser.ID,
+		Site:          site,
 		Shows:         shows,
 		Show:          show,
 		Shots:         shots,
@@ -95,4 +102,56 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Query:         query,
 	}
 	return executeTemplate(w, "shots.html", recipe)
+}
+
+func updateMultiShotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	if r.Method != "POST" {
+		return roi.BadRequest("only post method allowed")
+	}
+	err := mustFields(r, "ids", "key", "val")
+	if err != nil {
+		return err
+	}
+	ids := strings.FieldsFunc(r.FormValue("ids"), func(c rune) bool { return (c == ' ') || (c == ',') })
+	key := r.FormValue("key")
+	val := r.FormValue("val")
+	switch key {
+	case "tag":
+		for _, id := range ids {
+			s, err := roi.GetShot(DB, id)
+			if err != nil {
+				return err
+			}
+			typ := r.FormValue("typ")
+			if typ == "add" {
+				find := false
+				for _, t := range s.Tags {
+					if t == val {
+						find = true
+					}
+				}
+				if !find {
+					s.Tags = append(s.Tags, val)
+				}
+			} else if typ == "sub" {
+				tags := s.Tags
+				s.Tags = []string{}
+				for _, t := range tags {
+					if t != val {
+						s.Tags = append(s.Tags, t)
+					}
+				}
+			} else {
+				return roi.BadRequest(fmt.Sprintf("%s is not a valid typ", typ))
+			}
+			err = roi.UpdateShotAll(DB, s)
+			if err != nil {
+				return err
+			}
+		}
+	default:
+		return roi.BadRequest(fmt.Sprintf("%s is not a valid key", key))
+	}
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	return nil
 }

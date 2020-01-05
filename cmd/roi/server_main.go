@@ -137,6 +137,7 @@ ex) localhost
 	mux.HandleFunc("/add-show", handle(addShowHandler))
 	mux.HandleFunc("/update-show", handle(updateShowHandler))
 	mux.HandleFunc("/shots", handle(shotsHandler))
+	mux.HandleFunc("/update-multi-shots", handle(updateMultiShotsHandler))
 	mux.HandleFunc("/add-shot", handle(addShotHandler))
 	mux.HandleFunc("/update-shot", handle(updateShotHandler))
 	mux.HandleFunc("/update-task", handle(updateTaskHandler))

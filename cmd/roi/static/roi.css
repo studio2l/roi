@@ -23,6 +23,11 @@ a {
 	text-decoration: none;
 }
 
+select {
+    border:1px solid #ccc;
+    border-radius:3px;
+}
+
 hr {
 	border: 0;
 	height: 0;
@@ -118,4 +123,11 @@ input:-moz-read-only {
 	background-color: #555;
 	border-left:solid 1px #303030;
 	border-right:solid 1px #303030;
+}
+
+.optional-bar {
+	display:flex;
+	background-color: #555;
+	padding: 0.5rem;
+	min-height: 3.5rem;
 }
