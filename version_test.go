@@ -67,9 +67,9 @@ func TestVersion(t *testing.T) {
 	if len(taskVersions) != 1 {
 		t.Fatalf("task should have 1 version at this time.")
 	}
-	err = UpdateVersion(db, testVersionA.ID(), UpdateVersionParam{})
+	err = UpdateVersion(db, testVersionA.ID(), testVersionA)
 	if err != nil {
-		t.Fatalf("could not clear(update) version: %v", err)
+		t.Fatalf("could not update version: %v", err)
 	}
 	err = DeleteVersion(db, testVersionA.ID())
 	if err != nil {

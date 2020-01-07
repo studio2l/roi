@@ -106,28 +106,20 @@ func AddTask(db *sql.DB, t *Task) error {
 	return nil
 }
 
-// UpdateTaskParam은 Task에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
-// UpdateTask에서 사용한다.
-type UpdateTaskParam struct {
-	Status   TaskStatus `db:"status"`
-	Assignee string     `db:"assignee"`
-	DueDate  time.Time  `db:"due_date"`
-}
-
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
-func UpdateTask(db *sql.DB, id string, upd UpdateTaskParam) error {
+// 이 함수를 호출하기 전 해당 태스크가 존재하는지 사용자가 검사해야 한다.
+func UpdateTask(db *sql.DB, id string, t *Task) error {
+	if t == nil {
+		return fmt.Errorf("nil task")
+	}
 	show, shot, task, err := SplitTaskID(id)
 	if err != nil {
 		return err
 	}
-	if !isValidTaskStatus(upd.Status) {
-		return BadRequest(fmt.Sprintf("invalid task status: '%s'", upd.Status))
+	if !isValidTaskStatus(t.Status) {
+		return BadRequest(fmt.Sprintf("invalid task status: '%s'", t.Status))
 	}
-	_, err = GetTask(db, id)
-	if err != nil {
-		return err
-	}
-	ks, is, vs, err := dbKIVs(upd)
+	ks, is, vs, err := dbKIVs(t)
 	if err != nil {
 		return err
 	}

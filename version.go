@@ -108,28 +108,17 @@ func AddVersion(db *sql.DB, v *Version) error {
 	return dbExec(db, stmts)
 }
 
-// UpdateVersionParam은 Version에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
-// UpdateVersion에서 사용한다.
-type UpdateVersionParam struct {
-	OutputFiles []string  `db:"output_files"`
-	Images      []string  `db:"images"`
-	Mov         string    `db:"mov"`
-	WorkFile    string    `db:"work_file"`
-	StartDate   time.Time `db:"start_date"`
-	EndDate     time.Time `db:"end_date"`
-}
-
 // UpdateVersion은 db의 특정 태스크를 업데이트 한다.
-func UpdateVersion(db *sql.DB, id string, upd UpdateVersionParam) error {
+// 이 함수를 호출하기 전 해당 태스크가 존재하는지 사용자가 검사해야 한다.
+func UpdateVersion(db *sql.DB, id string, v *Version) error {
+	if v == nil {
+		return fmt.Errorf("nil version")
+	}
 	show, shot, task, version, err := SplitVersionID(id)
 	if err != nil {
 		return err
 	}
-	_, err = GetVersion(db, id)
-	if err != nil {
-		return err
-	}
-	ks, is, vs, err := dbKIVs(upd)
+	ks, is, vs, err := dbKIVs(v)
 	if err != nil {
 		return err
 	}

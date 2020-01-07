@@ -120,14 +120,17 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 	if err != nil {
 		return err
 	}
-	u := roi.UpdateVersionParam{
-		OutputFiles: fieldSplit(r.FormValue("output_files")),
-		Images:      fieldSplit(r.FormValue("images")),
-		WorkFile:    r.FormValue("work_file"),
-		StartDate:   timeForms["start_date"],
-		EndDate:     timeForms["end_date"],
+	v, err := roi.GetVersion(DB, id)
+	if err != nil {
+		return err
 	}
-	err = roi.UpdateVersion(DB, id, u)
+	v.OutputFiles = fieldSplit(r.FormValue("output_files"))
+	v.Images = fieldSplit(r.FormValue("images"))
+	v.WorkFile = r.FormValue("work_file")
+	v.StartDate = timeForms["start_date"]
+	v.EndDate = timeForms["end_date"]
+
+	err = roi.UpdateVersion(DB, id, v)
 	if err != nil {
 		return err
 	}

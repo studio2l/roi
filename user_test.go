@@ -26,16 +26,7 @@ func TestUser(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add user: %s", err)
 	}
-	upd := UpdateUserParam{
-		KorName:     "김용빈",
-		Name:        "kim yongbin",
-		Team:        "rnd",
-		Role:        "평민",
-		Email:       "kybinz@gmail.com",
-		PhoneNumber: "010-0000-0000",
-		EntryDate:   "2018-03-02",
-	}
-	err = UpdateUser(db, u.ID, upd) // 실제로 수정한 것은 없음
+	err = UpdateUser(db, u.ID, u)
 	if err != nil {
 		t.Fatalf("could not update user: %v", err)
 	}
