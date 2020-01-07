@@ -45,11 +45,12 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 
+	shots := make([]string, 0)
 	f := make(map[string]string)
 	for _, v := range strings.Fields(query) {
 		kv := strings.Split(v, ":")
 		if len(kv) == 1 {
-			f["shot"] = v
+			shots = append(shots, v)
 		} else {
 			f[kv[0]] = kv[1]
 		}
@@ -59,12 +60,12 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		t, _ := timeFromString(s)
 		return t
 	}
-	shots, err := roi.SearchShots(DB, show, f["shot"], f["tag"], f["status"], f["task"], f["assignee"], f["task-status"], toTime(f["task-due"]))
+	ss, err := roi.SearchShots(DB, show, shots, f["tag"], f["status"], f["task"], f["assignee"], f["task-status"], toTime(f["task-due"]))
 	if err != nil {
 		return err
 	}
 	tasks := make(map[string]map[string]*roi.Task)
-	for _, s := range shots {
+	for _, s := range ss {
 		ts, err := roi.ShotTasks(DB, s.ID())
 		if err != nil {
 			return err
@@ -75,8 +76,13 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		}
 		tasks[s.Shot] = tm
 	}
+	site, err := roi.GetSite(DB)
+	if err != nil {
+		return err
+	}
 	recipe := struct {
 		LoggedInUser  string
+		Site          *roi.Site
 		Shows         []*roi.Show
 		Show          string
 		Shots         []*roi.Shot
@@ -86,9 +92,10 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Query         string
 	}{
 		LoggedInUser:  env.SessionUser.ID,
+		Site:          site,
 		Shows:         shows,
 		Show:          show,
-		Shots:         shots,
+		Shots:         ss,
 		AllShotStatus: roi.AllShotStatus,
 		Tasks:         tasks,
 		AllTaskStatus: roi.AllTaskStatus,

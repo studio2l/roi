@@ -196,7 +196,7 @@ func GetShot(db *sql.DB, id string) (*Shot, error) {
 }
 
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
-func SearchShots(db *sql.DB, show, shot, tag, status, task, assignee, task_status string, task_due_date time.Time) ([]*Shot, error) {
+func SearchShots(db *sql.DB, show string, shots []string, tag, status, task, assignee, task_status string, task_due_date time.Time) ([]*Shot, error) {
 	ks, _, _, err := dbKIVs(&Shot{})
 	if err != nil {
 		return nil, err
@@ -217,16 +217,29 @@ func SearchShots(db *sql.DB, show, shot, tag, status, task, assignee, task_statu
 	where = append(where, fmt.Sprintf("shots.show=$%d", i))
 	vals = append(vals, show)
 	i++
-	if shot != "" {
-		if shot == ShotPrefix(shot) {
-			where = append(where, fmt.Sprintf("shots.prefix=$%d", i))
-		} else if shot == ShotBase(shot) {
-			where = append(where, fmt.Sprintf("shots.name=$%d", i))
-		} else {
-			where = append(where, fmt.Sprintf("shots.shot=$%d", i))
+	if len(shots) != 0 {
+		j := 0
+		whereShots := "("
+		for _, shot := range shots {
+			if shot == "" {
+				continue
+			}
+			if j != 0 {
+				whereShots += " OR "
+			}
+			if shot == ShotPrefix(shot) {
+				whereShots += fmt.Sprintf("shots.prefix=$%d", i)
+			} else if shot == ShotBase(shot) {
+				whereShots += fmt.Sprintf("shots.name=$%d", i)
+			} else {
+				whereShots += fmt.Sprintf("shots.shot=$%d", i)
+			}
+			vals = append(vals, shot)
+			i++
+			j++
 		}
-		vals = append(vals, shot)
-		i++
+		whereShots += ")"
+		where = append(where, whereShots)
 	}
 	if tag != "" {
 		where = append(where, fmt.Sprintf("$%d::string = ANY(shots.tags)", i))
@@ -274,7 +287,7 @@ func SearchShots(db *sql.DB, show, shot, tag, status, task, assignee, task_statu
 	// DISTINCT를 이용해 문제를 해결하려고 했으나 DB가 꺼진다.
 	// 우선은 여기서 걸러낸다.
 	hasShot := make(map[string]bool, 0)
-	shots := make([]*Shot, 0)
+	ss := make([]*Shot, 0)
 	for rows.Next() {
 		s := &Shot{}
 		err := scanFromRows(rows, s)
@@ -286,12 +299,12 @@ func SearchShots(db *sql.DB, show, shot, tag, status, task, assignee, task_statu
 			continue
 		}
 		hasShot[s.Shot] = true
-		shots = append(shots, s)
+		ss = append(ss, s)
 	}
-	sort.Slice(shots, func(i int, j int) bool {
-		return shots[i].Shot <= shots[j].Shot
+	sort.Slice(ss, func(i int, j int) bool {
+		return ss[i].Shot <= ss[j].Shot
 	})
-	return shots, nil
+	return ss, nil
 }
 
 // UpdateShotParam은 Shot에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
