@@ -80,7 +80,7 @@ func TestShot(t *testing.T) {
 		}
 	}
 
-	got, err := SearchShots(db, testShow.Show, "", "", "", "", "", "", time.Time{})
+	got, err := SearchShots(db, testShow.Show, []string{}, "", "", "", "", "", time.Time{})
 	if err != nil {
 		t.Fatalf("could not search shots from shots table: %s", err)
 	}
@@ -88,7 +88,7 @@ func TestShot(t *testing.T) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
 
-	got, err = SearchShots(db, testShow.Show, "CG_0010", "", "", "", "", "", time.Time{})
+	got, err = SearchShots(db, testShow.Show, []string{"CG_0010"}, "", "", "", "", "", time.Time{})
 	if err != nil {
 		t.Fatalf("could not search shots from shots table: %s", err)
 	}
@@ -96,7 +96,7 @@ func TestShot(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
-	got, err = SearchShots(db, testShow.Show, "", "로이", "", "", "", "", time.Time{})
+	got, err = SearchShots(db, testShow.Show, []string{}, "로이", "", "", "", "", time.Time{})
 	if err != nil {
 		t.Fatalf("could not search shots from shots table: %s", err)
 	}
