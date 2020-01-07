@@ -88,37 +88,16 @@ func AddShow(db *sql.DB, p *Show) error {
 	return nil
 }
 
-// UpdateShowParam은 Show에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
-// UpdateShow에서 사용한다.
-type UpdateShowParam struct {
-	Name          string    `db:"name"`
-	Status        string    `db:"status"`
-	Client        string    `db:"client"`
-	Director      string    `db:"director"`
-	Producer      string    `db:"producer"`
-	VFXSupervisor string    `db:"vfx_supervisor"`
-	VFXManager    string    `db:"vfx_manager"`
-	CGSupervisor  string    `db:"cg_supervisor"`
-	CrankIn       time.Time `db:"crank_in"`
-	CrankUp       time.Time `db:"crank_up"`
-	StartDate     time.Time `db:"start_date"`
-	ReleaseDate   time.Time `db:"release_date"`
-	VFXDueDate    time.Time `db:"vfx_due_date"`
-	OutputSize    string    `db:"output_size"`
-	ViewLUT       string    `db:"view_lut"`
-	DefaultTasks  []string  `db:"default_tasks"`
-}
-
 // UpdateShow는 db의 쇼 정보를 수정한다.
-func UpdateShow(db *sql.DB, show string, upd UpdateShowParam) error {
-	_, err := GetShow(db, show)
-	if err != nil {
-		return err
+// 이 함수를 호출하기 전 해당 쇼가 존재하는지 사용자가 검사해야 한다.
+func UpdateShow(db *sql.DB, show string, s *Show) error {
+	if s == nil {
+		return fmt.Errorf("nil show")
 	}
 	if !IsValidShow(show) {
 		return BadRequest(fmt.Sprintf("invalid show id: %s", show))
 	}
-	ks, is, vs, err := dbKIVs(upd)
+	ks, is, vs, err := dbKIVs(s)
 	if err != nil {
 		return err
 	}

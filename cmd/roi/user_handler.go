@@ -83,16 +83,19 @@ func signupHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 // profileHandler는 /profile 페이지로 사용자가 접속했을 때 사용자 프로필 페이지를 반환한다.
 func profileHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
-		upd := roi.UpdateUserParam{
-			KorName:     r.FormValue("kor_name"),
-			Name:        r.FormValue("name"),
-			Team:        r.FormValue("team"),
-			Role:        r.FormValue("position"),
-			Email:       r.FormValue("email"),
-			PhoneNumber: r.FormValue("phone_number"),
-			EntryDate:   r.FormValue("entry_date"),
+		u, err := roi.GetUser(DB, env.SessionUser.ID)
+		if err != nil {
+			return err
 		}
-		err := roi.UpdateUser(DB, env.SessionUser.ID, upd)
+		u.KorName = r.FormValue("kor_name")
+		u.Name = r.FormValue("name")
+		u.Team = r.FormValue("team")
+		u.Role = r.FormValue("position")
+		u.Email = r.FormValue("email")
+		u.PhoneNumber = r.FormValue("phone_number")
+		u.EntryDate = r.FormValue("entry_date")
+
+		err = roi.UpdateUser(DB, env.SessionUser.ID, u)
 		if err != nil {
 			return err
 		}

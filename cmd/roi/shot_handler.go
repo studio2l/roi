@@ -154,19 +154,22 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	if err != nil {
 		return err
 	}
-	upd := roi.UpdateShotParam{
-		Status:        roi.ShotStatus(r.FormValue("status")),
-		EditOrder:     atoi(r.FormValue("edit_order")),
-		Description:   r.FormValue("description"),
-		CGDescription: r.FormValue("cg_description"),
-		TimecodeIn:    r.FormValue("timecode_in"),
-		TimecodeOut:   r.FormValue("timecode_out"),
-		Duration:      atoi(r.FormValue("duration")),
-		Tags:          fieldSplit(r.FormValue("tags")),
-		WorkingTasks:  tasks,
-		DueDate:       tforms["due_date"],
+	s, err := roi.GetShot(DB, id)
+	if err != nil {
+		return err
 	}
-	err = roi.UpdateShot(DB, id, upd)
+	s.Status = roi.ShotStatus(r.FormValue("status"))
+	s.EditOrder = atoi(r.FormValue("edit_order"))
+	s.Description = r.FormValue("description")
+	s.CGDescription = r.FormValue("cg_description")
+	s.TimecodeIn = r.FormValue("timecode_in")
+	s.TimecodeOut = r.FormValue("timecode_out")
+	s.Duration = atoi(r.FormValue("duration"))
+	s.Tags = fieldSplit(r.FormValue("tags"))
+	s.WorkingTasks = tasks
+	s.DueDate = tforms["due_date"]
+
+	err = roi.UpdateShot(DB, id, s)
 	if err != nil {
 		return err
 	}

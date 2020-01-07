@@ -307,35 +307,20 @@ func SearchShots(db *sql.DB, show string, shots []string, tag, status, task, ass
 	return ss, nil
 }
 
-// UpdateShotParam은 Shot에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
-// UpdateShot에서 사용한다.
-type UpdateShotParam struct {
-	Status        ShotStatus `db:"status"`
-	EditOrder     int        `db:"edit_order"`
-	Description   string     `db:"description"`
-	CGDescription string     `db:"cg_description"`
-	TimecodeIn    string     `db:"timecode_in"`
-	TimecodeOut   string     `db:"timecode_out"`
-	Duration      int        `db:"duration"`
-	Tags          []string   `db:"tags"`
-	WorkingTasks  []string   `db:"working_tasks"`
-	DueDate       time.Time  `db:"due_date"`
-}
-
 // UpdateShot은 db에서 해당 샷을 수정한다.
-func UpdateShot(db *sql.DB, id string, upd UpdateShotParam) error {
+// 이 함수를 호출하기 전 해당 샷이 존재하는지 사용자가 검사해야 한다.
+func UpdateShot(db *sql.DB, id string, s *Shot) error {
+	if s == nil {
+		return fmt.Errorf("nil shot")
+	}
 	show, shot, err := SplitShotID(id)
 	if err != nil {
 		return err
 	}
-	if !isValidShotStatus(upd.Status) {
-		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", upd.Status))
+	if !isValidShotStatus(s.Status) {
+		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", s.Status))
 	}
-	_, err = GetShot(db, id)
-	if err != nil {
-		return err
-	}
-	ks, is, vs, err := dbKIVs(upd)
+	ks, is, vs, err := dbKIVs(s)
 	if err != nil {
 		return err
 	}

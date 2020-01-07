@@ -50,9 +50,9 @@ func TestShow(t *testing.T) {
 	if !reflect.DeepEqual(gotAll, wantAll) {
 		t.Fatalf("got: %v, want: %v", gotAll, wantAll)
 	}
-	err = UpdateShow(db, testShow.ID(), UpdateShowParam{})
+	err = UpdateShow(db, testShow.ID(), testShow)
 	if err != nil {
-		t.Fatalf("could not clear(update) project: %s", err)
+		t.Fatalf("could not update project: %s", err)
 	}
 	err = DeleteShow(db, testShow.ID())
 	if err != nil {

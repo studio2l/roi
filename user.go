@@ -153,20 +153,12 @@ func UserPasswordMatch(db *sql.DB, id, pw string) (bool, error) {
 	return true, nil
 }
 
-// UpdateUserParam은 User에서 일반적으로 업데이트 되어야 하는 멤버의 모음이다.
-// UpdateUser에서 사용한다.
-type UpdateUserParam struct {
-	KorName     string `db:"kor_name"`
-	Name        string `db:"name"`
-	Team        string `db:"team"`
-	Role        string `db:"role"`
-	Email       string `db:"email"`
-	PhoneNumber string `db:"phone_number"`
-	EntryDate   string `db:"entry_date"`
-}
-
-// UpdateUser는 db에 비밀번호를 제외한 사용자 필드를 업데이트 한다.
-func UpdateUser(db *sql.DB, id string, u UpdateUserParam) error {
+// UpdateUser는 db에 비밀번호를 제외한 유저 필드를 업데이트 한다.
+// 이 함수를 호출하기 전 해당 유저가 존재하는지를 사용자가 검사해야한다.
+func UpdateUser(db *sql.DB, id string, u *User) error {
+	if u == nil {
+		return fmt.Errorf("nil user")
+	}
 	if id == "" {
 		return errors.New("empty id")
 	}

@@ -115,25 +115,28 @@ func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	if err != nil {
 		return err
 	}
-	upd := roi.UpdateShowParam{
-		Name:          r.FormValue("name"),
-		Status:        r.FormValue("status"),
-		Client:        r.FormValue("client"),
-		Director:      r.FormValue("director"),
-		Producer:      r.FormValue("producer"),
-		VFXSupervisor: r.FormValue("vfx_supervisor"),
-		VFXManager:    r.FormValue("vfx_manager"),
-		CGSupervisor:  r.FormValue("cg_supervisor"),
-		StartDate:     timeForms["start_date"],
-		ReleaseDate:   timeForms["release_date"],
-		CrankIn:       timeForms["crank_in"],
-		CrankUp:       timeForms["crank_up"],
-		VFXDueDate:    timeForms["vfx_due_date"],
-		OutputSize:    r.FormValue("output_size"),
-		ViewLUT:       r.FormValue("view_lut"),
-		DefaultTasks:  fieldSplit(r.FormValue("default_tasks")),
+	s, err := roi.GetShow(DB, id)
+	if err != nil {
+		return err
 	}
-	err = roi.UpdateShow(DB, id, upd)
+	s.Name = r.FormValue("name")
+	s.Status = r.FormValue("status")
+	s.Client = r.FormValue("client")
+	s.Director = r.FormValue("director")
+	s.Producer = r.FormValue("producer")
+	s.VFXSupervisor = r.FormValue("vfx_supervisor")
+	s.VFXManager = r.FormValue("vfx_manager")
+	s.CGSupervisor = r.FormValue("cg_supervisor")
+	s.StartDate = timeForms["start_date"]
+	s.ReleaseDate = timeForms["release_date"]
+	s.CrankIn = timeForms["crank_in"]
+	s.CrankUp = timeForms["crank_up"]
+	s.VFXDueDate = timeForms["vfx_due_date"]
+	s.OutputSize = r.FormValue("output_size")
+	s.ViewLUT = r.FormValue("view_lut")
+	s.DefaultTasks = fieldSplit(r.FormValue("default_tasks"))
+
+	err = roi.UpdateShow(DB, id, s)
 	if err != nil {
 		return err
 	}
