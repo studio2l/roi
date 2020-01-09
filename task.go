@@ -2,6 +2,7 @@ package roi
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -188,18 +189,18 @@ func GetTask(db *sql.DB, id string) (*Task, error) {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2 AND task=$3 LIMIT 1", keys)
-	rows, err := db.Query(stmt, show, shot, task)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2 AND task=$3 LIMIT 1", keys), show, shot, task)
+	t := &Task{}
+	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+		return scan(row, t)
+	})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			id := show + "/" + shot + "/" + task
+			return nil, NotFound("task", id)
+		}
 		return nil, err
 	}
-	ok := rows.Next()
-	if !ok {
-		id := show + "/" + shot + "/" + task
-		return nil, NotFound("task", id)
-	}
-	t := &Task{}
-	err = scanFromRows(rows, t)
 	return t, err
 }
 
@@ -218,19 +219,19 @@ func ShotTasks(db *sql.DB, id string) ([]*Task, error) {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2", keys)
-	rows, err := db.Query(stmt, show, shot)
-	if err != nil {
-		return nil, err
-	}
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2", keys), show, shot)
 	tasks := make([]*Task, 0)
-	for rows.Next() {
+	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		t := &Task{}
-		err := scanFromRows(rows, t)
+		err := scan(rows, t)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		tasks = append(tasks, t)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 	return tasks, nil
 }
@@ -249,19 +250,19 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 		}
 		keys += "tasks." + ks[i]
 	}
-	stmt := fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.show = shots.show AND tasks.shot = shots.shot)  WHERE tasks.assignee='%s' AND tasks.task = ANY(shots.working_tasks)", keys, user)
-	rows, err := db.Query(stmt)
-	if err != nil {
-		return nil, err
-	}
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.show = shots.show AND tasks.shot = shots.shot)  WHERE tasks.assignee='%s' AND tasks.task = ANY(shots.working_tasks)", keys, user))
 	tasks := make([]*Task, 0)
-	for rows.Next() {
+	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		t := &Task{}
-		err := scanFromRows(rows, t)
+		err := scan(rows, t)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		tasks = append(tasks, t)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 	return tasks, nil
 }

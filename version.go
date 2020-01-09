@@ -2,6 +2,7 @@ package roi
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -175,18 +176,18 @@ func GetVersion(db *sql.DB, id string) (*Version, error) {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2 AND task=$3 AND version=$4 LIMIT 1", keys)
-	rows, err := db.Query(stmt, show, shot, task, version)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2 AND task=$3 AND version=$4 LIMIT 1", keys), show, shot, task, version)
+	v := &Version{}
+	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+		return scan(row, v)
+	})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			id := show + "/" + shot + "/" + task + "/" + version
+			return nil, NotFound("version", id)
+		}
 		return nil, err
 	}
-	ok := rows.Next()
-	if !ok {
-		id := show + "/" + shot + "/" + task + "/" + version
-		return nil, NotFound("version", id)
-	}
-	v := &Version{}
-	err = scanFromRows(rows, v)
 	return v, err
 }
 
@@ -205,19 +206,19 @@ func TaskVersions(db *sql.DB, id string) ([]*Version, error) {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2 AND task=$3", keys)
-	rows, err := db.Query(stmt, show, shot, task)
-	if err != nil {
-		return nil, err
-	}
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2 AND task=$3", keys), show, shot, task)
 	versions := make([]*Version, 0)
-	for rows.Next() {
+	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		v := &Version{}
-		err := scanFromRows(rows, v)
+		err := scan(rows, v)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		versions = append(versions, v)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 	sort.Slice(versions, func(i, j int) bool {
 		return strings.Compare(versions[i].Version, versions[j].Version) < 0
@@ -240,19 +241,19 @@ func ShotVersions(db *sql.DB, id string) ([]*Version, error) {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2", keys)
-	rows, err := db.Query(stmt, show, shot)
-	if err != nil {
-		return nil, err
-	}
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND shot=$2", keys), show, shot)
 	versions := make([]*Version, 0)
-	for rows.Next() {
+	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		v := &Version{}
-		err := scanFromRows(rows, v)
+		err := scan(rows, v)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		versions = append(versions, v)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 	sort.Slice(versions, func(i, j int) bool {
 		return strings.Compare(versions[i].Version, versions[j].Version) < 0

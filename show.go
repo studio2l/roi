@@ -2,6 +2,7 @@ package roi
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -121,17 +122,18 @@ func GetShow(db *sql.DB, show string) (*Show, error) {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM shows WHERE show=$1", keys)
-	rows, err := db.Query(stmt, show)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shows WHERE show=$1", keys), show)
+	s := &Show{}
+	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+		return scan(row, s)
+	})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, NotFound("show", show)
+		}
 		return nil, err
 	}
-	if !rows.Next() {
-		return nil, NotFound("show", show)
-	}
-	p := &Show{}
-	err = scanFromRows(rows, p)
-	return p, err
+	return s, nil
 }
 
 // AllShows는 db에서 모든 쇼 정보를 가져온다.
@@ -142,24 +144,21 @@ func AllShows(db *sql.DB) ([]*Show, error) {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM shows", keys)
-	rows, err := db.Query(stmt)
+	shows := make([]*Show, 0)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shows", keys))
+	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
+		s := &Show{}
+		err := scan(rows, s)
+		if err != nil {
+			return err
+		}
+		shows = append(shows, s)
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	prjs := make([]*Show, 0)
-	for rows.Next() {
-		p := &Show{}
-		err := scanFromRows(rows, p)
-		if err != nil {
-			return nil, err
-		}
-		prjs = append(prjs, p)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return prjs, nil
+	return shows, nil
 }
 
 // DeleteShow는 해당 쇼와 그 하위의 모든 데이터를 db에서 지운다.

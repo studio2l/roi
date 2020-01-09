@@ -90,22 +90,19 @@ func Users(db *sql.DB) ([]*User, error) {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM users", keys)
-	rows, err := db.Query(stmt)
-	if err != nil {
-		return nil, err
-	}
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM users", keys))
 	us := make([]*User, 0)
-	for rows.Next() {
+	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		u := &User{}
-		err := scanFromRows(rows, u)
+		err := scan(rows, u)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		us = append(us, u)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("could not scan user: %v", err)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 	return us, nil
 }
@@ -118,37 +115,37 @@ func GetUser(db *sql.DB, id string) (*User, error) {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", keys, id)
-	rows, err := db.Query(stmt)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", keys, id))
+	u := &User{}
+	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+		return scan(row, u)
+	})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, NotFound("user", id)
+		}
 		return nil, err
 	}
-	ok := rows.Next()
-	if !ok {
-		return nil, NotFound("user", id)
-	}
-	u := &User{}
-	err = scanFromRows(rows, u)
 	return u, err
 }
 
 // UserPasswordMatch는 db에 저장된 사용자의 비밀번호와 입력된 비밀번호가 같은지를 비교한다.
 // 해당 사용자가 없거나, 불러오는데 에러가 나면 false와 에러를 반환한다.
 func UserPasswordMatch(db *sql.DB, id, pw string) (bool, error) {
-	stmt := fmt.Sprintf("SELECT hashed_password FROM users WHERE id='%s'", id)
-	rows, err := db.Query(stmt)
+	stmt := dbStmt(fmt.Sprintf("SELECT hashed_password FROM users WHERE id='%s'", id))
+	var hashed_password string
+	err := dbQueryRow(db, stmt, func(row *sql.Row) error {
+		return row.Scan(&hashed_password)
+	})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, NotFound("user", id)
+		}
 		return false, err
 	}
-	ok := rows.Next()
-	if !ok {
-		return false, NotFound("user", id)
-	}
-	var hashed_password string
-	rows.Scan(&hashed_password)
 	err = bcrypt.CompareHashAndPassword([]byte(hashed_password), []byte(pw))
 	if err != nil {
-		return false, BadRequest("password not match")
+		return false, nil
 	}
 	return true, nil
 }
@@ -189,18 +186,15 @@ func GetUserConfig(db *sql.DB, id string) (*UserConfig, error) {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", keys, id)
-	rows, err := db.Query(stmt)
-	if err != nil {
-		return nil, err
-	}
-	ok := rows.Next()
-	if !ok {
-		return nil, NotFound("user", id)
-	}
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", keys, id))
 	u := &UserConfig{}
-	err = scanFromRows(rows, u)
+	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+		return scan(row, u)
+	})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, NotFound("user", id)
+		}
 		return nil, err
 	}
 	return u, nil

@@ -72,11 +72,13 @@ func DB() (*sql.DB, error) {
 	return db, nil
 }
 
+// dbStatement는 db 실행문과 그 안의 $n 인덱스를 대체할 값들이다.
 type dbStatement struct {
 	s  string
 	vs []interface{}
 }
 
+// dbStmt는 dbStatement를 생성한다.
 func dbStmt(s string, vs ...interface{}) dbStatement {
 	return dbStatement{
 		s:  s,
@@ -84,6 +86,30 @@ func dbStmt(s string, vs ...interface{}) dbStatement {
 	}
 }
 
+// dbQuery는 db에서 원하는 열을 검색한 후 각 열에 대해서 scanFn을 실행한다.
+func dbQuery(db *sql.DB, stmt dbStatement, scanFn func(*sql.Rows) error) error {
+	rows, err := db.Query(stmt.s, stmt.vs...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err := scanFn(rows)
+		if err != nil {
+			return err
+		}
+	}
+	return rows.Err()
+}
+
+// dbQuery는 db에 원하는 하나의 열을 검색하고 해당 열에 대해 scanFn을 실행한다.
+func dbQueryRow(db *sql.DB, stmt dbStatement, scanFn func(*sql.Row) error) error {
+	row := db.QueryRow(stmt.s, stmt.vs...)
+	return scanFn(row)
+}
+
+// dbExec는 여러 dbStatement를 한번의 트랜잭션으로 처리한다.
+// 모든 명령이 다 성공적으로 실행되었을때만 db에 그 결과가 저장된다.
 func dbExec(db *sql.DB, stmts []dbStatement) error {
 	tx, err := db.Begin()
 	if err != nil {
@@ -128,6 +154,9 @@ func dbKeys(v interface{}) (keys []string, err error) {
 		// 포인터에서 스트럭트로
 		rv = rv.Elem()
 	}
+	if rv.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("only accept struct")
+	}
 	typ = rv.Type()
 	n := typ.NumField()
 	keys = make([]string, n)
@@ -156,6 +185,9 @@ func dbValues(v interface{}) (vals []interface{}, err error) {
 	if rv.Kind() == reflect.Ptr {
 		// 포인터에서 스트럭트로
 		rv = rv.Elem()
+	}
+	if rv.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("only accept struct")
 	}
 	typ = rv.Type()
 	n := rv.NumField()
@@ -191,6 +223,9 @@ func dbAddrs(v interface{}) (addrs []interface{}, err error) {
 		// 포인터에서 스트럭트로
 		rv = rv.Elem()
 	}
+	if rv.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("only accept struct")
+	}
 	typ = rv.Type()
 	n := rv.NumField()
 	addrs = make([]interface{}, n)
@@ -219,11 +254,17 @@ func dbIndices(keys []string) []string {
 	return idxs
 }
 
-// scanFromRows는 sql.Rows에서 다음 열을 검색해 그 정보를 v에 넣어준다.
-func scanFromRows(rows *sql.Rows, v interface{}) error {
+// scanner는 sql.Row 또는 sql.Rows이다.
+type scanner interface {
+	Scan(dest ...interface{}) error
+}
+
+// scan은 scanner에서 다음 열을 검색해 그 정보를 스트럭트인 v의 각 필드에 넣어준다.
+// 만일 v가 스트럭트가 아니거나 스캔중 문제가 생겼다면 에러를 반환한다.
+func scan(s scanner, v interface{}) error {
 	addrs, err := dbAddrs(v)
 	if err != nil {
 		return err
 	}
-	return rows.Scan(addrs...)
+	return s.Scan(addrs...)
 }
