@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/studio2l/roi"
@@ -199,5 +200,144 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		return err
 	}
 	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	return nil
+}
+
+func updateMultiShotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	if r.FormValue("post") != "" {
+		// 많은 샷 선택시 URL이 너무 길어져 잘릴 염려 때문에 GET을 사용하지 않아,
+		// POST와 GET을 구분할 다른 방법이 필요했다. 더 나은 방법을 생각해 볼 것.
+		return updateMultiShotsPostHandler(w, r, env)
+	}
+	err := mustFields(r, "id")
+	if err != nil {
+		return err
+	}
+	ids := r.Form["id"]
+	for _, id := range ids {
+		err = roi.VerifyShotID(id)
+		if err != nil {
+			return err
+		}
+	}
+	id := ids[0]
+	show, _, err := roi.SplitShotID(id)
+	if err != nil {
+		return err
+	}
+	recipe := struct {
+		LoggedInUser  string
+		Show          string
+		IDs           []string
+		AllShotStatus []roi.ShotStatus
+	}{
+		LoggedInUser:  env.SessionUser.ID,
+		Show:          show,
+		IDs:           ids,
+		AllShotStatus: roi.AllShotStatus,
+	}
+	return executeTemplate(w, "update-multi-shots.html", recipe)
+
+}
+
+func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	err := mustFields(r, "id")
+	if err != nil {
+		return err
+	}
+	ids := r.Form["id"]
+	tforms, err := parseTimeForms(r.Form, "due_date")
+	if err != nil {
+		return err
+	}
+	dueDate := tforms["due_date"]
+	status := r.FormValue("status")
+	tags := make([]string, 0)
+	for _, tag := range strings.Split(r.FormValue("tags"), ",") {
+		tag = strings.TrimSpace(tag)
+		if tag == "" {
+			continue
+		}
+		if tag[0] != '+' && tag[0] != '-' {
+			roi.BadRequest(fmt.Sprintf("tag must be started with +/- got %s", tag))
+		}
+		tags = append(tags, tag)
+	}
+	workingTasks := make([]string, 0)
+	for _, task := range strings.Split(r.FormValue("working_tasks"), ",") {
+		task = strings.TrimSpace(task)
+		if task == "" {
+			continue
+		}
+		if task[0] != '+' && task[0] != '-' {
+			return roi.BadRequest(fmt.Sprintf("task must be started with +/- got %s", task))
+		}
+		workingTasks = append(workingTasks, task)
+	}
+	for _, id := range ids {
+		s, err := roi.GetShot(DB, id)
+		if err != nil {
+			return err
+		}
+		if !dueDate.IsZero() {
+			s.DueDate = dueDate
+		}
+		if status != "" {
+			s.Status = roi.ShotStatus(status)
+		}
+		for _, tag := range tags {
+			prefix := tag[0]
+			tag = tag[1:]
+			if prefix == '+' {
+				s.Tags = appendIfNotExist(s.Tags, tag)
+			} else if prefix == '-' {
+				s.Tags = removeIfExist(s.Tags, tag)
+			}
+		}
+		for _, task := range workingTasks {
+			prefix := task[0]
+			task = task[1:]
+			if prefix == '+' {
+				s.WorkingTasks = appendIfNotExist(s.WorkingTasks, task)
+			} else if prefix == '-' {
+				s.WorkingTasks = removeIfExist(s.WorkingTasks, task)
+			}
+		}
+		err = roi.UpdateShot(DB, id, s)
+		if err != nil {
+			return err
+		}
+		// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
+		for _, task := range s.WorkingTasks {
+			_, err := roi.GetTask(DB, id+"/"+task)
+			if err != nil {
+				if !errors.As(err, &roi.NotFoundError{}) {
+					return err
+				} else {
+					t := &roi.Task{
+						Show:    s.Show,
+						Shot:    s.Shot,
+						Task:    task,
+						Status:  roi.TaskInProgress,
+						DueDate: time.Time{},
+					}
+					err = roi.AddTask(DB, t)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+	q := ""
+	for i, id := range ids {
+		if i != 0 {
+			q += " "
+		}
+		shot := strings.Split(id, "/")[1]
+		q += shot
+	}
+	show := strings.Split(ids[0], "/")[0]
+	http.Redirect(w, r, fmt.Sprintf("/shots?show=%s&q=%s", show, q), http.StatusSeeOther)
 	return nil
 }

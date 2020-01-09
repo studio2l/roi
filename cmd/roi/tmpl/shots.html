@@ -67,22 +67,58 @@
 </div>
 {{end}}
 </div>
+<div id="bottom-bar" hidden style="position:fixed;bottom:0;width:100%;border-top:solid 1px #333;background-color:#444">
+	<div id="bottom-bar-menu" style="background-color:#333;display:flex;height:4.5rem;padding:1rem;">
+		<button style="margin-right:1rem;width:6rem;border-radius:2px" onclick="gotoUpdateMultiShotsPage()">샷 수정</button>
+		<button style="margin-right:1rem;width:8rem;border-radius:2px" onclick="gotoUpdateMultiTasksPage()">태스크 수정</button>
+		<div style="flex:1;justify-content:end;"></div>
+	</div>
+	<div style="display:flex;align-items:center;height:3.5rem;padding:0.5rem;border-top:solid 1px #222">
+		<div id="bottom-bar-notifier" style="color:white;margin-right:1rem"></div>
+		<a onclick="selectAllShots()" style="cursor:pointer;margin-right:1rem">전체선택</a>
+		<a onclick="deselectAllShots()" style="cursor:pointer">전체해제</a>
+	</div>
+</div>
 <!--검색 결과 끝-->
 <script>
+// showChanged는 다른 쇼 페이지로 이동한다.
 function showChanged() {
 	show = document.getElementById("show-select").value;
 	document.location.href = "?show=" + show;
 };
 
+// selectedshots에 선택된 샷이 담긴다.
 let selectedShots = {}
-function selectShot(thumbEl) {
-	let shotEl = thumbEl.closest(".shot")
-	let shot = shotEl.id
+
+// selectShot은 샷 이미지를 클릭했을때 해당 샷을 선택한다.
+function selectShot(img) {
+	let shot = img.closest(".shot").id
 	if (selectedShots[shot]) {
 		delete selectedShots[shot]
 	} else {
 		selectedShots[shot] = true
 	}
+	redrawBottomBar()
+}
+
+// selectAllShots는 모든 샷을 선택한다.
+function selectAllShots() {
+	selectedShots = {}
+	for (let el of document.getElementsByClassName("shot")) {
+		selectedShots[el.id] = true
+	}
+	redrawBottomBar()
+}
+
+// deselectAllShots는 모든 샷의 선택을 해제한다.
+function deselectAllShots() {
+	selectedShots = {}
+	redrawBottomBar()
+}
+
+// redrawBottomBar는 하나 이상의 샷이 선택되었을때 이를 알려주고
+// 한번에 수정할 수 있게 해주는 하단 바를 그린다.
+function redrawBottomBar() {
 	for (let el of document.getElementsByClassName("shot")) {
 		el.classList.remove("selected-shot")
 	}
@@ -90,6 +126,50 @@ function selectShot(thumbEl) {
 		let el = document.getElementById(shot)
 		el.classList.add("selected-shot")
 	}
+	let bar = document.getElementById("bottom-bar")
+	if (Object.keys(selectedShots).length == 0) {
+		bar.hidden = true
+	} else {
+		bar.hidden = false
+	}
+	let notifier = document.getElementById("bottom-bar-notifier")
+	notifier.innerHTML = String(Object.keys(selectedShots).length) + "개의 샷이 선택되었습니다."
+}
+
+// gotoUpdateMultiShotsPage는 선택된 샷들을 한번에 수정할 수 있도록 해주는 페이지로 이동한다.
+function gotoUpdateMultiShotsPage() {
+	let form = document.createElement("form")
+	// 주의: GET의 최대 데이터 전송 크기 제한때문에 현재 POST로 전송한다.
+	form.action = "/update-multi-shots"
+	form.method = "POST"
+	for (let s of Object.keys(selectedShots)) {
+		let input = document.createElement("input")
+		input.hidden = true
+		input.type = "text"
+		input.name = "id"
+		input.value = s
+		form.appendChild(input)
+	}
+	document.body.appendChild(form)
+	form.submit()
+}
+
+// gotoUpdateMultiTasksPage는 선택된 샷들의 태스크를 한번에 수정할 수 있도록 해주는 페이지로 이동한다.
+function gotoUpdateMultiTasksPage() {
+	let form = document.createElement("form")
+	// 주의: GET의 최대 데이터 전송 크기 제한때문에 현재 POST로 전송한다.
+	form.action = "/update-multi-tasks"
+	form.method = "POST"
+	for (let s of Object.keys(selectedShots)) {
+		let input = document.createElement("input")
+		input.hidden = true
+		input.type = "text"
+		input.name = "id"
+		input.value = s
+		form.appendChild(input)
+	}
+	document.body.appendChild(form)
+	form.submit()
 }
 </script>
 {{template "footer.html"}}

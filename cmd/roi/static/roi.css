@@ -23,6 +23,20 @@ a {
 	text-decoration: none;
 }
 
+select {
+    border:1px solid #ccc;
+    border-radius:3px;
+}
+
+button {
+	cursor: pointer;
+	border: 0;
+}
+
+button:hover {
+	background-color:#AAAAAA;
+}
+
 hr {
 	border: 0;
 	height: 0;
