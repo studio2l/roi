@@ -2,6 +2,7 @@ package roi
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -72,16 +73,16 @@ func GetSite(db *sql.DB) (*Site, error) {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM sites LIMIT 1", keys)
-	rows, err := db.Query(stmt)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM sites LIMIT 1", keys))
+	s := &Site{}
+	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+		return scan(row, s)
+	})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, NotFound("site", "(only one yet)")
+		}
 		return nil, err
 	}
-	ok := rows.Next()
-	if !ok {
-		return nil, NotFound("site", "(only one yet)")
-	}
-	s := &Site{}
-	err = scanFromRows(rows, s)
 	return s, err
 }

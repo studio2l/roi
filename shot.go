@@ -2,6 +2,7 @@ package roi
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"regexp"
 	"sort"
@@ -180,18 +181,18 @@ func GetShot(db *sql.DB, id string) (*Shot, error) {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND shot=$2 LIMIT 1", keys)
-	rows, err := db.Query(stmt, show, shot)
+	s := &Shot{}
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND shot=$2 LIMIT 1", keys), show, shot)
+	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+		return scan(row, s)
+	})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			id := show + "/" + shot
+			return nil, NotFound("shot", id)
+		}
 		return nil, err
 	}
-	ok := rows.Next()
-	if !ok {
-		id := show + "/" + shot
-		return nil, NotFound("shot", id)
-	}
-	s := &Shot{}
-	err = scanFromRows(rows, s)
 	return s, err
 }
 
@@ -278,28 +279,26 @@ func SearchShots(db *sql.DB, show string, shots []string, tag, status, task, ass
 	if wherestr != "" {
 		stmt += " WHERE " + wherestr
 	}
-	rows, err := db.Query(stmt, vals...)
+	st := dbStmt(stmt, vals...)
+	ss := make([]*Shot, 0)
+	hasShot := make(map[string]bool)
+	err = dbQuery(db, st, func(rows *sql.Rows) error {
+		// 태스크 검색을 해 JOIN이 되면 샷이 중복으로 추가될 수 있다.
+		// DISTINCT를 이용해 문제를 해결하려고 했으나 DB가 꺼진다.
+		// 우선은 여기서 걸러낸다.
+		s := &Shot{}
+		err := scan(rows, s)
+		if err != nil {
+			return err
+		}
+		if !hasShot[s.Shot] {
+			hasShot[s.Shot] = true
+			ss = append(ss, s)
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
-	}
-	defer rows.Close()
-	// 태스크 검색을 해 JOIN이 되면 샷이 중복으로 추가될 수 있다.
-	// DISTINCT를 이용해 문제를 해결하려고 했으나 DB가 꺼진다.
-	// 우선은 여기서 걸러낸다.
-	hasShot := make(map[string]bool, 0)
-	ss := make([]*Shot, 0)
-	for rows.Next() {
-		s := &Shot{}
-		err := scanFromRows(rows, s)
-		if err != nil {
-			return nil, err
-		}
-		ok := hasShot[s.Shot]
-		if ok {
-			continue
-		}
-		hasShot[s.Shot] = true
-		ss = append(ss, s)
 	}
 	sort.Slice(ss, func(i int, j int) bool {
 		return ss[i].Shot <= ss[j].Shot
