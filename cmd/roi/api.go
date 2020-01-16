@@ -92,10 +92,6 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("'shot' not specified"))
 		return
 	}
-	if !roi.IsValidShot(shot) {
-		apiBadRequest(w, fmt.Errorf("shot id '%s' is not valid", shot))
-		return
-	}
 	_, err = roi.GetShot(DB, show+"/"+shot)
 	if err == nil {
 		apiBadRequest(w, fmt.Errorf("shot already exist: %v", shot))

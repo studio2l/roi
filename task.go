@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -56,6 +57,19 @@ func (t *Task) ShotID() string {
 	return t.Show + "/" + t.Shot
 }
 
+// reTaskName은 가능한 태스크명을 정의하는 정규식이다.
+// 태스크명은 언더바를 이용해 서브 태스크를 나타낼 수 있다.
+var reTaskName = regexp.MustCompile(`^[a-zA-Z0-9]+(_[a-zA-Z0-9]+)?$`)
+
+// verifyTaskName은 해당 이름이 샷 이름으로 적절한지 검사하고 적절하지 않다면
+// 에러를 반환한다.
+func verifyTaskName(task string) error {
+	if !reTaskName.MatchString(task) {
+		return fmt.Errorf("invalid task name: %s", task)
+	}
+	return nil
+}
+
 // SplitTaskID는 받아들인 샷 아이디를 쇼, 샷, 태스크로 분리해서 반환한다.
 // 만일 샷 아이디가 유효하지 않다면 에러를 반환한다.
 func SplitTaskID(id string) (string, string, string, error) {
@@ -72,25 +86,51 @@ func SplitTaskID(id string) (string, string, string, error) {
 	return show, shot, task, nil
 }
 
-// VerifyTaskID는 받아들인 태스크 아이디가 유효하지 않다면 에러를 반환한다.
-func VerifyTaskID(id string) error {
-	_, _, _, err := SplitTaskID(id)
-	return err
+// verifyTaskID는 받아들인 태스크 아이디가 유효하지 않다면 에러를 반환한다.
+func verifyTaskID(id string) error {
+	show, shot, task, err := SplitTaskID(id)
+	if err != nil {
+		return err
+	}
+	err = verifyShowName(show)
+	if err != nil {
+		return err
+	}
+	err = verifyShotName(shot)
+	if err != nil {
+		return err
+	}
+	err = verifyTaskName(task)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// verifyTask는 받아들인 태스크가 유효하지 않다면 에러를 반환한다.
+func verifyTask(t *Task) error {
+	if t == nil {
+		return fmt.Errorf("nil task")
+	}
+	err := verifyTaskID(t.ID())
+	if err != nil {
+		return err
+	}
+	err = verifyTaskStatus(t.Status)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // AddTask는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddTask(db *sql.DB, t *Task) error {
-	if t == nil {
-		return BadRequest("nil task")
-	}
-	show, shot, _, err := SplitTaskID(t.ID())
+	err := verifyTask(t)
 	if err != nil {
 		return err
 	}
-	if !isValidTaskStatus(t.Status) {
-		return BadRequest(fmt.Sprintf("invalid task status: '%s'", t.Status))
-	}
-	_, err = GetShot(db, show+"/"+shot)
+	// 부모가 있는지 검사
+	_, err = GetShot(db, t.ShotID())
 	if err != nil {
 		return err
 	}
@@ -110,15 +150,9 @@ func AddTask(db *sql.DB, t *Task) error {
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
 // 이 함수를 호출하기 전 해당 태스크가 존재하는지 사용자가 검사해야 한다.
 func UpdateTask(db *sql.DB, id string, t *Task) error {
-	if t == nil {
-		return fmt.Errorf("nil task")
-	}
-	show, shot, task, err := SplitTaskID(id)
+	err := verifyTask(t)
 	if err != nil {
 		return err
-	}
-	if !isValidTaskStatus(t.Status) {
-		return BadRequest(fmt.Sprintf("invalid task status: '%s'", t.Status))
 	}
 	ks, is, vs, err := dbKIVs(t)
 	if err != nil {
@@ -126,7 +160,7 @@ func UpdateTask(db *sql.DB, id string, t *Task) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
-	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s'", keys, idxs, show, shot, task)
+	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s'", keys, idxs, t.Show, t.Shot, t.Task)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
 	}

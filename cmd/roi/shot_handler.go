@@ -106,10 +106,6 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	id := r.FormValue("id")
-	err = roi.VerifyShotID(id)
-	if err != nil {
-		return err
-	}
 	s, err := roi.GetShot(DB, id)
 	if err != nil {
 		return err
@@ -214,12 +210,6 @@ func updateMultiShotsHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		return err
 	}
 	ids := r.Form["id"]
-	for _, id := range ids {
-		err = roi.VerifyShotID(id)
-		if err != nil {
-			return err
-		}
-	}
 	id := ids[0]
 	show, _, err := roi.SplitShotID(id)
 	if err != nil {

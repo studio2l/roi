@@ -1,5 +1,7 @@
 package roi
 
+import "fmt"
+
 type VersionStatus string
 
 const (
@@ -18,14 +20,14 @@ var AllVersionStatus = []VersionStatus{
 	VersionApproved,
 }
 
-// isValidVersionStatus는 해당 태스크 상태가 유효한지를 반환한다.
-func isValidVersionStatus(ts VersionStatus) bool {
+// verifyVersionStatus는 받아들인 버전 상태가 유효하지 않다면 에러를 반환한다.
+func verifyVersionStatus(vs VersionStatus) error {
 	for _, s := range AllVersionStatus {
-		if ts == s {
-			return true
+		if vs == s {
+			return nil
 		}
 	}
-	return false
+	return BadRequest(fmt.Sprintf("invalid version status: %s", vs))
 }
 
 // UIString은 UI안에서 사용하는 현지화된 문자열이다.

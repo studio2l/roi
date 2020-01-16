@@ -62,21 +62,36 @@ func (s *Show) ID() string {
 	return s.Show
 }
 
+// reValidShow는 유효한 쇼 이름을 정의하는 정규식이다.
 var reValidShow = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 
-func IsValidShow(id string) bool {
-	return reValidShow.MatchString(id)
+// verifyShowName은 받아들인 쇼 이름이 유효하지 않다면 에러를 반환한다.
+func verifyShowName(name string) error {
+	if !reValidShow.MatchString(name) {
+		return BadRequest(fmt.Sprintf("invalid show name: %s", name))
+	}
+	return nil
+}
+
+// verifyShow는 받아들인 쇼가 유효하지 않다면 에러를 반환한다.
+func verifyShow(s *Show) error {
+	if s == nil {
+		return fmt.Errorf("nil show")
+	}
+	err := verifyShowName(s.Show)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // AddShow는 db에 쇼를 추가한다.
-func AddShow(db *sql.DB, p *Show) error {
-	if p == nil {
-		return BadRequest("nil show is invalid")
+func AddShow(db *sql.DB, s *Show) error {
+	err := verifyShow(s)
+	if err != nil {
+		return err
 	}
-	if !IsValidShow(p.Show) {
-		return BadRequest(fmt.Sprintf("invalid show id: %s", p.Show))
-	}
-	ks, is, vs, err := dbKIVs(p)
+	ks, is, vs, err := dbKIVs(s)
 	if err != nil {
 		return err
 	}
@@ -92,11 +107,9 @@ func AddShow(db *sql.DB, p *Show) error {
 // UpdateShow는 db의 쇼 정보를 수정한다.
 // 이 함수를 호출하기 전 해당 쇼가 존재하는지 사용자가 검사해야 한다.
 func UpdateShow(db *sql.DB, show string, s *Show) error {
-	if s == nil {
-		return fmt.Errorf("nil show")
-	}
-	if !IsValidShow(show) {
-		return BadRequest(fmt.Sprintf("invalid show id: %s", show))
+	err := verifyShow(s)
+	if err != nil {
+		return err
 	}
 	ks, is, vs, err := dbKIVs(s)
 	if err != nil {

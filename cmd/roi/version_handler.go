@@ -73,10 +73,6 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) erro
 		return err
 	}
 	id := r.FormValue("id")
-	err = roi.VerifyVersionID(id)
-	if err != nil {
-		return err
-	}
 	v, err := roi.GetVersion(DB, id)
 	if err != nil {
 		return err
@@ -107,10 +103,6 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 		return err
 	}
 	id := r.FormValue("id")
-	err = roi.VerifyVersionID(id)
-	if err != nil {
-		return err
-	}
 	timeForms, err := parseTimeForms(r.Form, "start_date", "end_date")
 	if err != nil {
 		return err
@@ -147,10 +139,6 @@ func updateVersionStatusHandler(w http.ResponseWriter, r *http.Request, env *Env
 		return err
 	}
 	id := r.FormValue("id")
-	err = roi.VerifyVersionID(id)
-	if err != nil {
-		return err
-	}
 	status := roi.VersionStatus(r.FormValue("update-status"))
 	err = roi.UpdateVersionStatus(DB, id, status)
 	if err != nil {

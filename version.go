@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -60,6 +61,18 @@ func (v *Version) TaskID() string {
 	return v.Show + "/" + v.Shot + "/" + v.Task
 }
 
+// reVersionName은 가능한 버전명을 정의하는 정규식이다.
+var reVersionName = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+
+// verifyVersionName은 해당 이름이 버전 이름으로 적절한지 검사하고 적절하지 않다면
+// 에러를 반환한다.
+func verifyVersionName(version string) error {
+	if !reVersionName.MatchString(version) {
+		return fmt.Errorf("invalid version name: %s", version)
+	}
+	return nil
+}
+
 // SplitVersionID는 받아들인 버전 아이디를 쇼, 샷, 태스크, 버전으로 분리해서 반환한다.
 // 만일 버전 아이디가 유효하지 않다면 에러를 반환한다.
 func SplitVersionID(id string) (string, string, string, string, error) {
@@ -77,22 +90,55 @@ func SplitVersionID(id string) (string, string, string, string, error) {
 	return show, shot, task, version, nil
 }
 
-// VerifyVersionID는 받아들인 버전 아이디가 유효하지 않다면 에러를 반환한다.
-func VerifyVersionID(id string) error {
-	_, _, _, _, err := SplitVersionID(id)
-	return err
+// verifyVersionID는 받아들인 버전 아이디가 유효하지 않다면 에러를 반환한다.
+func verifyVersionID(id string) error {
+	show, shot, task, version, err := SplitVersionID(id)
+	if err != nil {
+		return err
+	}
+	err = verifyShowName(show)
+	if err != nil {
+		return err
+	}
+	err = verifyShotName(shot)
+	if err != nil {
+		return err
+	}
+	err = verifyTaskName(task)
+	if err != nil {
+		return err
+	}
+	err = verifyVersionName(version)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// verifyVersion은 받아들인 버전이 유효하지 않다면 에러를 반환한다.
+func verifyVersion(v *Version) error {
+	if v == nil {
+		return fmt.Errorf("nil version")
+	}
+	err := verifyVersionID(v.ID())
+	if err != nil {
+		return err
+	}
+	err = verifyVersionStatus(v.Status)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // AddVersion은 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddVersion(db *sql.DB, v *Version) error {
-	show, shot, task, _, err := SplitVersionID(v.ID())
+	err := verifyVersion(v)
 	if err != nil {
 		return err
 	}
-	if v == nil {
-		return fmt.Errorf("nil version")
-	}
-	_, err = GetTask(db, show+"/"+shot+"/"+task)
+	// 부모가 있는지 검사
+	_, err = GetTask(db, v.TaskID())
 	if err != nil {
 		return err
 	}
@@ -104,7 +150,7 @@ func AddVersion(db *sql.DB, v *Version) error {
 	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
 		dbStmt(fmt.Sprintf("INSERT INTO versions (%s) VALUES (%s)", keys, idxs), vs...),
-		dbStmt("UPDATE tasks SET (working_version, working_version_status) = ($1, $2) WHERE show=$3 AND shot=$4 AND task=$5", v.Version, v.Status, show, shot, task),
+		dbStmt("UPDATE tasks SET (working_version, working_version_status) = ($1, $2) WHERE show=$3 AND shot=$4 AND task=$5", v.Version, v.Status, v.Show, v.Shot, v.Task),
 	}
 	return dbExec(db, stmts)
 }
@@ -112,10 +158,7 @@ func AddVersion(db *sql.DB, v *Version) error {
 // UpdateVersion은 db의 특정 태스크를 업데이트 한다.
 // 이 함수를 호출하기 전 해당 태스크가 존재하는지 사용자가 검사해야 한다.
 func UpdateVersion(db *sql.DB, id string, v *Version) error {
-	if v == nil {
-		return fmt.Errorf("nil version")
-	}
-	show, shot, task, version, err := SplitVersionID(id)
+	err := verifyVersion(v)
 	if err != nil {
 		return err
 	}
@@ -125,7 +168,7 @@ func UpdateVersion(db *sql.DB, id string, v *Version) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
-	stmt := fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s' AND version='%s'", keys, idxs, show, shot, task, version)
+	stmt := fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s' AND version='%s'", keys, idxs, v.Show, v.Shot, v.Task, v.Version)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
 	}
@@ -138,8 +181,9 @@ func UpdateVersionStatus(db *sql.DB, id string, status VersionStatus) error {
 	if err != nil {
 		return err
 	}
-	if !isValidVersionStatus(status) {
-		return BadRequest(fmt.Sprintf("invalid version status: %s", status))
+	err = verifyVersionStatus(status)
+	if err != nil {
+		return err
 	}
 	t, err := GetTask(db, show+"/"+shot+"/"+task)
 	if err != nil {
