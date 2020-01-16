@@ -64,8 +64,7 @@ func (v *Version) TaskID() string {
 // reVersionName은 가능한 버전명을 정의하는 정규식이다.
 var reVersionName = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 
-// verifyVersionName은 해당 이름이 버전 이름으로 적절한지 검사하고 적절하지 않다면
-// 에러를 반환한다.
+// verifyVersionName은 받아들인 버전 이름이 유효하지 않다면 에러를 반환한다.
 func verifyVersionName(version string) error {
 	if !reVersionName.MatchString(version) {
 		return fmt.Errorf("invalid version name: %s", version)

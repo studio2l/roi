@@ -62,12 +62,12 @@ func (s *Show) ID() string {
 	return s.Show
 }
 
-// reValidShow는 유효한 쇼 이름을 정의하는 정규식이다.
-var reValidShow = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+// reShowName는 유효한 쇼 이름을 정의하는 정규식이다.
+var reShowName = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 
 // verifyShowName은 받아들인 쇼 이름이 유효하지 않다면 에러를 반환한다.
 func verifyShowName(name string) error {
-	if !reValidShow.MatchString(name) {
+	if !reShowName.MatchString(name) {
 		return BadRequest(fmt.Sprintf("invalid show name: %s", name))
 	}
 	return nil

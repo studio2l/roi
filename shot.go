@@ -130,8 +130,7 @@ var (
 	reShotPrefix = regexp.MustCompile(`^[a-zA-Z]+`)
 )
 
-// verifyShotName은 해당 이름이 샷 이름으로 적절한지 검사하고 적절하지 않다면
-// 에러를 반환한다.
+// verifyShotName은 받아들인 샷 이름이 유효하지 않다면 에러를 반환한다.
 func verifyShotName(shot string) error {
 	if !reShotName.MatchString(shot) {
 		return fmt.Errorf("invalid shot name: %s", shot)

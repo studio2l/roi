@@ -61,8 +61,7 @@ func (t *Task) ShotID() string {
 // 태스크명은 언더바를 이용해 서브 태스크를 나타낼 수 있다.
 var reTaskName = regexp.MustCompile(`^[a-zA-Z0-9]+(_[a-zA-Z0-9]+)?$`)
 
-// verifyTaskName은 해당 이름이 샷 이름으로 적절한지 검사하고 적절하지 않다면
-// 에러를 반환한다.
+// verifyTaskName은 받아들인 샷 이름이 유효하지 않다면 에러를 반환한다.
 func verifyTaskName(task string) error {
 	if !reTaskName.MatchString(task) {
 		return fmt.Errorf("invalid task name: %s", task)
