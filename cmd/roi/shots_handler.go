@@ -17,7 +17,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if len(shows) == 0 {
 		return roi.BadRequest("no shows in roi")
 	}
-	cfg, err := roi.GetUserConfig(DB, env.SessionUser.ID)
+	cfg, err := roi.GetUserConfig(DB, env.User.ID)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	cfg.CurrentShow = show
-	err = roi.UpdateUserConfig(DB, env.SessionUser.ID, cfg)
+	err = roi.UpdateUserConfig(DB, env.User.ID, cfg)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		AllTaskStatus []roi.TaskStatus
 		Query         string
 	}{
-		LoggedInUser:  env.SessionUser.ID,
+		LoggedInUser:  env.User.ID,
 		Site:          site,
 		Shows:         shows,
 		Show:          show,

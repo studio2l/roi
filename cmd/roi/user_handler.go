@@ -84,7 +84,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 func profileHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
 		id := r.FormValue("id")
-		if env.SessionUser.ID != id {
+		if env.User.ID != id {
 			return roi.BadRequest("not allowed to change other's profile")
 		}
 		u, err := roi.GetUser(DB, id)
@@ -110,8 +110,8 @@ func profileHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser string
 		User         *roi.User
 	}{
-		LoggedInUser: env.SessionUser.ID,
-		User:         env.SessionUser,
+		LoggedInUser: env.User.ID,
+		User:         env.User,
 	}
 	return executeTemplate(w, "profile.html", recipe)
 }
@@ -133,14 +133,14 @@ func updatePasswordHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	if newpw != newpwc {
 		return roi.BadRequest("passwords are not matched")
 	}
-	match, err := roi.UserPasswordMatch(DB, env.SessionUser.ID, oldpw)
+	match, err := roi.UserPasswordMatch(DB, env.User.ID, oldpw)
 	if err != nil {
 		return err
 	}
 	if !match {
 		return roi.BadRequest("entered password is not correct")
 	}
-	err = roi.UpdateUserPassword(DB, env.SessionUser.ID, newpw)
+	err = roi.UpdateUserPassword(DB, env.User.ID, newpw)
 	if err != nil {
 		return err
 	}
@@ -206,7 +206,7 @@ func userHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		TasksOfDay    map[string][]string
 		AllTaskStatus []roi.TaskStatus
 	}{
-		LoggedInUser:  env.SessionUser.ID,
+		LoggedInUser:  env.User.ID,
 		User:          user,
 		Timeline:      timeline,
 		NumTasks:      numTasks,
@@ -226,7 +226,7 @@ func usersHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser string
 		Users        []*roi.User
 	}{
-		LoggedInUser: env.SessionUser.ID,
+		LoggedInUser: env.User.ID,
 		Users:        us,
 	}
 	return executeTemplate(w, "users.html", recipe)

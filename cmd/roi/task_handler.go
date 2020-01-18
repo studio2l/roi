@@ -36,7 +36,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Versions      []*roi.Version
 		Users         []*roi.User
 	}{
-		LoggedInUser:  env.SessionUser.ID,
+		LoggedInUser:  env.User.ID,
 		Task:          t,
 		AllTaskStatus: roi.AllTaskStatus,
 		Versions:      vers,
@@ -147,7 +147,7 @@ func updateMultiTasksHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		Tasks         []string
 		AllTaskStatus []roi.TaskStatus
 	}{
-		LoggedInUser:  env.SessionUser.ID,
+		LoggedInUser:  env.User.ID,
 		Show:          show,
 		IDs:           ids,
 		Tasks:         site.Tasks,

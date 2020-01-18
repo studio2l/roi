@@ -15,7 +15,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return addShotPostHandler(w, r, env)
 	}
 	w.Header().Set("Cache-control", "no-cache")
-	cfg, err := roi.GetUserConfig(DB, env.SessionUser.ID)
+	cfg, err := roi.GetUserConfig(DB, env.User.ID)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	cfg.CurrentShow = id
-	err = roi.UpdateUserConfig(DB, env.SessionUser.ID, cfg)
+	err = roi.UpdateUserConfig(DB, env.User.ID, cfg)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser string
 		Show         *roi.Show
 	}{
-		LoggedInUser: env.SessionUser.ID,
+		LoggedInUser: env.User.ID,
 		Show:         sw,
 	}
 	return executeTemplate(w, "add-shot.html", recipe)
@@ -126,7 +126,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		AllTaskStatus []roi.TaskStatus
 		Thumbnail     string
 	}{
-		LoggedInUser:  env.SessionUser.ID,
+		LoggedInUser:  env.User.ID,
 		Shot:          s,
 		AllShotStatus: roi.AllShotStatus,
 		Tasks:         tm,
@@ -221,7 +221,7 @@ func updateMultiShotsHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		IDs           []string
 		AllShotStatus []roi.ShotStatus
 	}{
-		LoggedInUser:  env.SessionUser.ID,
+		LoggedInUser:  env.User.ID,
 		Show:          show,
 		IDs:           ids,
 		AllShotStatus: roi.AllShotStatus,

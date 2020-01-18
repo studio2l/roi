@@ -16,7 +16,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		http.Error(w, "page not found", http.StatusNotFound)
 		return nil
 	}
-	tasks, err := roi.UserTasks(DB, env.SessionUser.ID)
+	tasks, err := roi.UserTasks(DB, env.User.ID)
 	if err != nil {
 		return err
 	}
@@ -67,8 +67,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		TasksOfDay    map[string][]string
 		AllTaskStatus []roi.TaskStatus
 	}{
-		LoggedInUser:  env.SessionUser.ID,
-		User:          env.SessionUser.ID,
+		LoggedInUser:  env.User.ID,
+		User:          env.User.ID,
 		Timeline:      timeline,
 		NumTasks:      numTasks,
 		TaskFromID:    taskFromID,
