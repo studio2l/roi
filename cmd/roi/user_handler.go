@@ -83,7 +83,11 @@ func signupHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 // profileHandler는 /profile 페이지로 사용자가 접속했을 때 사용자 프로필 페이지를 반환한다.
 func profileHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
-		u, err := roi.GetUser(DB, env.SessionUser.ID)
+		id := r.FormValue("id")
+		if env.SessionUser.ID != id {
+			return roi.BadRequest("not allowed to change other's profile")
+		}
+		u, err := roi.GetUser(DB, id)
 		if err != nil {
 			return err
 		}
@@ -95,7 +99,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		u.PhoneNumber = r.FormValue("phone_number")
 		u.EntryDate = r.FormValue("entry_date")
 
-		err = roi.UpdateUser(DB, env.SessionUser.ID, u)
+		err = roi.UpdateUser(DB, id, u)
 		if err != nil {
 			return err
 		}
