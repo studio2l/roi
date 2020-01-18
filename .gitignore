@@ -3,9 +3,7 @@ cmd/roi/roi.exe
 cmd/roishot/roishot
 cmd/roishot/roishot.exe
 data
-*.pem
-cookie.hash
-cookie.block
+cert
 cockroach-data
 .rgignore
 
