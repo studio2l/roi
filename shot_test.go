@@ -17,7 +17,7 @@ var testShotA = &Shot{
 	TimecodeOut:   "00:00:05:12",
 	Duration:      132,
 	Tags:          []string{"로이", "리무브"},
-	WorkingTasks:  []string{"fx_fire"}, // testTaskA 확인
+	Tasks:         []string{"fx_fire"}, // testTaskA 확인
 }
 
 var testShotB = &Shot{
@@ -31,7 +31,7 @@ var testShotB = &Shot{
 	TimecodeOut:   "00:00:06:03",
 	Duration:      15,
 	Tags:          []string{"로이", "창문"},
-	WorkingTasks:  []string{"lit"},
+	Tasks:         []string{"lit"},
 }
 var testShotC = &Shot{
 	Shot:          "CG_0030",
@@ -44,7 +44,7 @@ var testShotC = &Shot{
 	TimecodeOut:   "00:00:08:15",
 	Duration:      36,
 	Tags:          []string{"가로등", "창문"},
-	WorkingTasks:  []string{"mod"},
+	Tasks:         []string{"mod"},
 }
 
 var testShots = []*Shot{testShotA, testShotB, testShotC}

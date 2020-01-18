@@ -151,7 +151,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		TimecodeOut:   r.PostFormValue("timecode_out"),
 		Duration:      duration,
 		Tags:          fieldSplit(r.PostFormValue("tags")),
-		WorkingTasks:  tasks,
+		Tasks:         tasks,
 	}
 	err = roi.AddShot(DB, s)
 	if err != nil {

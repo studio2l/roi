@@ -71,10 +71,10 @@ func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 		return err
 	}
 	s := &roi.Shot{
-		Show:         id,
-		Shot:         shot,
-		Status:       roi.ShotWaiting,
-		WorkingTasks: sh.DefaultTasks,
+		Show:   id,
+		Shot:   shot,
+		Status: roi.ShotWaiting,
+		Tasks:  sh.DefaultTasks,
 	}
 	err = roi.AddShot(DB, s)
 	if err != nil {
@@ -163,7 +163,7 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	s.TimecodeOut = r.FormValue("timecode_out")
 	s.Duration = atoi(r.FormValue("duration"))
 	s.Tags = fieldSplit(r.FormValue("tags"))
-	s.WorkingTasks = tasks
+	s.Tasks = tasks
 	s.DueDate = tforms["due_date"]
 
 	err = roi.UpdateShot(DB, id, s)
@@ -288,9 +288,9 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 			prefix := task[0]
 			task = task[1:]
 			if prefix == '+' {
-				s.WorkingTasks = appendIfNotExist(s.WorkingTasks, task)
+				s.Tasks = appendIfNotExist(s.Tasks, task)
 			} else if prefix == '-' {
-				s.WorkingTasks = removeIfExist(s.WorkingTasks, task)
+				s.Tasks = removeIfExist(s.Tasks, task)
 			}
 		}
 		err = roi.UpdateShot(DB, id, s)
@@ -298,7 +298,7 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 			return err
 		}
 		// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
-		for _, task := range s.WorkingTasks {
+		for _, task := range s.Tasks {
 			_, err := roi.GetTask(DB, id+"/"+task)
 			if err != nil {
 				if !errors.As(err, &roi.NotFoundError{}) {
