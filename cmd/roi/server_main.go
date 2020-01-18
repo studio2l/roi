@@ -44,7 +44,8 @@ func serverMain(args []string) {
 		key      string
 	)
 	serverFlag := flag.NewFlagSet("server", flag.ExitOnError)
-	serverFlag.StringVar(&addr, "addr", "localhost:80:443", `binding address and it's http/https port.
+	addrDefault := "localhost:80:443"
+	addrHelp := `binding address and it's http/https port.
 
 when two ports are specified, first port is for http and second is for https.
 and automatically forward http access to https, if using default https protocol.
@@ -57,7 +58,15 @@ ex) localhost:80, localhost:443
 when no port is specified, it is same as :80:443.
 ex) localhost
 
-`)
+when ROI_ADDR environment variable is not empty, it will use the value as default.
+
+`
+	addrEnv := os.Getenv("ROI_ADDR")
+	if addrEnv != "" {
+		addrDefault = addrEnv
+		addrHelp += "currently the default value is comming from ROI_ADDR"
+	}
+	serverFlag.StringVar(&addr, "addr", addrDefault, addrHelp)
 	serverFlag.BoolVar(&insecure, "insecure", false, "use insecure http protocol instead of https.")
 	serverFlag.StringVar(&cert, "cert", "cert/cert.pem", "https cert file. need to use https protocol.")
 	serverFlag.StringVar(&key, "key", "cert/key.pem", "https key file. need to use https protocol.")
