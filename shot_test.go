@@ -70,10 +70,9 @@ func TestShot(t *testing.T) {
 		if err != nil {
 			t.Fatalf("could not get shot from shots table: %s", err)
 		}
-		if !IsValidShot(got.Shot) {
-			if err != nil {
-				t.Fatalf("find shot with invalid id from shots table: %s", err)
-			}
+		err = verifyShotName(got.Shot)
+		if err != nil {
+			t.Fatalf("find shot with invalid id from shots table: %s", err)
 		}
 		if !reflect.DeepEqual(got, s) {
 			t.Fatalf("got: %v, want: %v", got, s)

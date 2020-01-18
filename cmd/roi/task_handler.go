@@ -17,10 +17,6 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	id := r.FormValue("id")
-	err = roi.VerifyTaskID(id)
-	if err != nil {
-		return err
-	}
 	t, err := roi.GetTask(DB, id)
 	if err != nil {
 		return err
@@ -55,10 +51,6 @@ func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		return err
 	}
 	id := r.FormValue("id")
-	err = roi.VerifyTaskID(id)
-	if err != nil {
-		return err
-	}
 	tforms, err := parseTimeForms(r.Form, "due_date")
 	if err != nil {
 		return err
@@ -97,10 +89,6 @@ func updateTaskWorkingVersionHandler(w http.ResponseWriter, r *http.Request, env
 		return err
 	}
 	id := r.FormValue("id")
-	err = roi.VerifyTaskID(id)
-	if err != nil {
-		return err
-	}
 	version := r.FormValue("version")
 	err = roi.UpdateTaskWorkingVersion(DB, id, version)
 	if err != nil {
@@ -121,10 +109,6 @@ func updateTaskPublishVersionHandler(w http.ResponseWriter, r *http.Request, env
 		return err
 	}
 	id := r.FormValue("id")
-	err = roi.VerifyTaskID(id)
-	if err != nil {
-		return err
-	}
 	version := r.FormValue("version")
 	err = roi.UpdateTaskPublishVersion(DB, id, version)
 	if err != nil {
@@ -147,12 +131,6 @@ func updateMultiTasksHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		return err
 	}
 	ids := r.Form["id"]
-	for _, id := range ids {
-		err = roi.VerifyShotID(id)
-		if err != nil {
-			return err
-		}
-	}
 	id := ids[0]
 	show, _, err := roi.SplitShotID(id)
 	if err != nil {

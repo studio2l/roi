@@ -1,5 +1,7 @@
 package roi
 
+import "fmt"
+
 type TaskStatus string
 
 const (
@@ -14,14 +16,14 @@ var AllTaskStatus = []TaskStatus{
 	TaskDone,
 }
 
-// isValidTaskStatus는 해당 태스크 상태가 유효한지를 반환한다.
-func isValidTaskStatus(ts TaskStatus) bool {
+// verifyTaskStatus는 받아들인 태스크 상태가 유효하지 않다면 에러를 반환한다.
+func verifyTaskStatus(ts TaskStatus) error {
 	for _, s := range AllTaskStatus {
 		if ts == s {
-			return true
+			return nil
 		}
 	}
-	return false
+	return BadRequest(fmt.Sprintf("invalid task status: '%s'", ts))
 }
 
 // UIString은 UI안에서 사용하는 현지화된 문자열이다.

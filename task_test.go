@@ -29,7 +29,14 @@ func TestTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add task: %s", err)
 	}
-	tasks, err := UserTasks(db, "kybin")
+	tasks, err := ShotTasks(db, testShotA.ID())
+	if err != nil {
+		t.Fatalf("could not get shot tasks: %s", err)
+	}
+	if len(tasks) != 1 {
+		t.Fatalf("invalid number of shot tasks: want 1, got %d", len(tasks))
+	}
+	tasks, err = UserTasks(db, "kybin")
 	if err != nil {
 		t.Fatalf("could not get user tasks: %s", err)
 	}

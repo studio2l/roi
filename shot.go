@@ -87,9 +87,20 @@ func SplitShotID(id string) (string, string, error) {
 	return show, shot, nil
 }
 
-// VerifyShotID는 받아들인 샷 아이디가 유효하지 않다면 에러를 반환한다.
-func VerifyShotID(id string) error {
-	_, _, err := SplitShotID(id)
+// verifyShotID는 받아들인 샷 아이디가 유효하지 않다면 에러를 반환한다.
+func verifyShotID(id string) error {
+	show, shot, err := SplitShotID(id)
+	if err != nil {
+		return err
+	}
+	err = verifyShowName(show)
+	if err != nil {
+		return err
+	}
+	err = verifyShotName(shot)
+	if err != nil {
+		return err
+	}
 	return err
 }
 
@@ -111,7 +122,7 @@ func VerifyShotID(id string) error {
 // 마지막 샷 이름의 경우 기본 이름은 CG_0010, 접미어는 CG가 된다.
 
 var (
-	// reShotName은 샷 이름을 나타내는 정규식이다.
+	// reShotName은 유효한 샷 이름을 나타내는 정규식이다.
 	reShotName = regexp.MustCompile(`^[a-zA-Z]+[_]?[0-9]+[_]?[a-zA-Z]*$`)
 	// reShotBase는 샷 이름에서 접미어가 빠진 이름을 나타내는 정규식이다.
 	reShotBase = regexp.MustCompile(`^[a-zA-Z]+[_]?[0-9]+`)
@@ -119,9 +130,12 @@ var (
 	reShotPrefix = regexp.MustCompile(`^[a-zA-Z]+`)
 )
 
-// IsValidShot은 해당 이름이 샷 이름으로 적절한지 여부를 반환한다.
-func IsValidShot(shot string) bool {
-	return reShotName.MatchString(shot)
+// verifyShotName은 받아들인 샷 이름이 유효하지 않다면 에러를 반환한다.
+func verifyShotName(shot string) error {
+	if !reShotName.MatchString(shot) {
+		return fmt.Errorf("invalid shot name: %s", shot)
+	}
+	return nil
 }
 
 // ShotBase는 샷 이름에서 접미어를 제외한 기본 이름 정보를 반환한다.
@@ -135,20 +149,32 @@ func ShotPrefix(shot string) string {
 	return reShotPrefix.FindString(shot)
 }
 
+// verifyShot은 받아들인 샷이 유효하지 않다면 에러를 반환한다.
+func verifyShot(s *Shot) error {
+	if s == nil {
+		return fmt.Errorf("nil shot")
+	}
+	err := verifyShotID(s.ID())
+	if err != nil {
+		return err
+	}
+	err = verifyShotStatus(s.Status)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
 func AddShot(db *sql.DB, s *Shot) error {
-	if s == nil {
-		return BadRequest("nil shot is invalid")
-	}
-	if !IsValidShot(s.Shot) {
-		return BadRequest(fmt.Sprintf("invalid shot id: '%s'", s.Shot))
+	err := verifyShot(s)
+	if err != nil {
+		return err
 	}
 	s.Name = ShotBase(s.Shot)
 	s.Prefix = ShotPrefix(s.Shot)
-	if !isValidShotStatus(s.Status) {
-		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", s.Status))
-	}
-	_, err := GetShow(db, s.Show)
+	// 부모가 있는지 검사
+	_, err = GetShow(db, s.Show)
 	if err != nil {
 		return err
 	}
@@ -309,23 +335,23 @@ func SearchShots(db *sql.DB, show string, shots []string, tag, status, task, ass
 // UpdateShot은 db에서 해당 샷을 수정한다.
 // 이 함수를 호출하기 전 해당 샷이 존재하는지 사용자가 검사해야 한다.
 func UpdateShot(db *sql.DB, id string, s *Shot) error {
-	if s == nil {
-		return fmt.Errorf("nil shot")
-	}
-	show, shot, err := SplitShotID(id)
+	err := verifyShotID(id)
 	if err != nil {
 		return err
 	}
-	if !isValidShotStatus(s.Status) {
-		return BadRequest(fmt.Sprintf("invalid shot status: '%s'", s.Status))
+	err = verifyShot(s)
+	if err != nil {
+		return err
 	}
+	s.Name = ShotBase(s.Shot)
+	s.Prefix = ShotPrefix(s.Shot)
 	ks, is, vs, err := dbKIVs(s)
 	if err != nil {
 		return err
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
-	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", keys, idxs, show, shot)
+	stmt := fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", keys, idxs, s.Show, s.Shot)
 	if _, err := db.Exec(stmt, vs...); err != nil {
 		return err
 	}

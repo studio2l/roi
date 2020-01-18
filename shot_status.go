@@ -1,5 +1,7 @@
 package roi
 
+import "fmt"
+
 type ShotStatus string
 
 const (
@@ -18,14 +20,14 @@ var AllShotStatus = []ShotStatus{
 	ShotOmit,
 }
 
-// isValidShotStatus는 해당 샷 상태가 유효한지를 반환한다.
-func isValidShotStatus(ss ShotStatus) bool {
+// verifyShotStatus는 받아들인 샷의 상태가 유효하지 않다면 에러를 반환한다.
+func verifyShotStatus(ss ShotStatus) error {
 	for _, s := range AllShotStatus {
 		if ss == s {
-			return true
+			return nil
 		}
 	}
-	return false
+	return BadRequest(fmt.Sprintf("invalid shot status: '%s'", ss))
 }
 
 func (s ShotStatus) UIString() string {

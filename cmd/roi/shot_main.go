@@ -56,10 +56,6 @@ ex) localhost
 		fname := filepath.Base(f)
 		show = strings.TrimSuffix(fname, filepath.Ext(fname))
 	}
-	if !roi.IsValidShow(show) {
-		fmt.Fprintln(os.Stderr, show, "이 프로젝트 아이디로 적절치 않습니다.")
-		os.Exit(1)
-	}
 
 	xl, err := excelize.OpenFile(f)
 	if err != nil {

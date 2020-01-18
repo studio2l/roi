@@ -12,6 +12,7 @@ var testVersionA = &Version{
 	Task:    testTaskA.Task,
 	Version: "v001",
 
+	Status:      VersionInProgress,
 	Owner:       "admin",
 	OutputFiles: []string{"/project/test/FOO_0010/scene/test.v001.abc"},
 	Images: []string{
