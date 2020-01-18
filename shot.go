@@ -162,6 +162,12 @@ func verifyShot(s *Shot) error {
 	if err != nil {
 		return err
 	}
+	for _, task := range s.WorkingTasks {
+		err = verifyTaskName(task)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
