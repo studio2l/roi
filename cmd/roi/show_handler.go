@@ -18,7 +18,7 @@ func showsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser string
 		Shows        []*roi.Show
 	}{
-		LoggedInUser: env.SessionUser.ID,
+		LoggedInUser: env.User.ID,
 		Shows:        shows,
 	}
 	return executeTemplate(w, "shows.html", recipe)
@@ -33,7 +33,7 @@ func addShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	recipe := struct {
 		LoggedInUser string
 	}{
-		LoggedInUser: env.SessionUser.ID,
+		LoggedInUser: env.User.ID,
 	}
 	return executeTemplate(w, "add-show.html", recipe)
 }
@@ -62,12 +62,12 @@ func addShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	if err != nil {
 		return err
 	}
-	cfg, err := roi.GetUserConfig(DB, env.SessionUser.ID)
+	cfg, err := roi.GetUserConfig(DB, env.User.ID)
 	if err != nil {
 		return err
 	}
 	cfg.CurrentShow = show
-	roi.UpdateUserConfig(DB, env.SessionUser.ID, cfg)
+	roi.UpdateUserConfig(DB, env.User.ID, cfg)
 	http.Redirect(w, r, "/update-show?show="+show, http.StatusSeeOther)
 	return nil
 }
@@ -92,7 +92,7 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Show          *roi.Show
 		AllShowStatus []roi.ShowStatus
 	}{
-		LoggedInUser:  env.SessionUser.ID,
+		LoggedInUser:  env.User.ID,
 		Show:          p,
 		AllShowStatus: roi.AllShowStatus,
 	}

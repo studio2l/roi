@@ -23,7 +23,7 @@ func siteHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Site         *roi.Site
 		Users        []*roi.User
 	}{
-		LoggedInUser: env.SessionUser.ID,
+		LoggedInUser: env.User.ID,
 		Site:         s,
 		Users:        us,
 	}

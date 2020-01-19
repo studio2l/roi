@@ -26,7 +26,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser string
 		Version      *roi.Version
 	}{
-		LoggedInUser: env.SessionUser.ID,
+		LoggedInUser: env.User.ID,
 		Version: &roi.Version{
 			Show: show,
 			Shot: shot,
@@ -54,7 +54,7 @@ func addVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		Status:    roi.VersionInProgress,
 		Version:   version,
 		StartDate: time.Now(),
-		Owner:     env.SessionUser.ID,
+		Owner:     env.User.ID,
 	}
 	err = roi.AddVersion(DB, v)
 	if err != nil {
@@ -88,7 +88,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) erro
 		IsPublishVersion bool
 		AllVersionStatus []roi.VersionStatus
 	}{
-		LoggedInUser:     env.SessionUser.ID,
+		LoggedInUser:     env.User.ID,
 		Version:          v,
 		IsWorkingVersion: t.WorkingVersion == v.Version,
 		IsPublishVersion: t.PublishVersion == v.Version,

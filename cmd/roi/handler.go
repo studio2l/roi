@@ -15,7 +15,7 @@ import (
 )
 
 type Env struct {
-	SessionUser *roi.User
+	User *roi.User
 }
 
 // HandlerFunc는 이 패키지에서 사용하는 핸들 함수이다.
@@ -39,7 +39,7 @@ func handle(serve HandlerFunc) http.HandlerFunc {
 			}
 		}
 		env := &Env{
-			SessionUser: u,
+			User: u,
 		}
 		err := serve(w, r, env)
 		if err != nil {
