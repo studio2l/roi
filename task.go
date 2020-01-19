@@ -139,11 +139,10 @@ func AddTask(db *sql.DB, t *Task) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
-	stmt := fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", keys, idxs)
-	if _, err := db.Exec(stmt, vs...); err != nil {
-		return err
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", keys, idxs), vs...),
 	}
-	return nil
+	return dbExec(db, stmts)
 }
 
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
@@ -159,11 +158,10 @@ func UpdateTask(db *sql.DB, id string, t *Task) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
-	stmt := fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s'", keys, idxs, t.Show, t.Shot, t.Task)
-	if _, err := db.Exec(stmt, vs...); err != nil {
-		return err
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s'", keys, idxs, t.Show, t.Shot, t.Task), vs...),
 	}
-	return nil
+	return dbExec(db, stmts)
 }
 
 // UpdateTaskWorkingVersion는 db의 특정 태스크의 현재 작업중인 버전을 업데이트 한다.
@@ -312,20 +310,9 @@ func DeleteTask(db *sql.DB, id string) error {
 	if err != nil {
 		return err
 	}
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("could not begin a transaction: %v", err)
+	stmts := []dbStatement{
+		dbStmt("DELETE FROM tasks WHERE show=$1 AND shot=$2 AND task=$3", show, shot, task),
+		dbStmt("DELETE FROM versions WHERE show=$1 AND shot=$2 AND task=$3", show, shot, task),
 	}
-	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1 AND shot=$2 AND task=$3", show, shot, task); err != nil {
-		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
-	}
-	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1 AND shot=$2 AND task=$3", show, shot, task); err != nil {
-		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
-	}
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-	return nil
+	return dbExec(db, stmts)
 }

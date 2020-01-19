@@ -22,43 +22,21 @@ func initDB(addr string) (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not open database with root user: %w", err)
 	}
-	tx, err := db.Begin()
+	// 아래 구문들은 다 여러번 실행해도 안전한 구문들이다.
+	stmts := []dbStatement{
+		dbStmt("CREATE USER IF NOT EXISTS roiuser"),
+		dbStmt("CREATE DATABASE IF NOT EXISTS roi"),
+		dbStmt("GRANT ALL ON DATABASE roi TO roiuser"),
+		dbStmt(CreateTableIfNotExistsSitesStmt),
+		dbStmt(CreateTableIfNotExistsShowsStmt),
+		dbStmt(CreateTableIfNotExistsShotsStmt),
+		dbStmt(CreateTableIfNotExistsTasksStmt),
+		dbStmt(CreateTableIfNotExistsVersionsStmt),
+		dbStmt(CreateTableIfNotExistsUsersStmt),
+	}
+	err = dbExec(db, stmts)
 	if err != nil {
-		return nil, fmt.Errorf("could not begin a transaction: %w", err)
-	}
-	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-
-	// 밑의 구문들은 다 여러번 실행해도 안전한 구문들이다.
-	if _, err := tx.Exec("CREATE USER IF NOT EXISTS roiuser"); err != nil {
-		return nil, fmt.Errorf("could not create user 'roiuser': %w", err)
-	}
-	if _, err := tx.Exec("CREATE DATABASE IF NOT EXISTS roi"); err != nil {
-		return nil, fmt.Errorf("could not create db 'roi': %w", err)
-	}
-	if _, err := tx.Exec("GRANT ALL ON DATABASE roi TO roiuser"); err != nil {
-		return nil, fmt.Errorf("could not grant 'roi' to 'roiuser': %w", err)
-	}
-	if _, err := tx.Exec(CreateTableIfNotExistsSitesStmt); err != nil {
-		return nil, fmt.Errorf("could not create 'sites' table: %w", err)
-	}
-	if _, err := tx.Exec(CreateTableIfNotExistsShowsStmt); err != nil {
-		return nil, fmt.Errorf("could not create 'projects' table: %w", err)
-	}
-	if _, err := tx.Exec(CreateTableIfNotExistsShotsStmt); err != nil {
-		return nil, fmt.Errorf("could not create 'shots' table: %w", err)
-	}
-	if _, err := tx.Exec(CreateTableIfNotExistsTasksStmt); err != nil {
-		return nil, fmt.Errorf("could not create 'tasks' table: %w", err)
-	}
-	if _, err := tx.Exec(CreateTableIfNotExistsVersionsStmt); err != nil {
-		return nil, fmt.Errorf("could not create 'versions' table: %w", err)
-	}
-	if _, err := tx.Exec(CreateTableIfNotExistsUsersStmt); err != nil {
-		return nil, fmt.Errorf("could not create 'users' table: %w", err)
-	}
-	err = tx.Commit()
-	if err != nil {
-		return nil, fmt.Errorf("could not commit transaction: %w", err)
+		return nil, err
 	}
 	return db, nil
 }
@@ -119,7 +97,7 @@ func dbExec(db *sql.DB, stmts []dbStatement) error {
 	for _, stmt := range stmts {
 		_, err := tx.Exec(stmt.s, stmt.vs...)
 		if err != nil {
-			return err
+			return fmt.Errorf("%s: %w", stmt.s, err)
 		}
 	}
 	return tx.Commit()

@@ -97,11 +97,10 @@ func AddShow(db *sql.DB, s *Show) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
-	stmt := fmt.Sprintf("INSERT INTO shows (%s) VALUES (%s)", keys, idxs)
-	if _, err := db.Exec(stmt, vs...); err != nil {
-		return err
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("INSERT INTO shows (%s) VALUES (%s)", keys, idxs), vs...),
 	}
-	return nil
+	return dbExec(db, stmts)
 }
 
 // UpdateShow는 db의 쇼 정보를 수정한다.
@@ -181,22 +180,11 @@ func DeleteShow(db *sql.DB, show string) error {
 	if err != nil {
 		return err
 	}
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("could not begin a transaction: %v", err)
+	stmts := []dbStatement{
+		dbStmt("DELETE FROM shows WHERE show=$1", show),
+		dbStmt("DELETE FROM shots WHERE show=$1", show),
+		dbStmt("DELETE FROM tasks WHERE show=$1", show),
+		dbStmt("DELETE FROM versions WHERE show=$1", show),
 	}
-	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	if _, err := tx.Exec("DELETE FROM shows WHERE show=$1", show); err != nil {
-		return fmt.Errorf("could not delete data from 'shows' table: %v", err)
-	}
-	if _, err := tx.Exec("DELETE FROM shots WHERE show=$1", show); err != nil {
-		return fmt.Errorf("could not delete data from 'shots' table: %v", err)
-	}
-	if _, err := tx.Exec("DELETE FROM tasks WHERE show=$1", show); err != nil {
-		return fmt.Errorf("could not delete data from 'tasks' table: %v", err)
-	}
-	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1", show); err != nil {
-		return fmt.Errorf("could not delete data from 'versions' table: %v", err)
-	}
-	return tx.Commit()
+	return dbExec(db, stmts)
 }

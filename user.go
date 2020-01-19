@@ -77,11 +77,10 @@ func AddUser(db *sql.DB, id, pw string) error {
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
 	// 사용자 생성
-	stmt := fmt.Sprintf("INSERT INTO users (%s) VALUES (%s)", keys, idxs)
-	if _, err := db.Exec(stmt, vs...); err != nil {
-		return err
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("INSERT INTO users (%s) VALUES (%s)", keys, idxs), vs...),
 	}
-	return nil
+	return dbExec(db, stmts)
 }
 
 func Users(db *sql.DB) ([]*User, error) {
@@ -165,11 +164,10 @@ func UpdateUser(db *sql.DB, id string, u *User) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
-	stmt := fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keys, idxs, id)
-	if _, err := db.Exec(stmt, vs...); err != nil {
-		return err
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keys, idxs, id), vs...),
 	}
-	return nil
+	return dbExec(db, stmts)
 }
 
 type UserConfig struct {
@@ -214,11 +212,10 @@ func UpdateUserConfig(db *sql.DB, id string, u *UserConfig) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
-	stmt := fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keys, idxs, id)
-	if _, err := db.Exec(stmt, vs...); err != nil {
-		return err
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keys, idxs, id), vs...),
 	}
-	return nil
+	return dbExec(db, stmts)
 }
 
 // UpdateUserPassword는 db에 저장된 사용자 패스워드를 수정한다.
@@ -228,11 +225,10 @@ func UpdateUserPassword(db *sql.DB, id, pw string) error {
 		return fmt.Errorf("could not generate hash from password: %v", err)
 	}
 	hashed_password := string(hashed)
-	stmt := fmt.Sprintf("UPDATE users SET hashed_password=$1 WHERE id='%s'", id)
-	if _, err := db.Exec(stmt, hashed_password); err != nil {
-		return err
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("UPDATE users SET hashed_password=$1 WHERE id='%s'", id), hashed_password),
 	}
-	return nil
+	return dbExec(db, stmts)
 }
 
 // DeleteUser는 해당 id의 사용자를 지운다.
@@ -242,9 +238,8 @@ func DeleteUser(db *sql.DB, id string) error {
 	if err != nil {
 		return err
 	}
-	stmt := fmt.Sprintf("DELETE FROM users WHERE id='%s'", id)
-	if _, err := db.Exec(stmt); err != nil {
-		return err
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("DELETE FROM users WHERE id='%s'", id)),
 	}
-	return nil
+	return dbExec(db, stmts)
 }
