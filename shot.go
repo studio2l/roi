@@ -53,14 +53,14 @@ type Shot struct {
 	Duration      int        `db:"duration"`
 	Tags          []string   `db:"tags"`
 
-	// WorkingTasks는 샷에 작업중인 어떤 태스크가 있는지를 나타낸다.
+	// Tasks는 샷에 작업중인 어떤 태스크가 있는지를 나타낸다.
 	// 웹 페이지에는 여기에 포함된 태스크만 이 순서대로 보여져야 한다.
 	//
 	// 참고: 여기에 포함되어 있다면 db내에 해당 태스크가 존재해야 한다.
 	// 반대로 여기에 포함되어 있지 않지만 db내에는 존재하는 태스크가 있을 수 있다.
 	// 그 태스크는 (예를 들어 태스크가 Omit 되는 등의 이유로) 숨겨진 태스크이며,
 	// 직접 지우지 않는 한 db에 보관된다.
-	WorkingTasks []string `db:"working_tasks"`
+	Tasks []string `db:"working_tasks"`
 
 	StartDate time.Time `db:"start_date"`
 	EndDate   time.Time `db:"end_date"`
@@ -162,7 +162,7 @@ func verifyShot(s *Shot) error {
 	if err != nil {
 		return err
 	}
-	for _, task := range s.WorkingTasks {
+	for _, task := range s.Tasks {
 		err = verifyTaskName(task)
 		if err != nil {
 			return err
