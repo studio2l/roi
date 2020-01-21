@@ -42,11 +42,10 @@ func AddSite(db *sql.DB) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
-	stmt := fmt.Sprintf("INSERT INTO sites (%s) VALUES (%s)", keys, idxs)
-	if _, err := db.Exec(stmt, vs...); err != nil {
-		return err
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("INSERT INTO sites (%s) VALUES (%s)", keys, idxs), vs...),
 	}
-	return nil
+	return dbExec(db, stmts)
 }
 
 // UpdateSite는 DB의 사이트 정보를 업데이트한다.
@@ -58,11 +57,10 @@ func UpdateSite(db *sql.DB, s *Site) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
-	stmt := fmt.Sprintf("UPDATE sites SET (%s) = (%s) WHERE site='only'", keys, idxs)
-	if _, err := db.Exec(stmt, vs...); err != nil {
-		return err
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("UPDATE sites SET (%s) = (%s) WHERE site='only'", keys, idxs), vs...),
 	}
-	return nil
+	return dbExec(db, stmts)
 }
 
 // GetSite는 db에서 사이트 정보를 가지고 온다.

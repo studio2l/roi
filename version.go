@@ -167,11 +167,10 @@ func UpdateVersion(db *sql.DB, id string, v *Version) error {
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
-	stmt := fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s' AND version='%s'", keys, idxs, v.Show, v.Shot, v.Task, v.Version)
-	if _, err := db.Exec(stmt, vs...); err != nil {
-		return err
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s' AND version='%s'", keys, idxs, v.Show, v.Shot, v.Task, v.Version), vs...),
 	}
-	return nil
+	return dbExec(db, stmts)
 }
 
 // UpdateVersionStatus은 db의 특정 태스크를 업데이트 한다.
@@ -316,17 +315,8 @@ func DeleteVersion(db *sql.DB, id string) error {
 	if err != nil {
 		return err
 	}
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("could not begin a transaction: %w", err)
+	stmts := []dbStatement{
+		dbStmt("DELETE FROM versions WHERE show=$1 AND shot=$2 AND task=$3 AND version=$4", show, shot, task, version),
 	}
-	defer tx.Rollback() // 트랜잭션이 완료되지 않았을 때만 실행됨
-	if _, err := tx.Exec("DELETE FROM versions WHERE show=$1 AND shot=$2 AND task=$3 AND version=$4", show, shot, task, version); err != nil {
-		return fmt.Errorf("could not delete data from 'versions' table: %w", err)
-	}
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-	return nil
+	return dbExec(db, stmts)
 }
