@@ -53,19 +53,19 @@
 			<input type="text" name="cg_supervisor" value="{{.Show.CGSupervisor}}"/>
 		</div>
 		<div class="field"><label>크랭크 인</label>
-			<input type="date" name="crank_in" value="{{stringFromTime .Show.CrankIn}}"/>
+			<input type="date" name="crank_in" value="{{stringFromDate .Show.CrankIn}}"/>
 		</div>
 		<div class="field"><label>크랭크 업</label>
-			<input type="date" name="crank_up" value="{{stringFromTime .Show.CrankUp}}"/>
+			<input type="date" name="crank_up" value="{{stringFromDate .Show.CrankUp}}"/>
 		</div>
 		<div class="field"><label>시작일</label>
-			<input type="date" name="start_date" value="{{stringFromTime .Show.StartDate}}"/>
+			<input type="date" name="start_date" value="{{stringFromDate .Show.StartDate}}"/>
 		</div>
 		<div class="field"><label>종료일</label>
-			<input type="date" name="release_date" value="{{stringFromTime .Show.ReleaseDate}}"/>
+			<input type="date" name="release_date" value="{{stringFromDate .Show.ReleaseDate}}"/>
 		</div>
 		<div class="field"><label>VFX 종료일</label>
-			<input type="date" name="vfx_due_date" value="{{stringFromTime .Show.VFXDueDate}}"/>
+			<input type="date" name="vfx_due_date" value="{{stringFromDate .Show.VFXDueDate}}"/>
 		</div>
 		<div class="field"><label>아웃풋 사이즈</label>
 			<input type="text" name="output_size" value="{{.Show.OutputSize}}"/>
