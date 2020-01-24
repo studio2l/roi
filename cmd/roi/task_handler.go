@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -161,6 +161,7 @@ func updateMultiTasksPostHandler(w http.ResponseWriter, r *http.Request, env *En
 	if err != nil {
 		return err
 	}
+	// 샷 아이디
 	ids := r.Form["id"]
 	tforms, err := parseTimeForms(r.Form, "due_date")
 	if err != nil {
@@ -173,6 +174,12 @@ func updateMultiTasksPostHandler(w http.ResponseWriter, r *http.Request, env *En
 	for _, id := range ids {
 		s, err := roi.GetTask(DB, id+"/"+task)
 		if err != nil {
+			if errors.As(err, &roi.NotFoundError{}) {
+				// 여러 샷의 태스크를 한꺼번에 처리할 때는 어떤 샷에는
+				// 해당 태스크가 없을수도 있다.
+				// 이럴 경우 에러를 내지 않기로 한다.
+				continue
+			}
 			return err
 		}
 		if !dueDate.IsZero() {
@@ -194,7 +201,11 @@ func updateMultiTasksPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		shot := strings.Split(id, "/")[1]
 		q += shot
 	}
-	show := strings.Split(ids[0], "/")[0]
-	http.Redirect(w, r, fmt.Sprintf("/shots?show=%s&q=%s", show, q), http.StatusSeeOther)
-	return nil
+	// 여러 샷 수정 페이지 전인 shots 페이지로 돌아간다.
+	recipe := struct {
+		N int
+	}{
+		N: -2,
+	}
+	return executeTemplate(w, "history-go.html", recipe)
 }

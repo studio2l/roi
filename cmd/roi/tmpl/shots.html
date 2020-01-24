@@ -31,15 +31,15 @@
 		</div>
 		<div style="flex:1;">
 			<table class="ui very compact striped inverted celled table">
-				<tbody>
+				<tbody class="tasks">
 					{{range .Tasks}}
 					{{with index (index $.Tasks $s.Shot) .}}
-					<tr style="font-size:0.9rem;color:#AAAAAA">
+					<tr id="task-{{.ID}}" style="font-size:0.9rem;color:#AAAAAA">
 						<td class="ui one wide left aligned">
 							<div style="display:flex;padding:0 0.5rem;">
 								<div style="flex:1;"><a href="/update-task?id={{$.Show}}/{{.Shot}}/{{.Task}}" style="color:white;flex:1;">{{.Task}}</a></div>
-								<div style="flex:1;">{{shortStringFromDate .DueDate}}</div>
-								<div style="flex:1;"><a href="/user/{{.Assignee}}" style="color:#AAAAAA;">{{.Assignee}}</a></div>
+								<div class="task-due_date" style="flex:1;">{{shortStringFromDate .DueDate}}</div>
+								<div class="task-assignee" style="flex:1;"><a href="/user/{{.Assignee}}" style="color:inherit">{{.Assignee}}</a></div>
 								<div style="flex:1;">{{if .WorkingVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.WorkingVersion}}" style="color:#AAAAAA;">{{.WorkingVersion}} / {{.WorkingVersionStatus.UIString}}</a>{{end}}</div>
 								<div style="flex:1;">{{if .PublishVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.PublishVersion}}" style="color:#AAAAAA;">{{.PublishVersion}} / 퍼블리시</a>{{end}}</div>
 							</div>
@@ -54,9 +54,9 @@
 	<div class="shot-footer" style="display:flex;">
 		<div style="width:288px;margin-right:22px;padding:1px;display:flex;justify-content:space-between">
 			<div style="display:flex;">
-				<div>{{.Status.UIString}}</div>
+				<div class="shot-status">{{.Status.UIString}}</div>
 			</div>
-			{{if not .DueDate.IsZero}}<div class="detail">{{stringFromDate .DueDate}}</div>{{end}}
+			<div class="shot-due_date detail">{{if not .DueDate.IsZero}}{{stringFromDate .DueDate}}{{end}}</div>
 		</div>
 		<div>
 			{{range $i, $v := .Tags -}}
@@ -138,9 +138,13 @@ function redrawBottomBar() {
 
 // gotoUpdateMultiShotsPage는 선택된 샷들을 한번에 수정할 수 있도록 해주는 페이지로 이동한다.
 function gotoUpdateMultiShotsPage() {
+	// 나중에 히스토리의 뒤로가기 기능을 이용해 이 페이지로 되돌아올 경우
+	// 선택된 샷들의 정보는 변경되었을 가능성이 크므로 다시 불러와야 한다.
+	onfocusReload = true
+
 	let form = document.createElement("form")
-	// 주의: GET의 최대 데이터 전송 크기 제한때문에 현재 POST로 전송한다.
 	form.action = "/update-multi-shots"
+	// 주의: GET의 최대 데이터 전송 크기 제한때문에 현재 POST로 전송한다.
 	form.method = "POST"
 	for (let s of Object.keys(selectedShots)) {
 		let input = document.createElement("input")
@@ -156,9 +160,13 @@ function gotoUpdateMultiShotsPage() {
 
 // gotoUpdateMultiTasksPage는 선택된 샷들의 태스크를 한번에 수정할 수 있도록 해주는 페이지로 이동한다.
 function gotoUpdateMultiTasksPage() {
+	// 나중에 히스토리의 뒤로가기 기능을 이용해 이 페이지로 되돌아올 경우
+	// 선택된 샷들의 정보는 변경되었을 가능성이 크므로 다시 불러와야 한다.
+	onfocusReload = true
+
 	let form = document.createElement("form")
-	// 주의: GET의 최대 데이터 전송 크기 제한때문에 현재 POST로 전송한다.
 	form.action = "/update-multi-tasks"
+	// 주의: GET의 최대 데이터 전송 크기 제한때문에 현재 POST로 전송한다.
 	form.method = "POST"
 	for (let s of Object.keys(selectedShots)) {
 		let input = document.createElement("input")
@@ -170,6 +178,115 @@ function gotoUpdateMultiTasksPage() {
 	}
 	document.body.appendChild(form)
 	form.submit()
+}
+
+// shotStatusUIString은 샷 상태를 UI에서 표시할 문자열로 바꾸는 사전이다.
+let shotStatusUIString = {
+	{{range $st := $.AllShotStatus}}
+	{{$st}}: {{$st.UIString}},
+	{{end}}
+}
+
+// taskStatusUIString은 태스크 상태를 UI에서 표시할 문자열로 바꾸는 사전이다.
+let taskStatusUIString = {
+	{{range $st := $.AllTaskStatus}}
+	"{{$st}}": {{$st.UIString}},
+	{{end}}
+}
+
+// isZeroTime은 받아들인 RFC3339 문자열이 Go의 빈 시간을 가리키는 문자열인지 검사한다.
+function isZeroTime(t) {
+	if (t == "0001-01-01T00:00:00Z") {
+		return true
+	}
+	return false
+}
+
+// toDate는 받아들인 RFC3339 문자열 t에서 시간 및 타임존을 제외한 연-월-일 문자열을 반환한다.
+// 만일 t가 Go의 빈 시간에 해당하는 문자열이라면 빈 문자열을 반환한다.
+function toDate(t) {
+	// 할일: 타임존 부분 생각해볼것
+	if (isZeroTime(t)) {
+		return ""
+	}
+	return t.split("T")[0]
+}
+
+// toShortDate는 받아들인 RFC3339 문자열 t에서 연도, 시간 및 타임존을 제외한 월-일 문자열을 반환한다.
+// 만일 t가 Go의 빈 시간에 해당하는 문자열이라면 빈 문자열을 반환한다.
+function toShortDate(t) {
+	// 할일: 타임존 부분 생각해볼것
+	if (isZeroTime(t)) {
+		return ""
+	}
+	ymd = t.split("T")[0]
+	ymds = ymd.split("-")
+	return ymds[1] + "-" + ymds[2]
+}
+
+// onfocusReload는 window의 onfocus 이벤트가 발생했을때 선택된 샷에 대한 정보를
+// 다시 그릴것인지를 알린다. onfocusReload는 선택된 샷에 대한 샷 수정 페이지나
+// 태스크 수정 페이지로 갈때 true로 변경되고 다시 되돌아왔을때 참조된다.
+//
+// F5 등을 눌러 문서를 리로드하면 당연히 모든 정보를 새로 부르겠지만 현재 뷰나 선택된
+// 샷에 대한 정보가 날아간다. 계속해서 샷 정보를 수정해야하는 PM 입장에서는 이 과정이
+// 귀찮은 일이 될 것이다. 이를 방지하고자 이런 방식을 사용한다.
+let onfocusReload = false
+
+// onfocus는 문서가 처음 로드될 때나 다른 창이나 탭을 보고 있다가 돌아올 때,
+// 그리고 다음 페이지, 이전 페이지로 페이지가 이동되었을 때 실행된다.
+window.onfocus = function(event) {
+	if (onfocusReload) {
+		// 샷, 태스크 수정 페이지에서 되돌아왔기 때문에 해당 샷의 정보를 갱신한다.
+		// 갱신하는 정보는 해당 페이지에서 수정할 수 있는 것들 중
+		// 이 페이지에서 보여지는 정보에 한한다.
+		onfocusReload = false
+		let req = new XMLHttpRequest()
+		req.onload = function() {
+			let r = JSON.parse(this.responseText)
+			if (r.err != "") {
+				console.log(r.err)
+				return
+			}
+			for (let s of r.msg) {
+				let shotEl = document.getElementById(s.Show + "/" + s.Shot)
+				let shotStatusEl = shotEl.getElementsByClassName("shot-status")[0]
+				shotStatusEl.innerHTML = shotStatusUIString[s.Status]
+				let shotDueDateEl = shotEl.getElementsByClassName("shot-due_date")[0]
+				shotDueDateEl.innerHTML = toDate(s.DueDate)
+			}
+		}
+		let shots = Object.keys(selectedShots).sort()
+		let q = ""
+		for (let s of shots) {
+			 q += "id=" + s + "&"
+		}
+		req.open("POST", "/api/v1/shot/get?" + q)
+		req.send()
+
+		// 태스크 정보도 갱신한다.
+		let tReq = new XMLHttpRequest()
+		tReq.onload = function() {
+			let r = JSON.parse(this.responseText)
+			if (r.err != "") {
+				console.log(r.err)
+				return
+			}
+			for (let t of r.msg) {
+				let taskEl = document.getElementById("task-" + t.Show + "/" + t.Shot + "/" + t.Task)
+				if (!taskEl) {
+					continue
+				}
+				let taskDueDateEl = taskEl.getElementsByClassName("task-due_date")[0]
+				taskDueDateEl.innerHTML = toShortDate(t.DueDate)
+				let taskAssigneeEl = taskEl.getElementsByClassName("task-assignee")[0]
+				taskAssigneeEl.innerHTML = '<a href="/user/' + t.Assignee + '" style="color:inherit">' + t.Assignee + '</a>'
+			}
+		}
+		// 샷 정보를 받아올때와 같은 id 쿼리를 사용한다.
+		tReq.open("POST", "/api/v1/shot-tasks/get?" + q)
+		tReq.send()
+	}
 }
 </script>
 {{template "footer.html"}}

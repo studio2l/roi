@@ -160,6 +160,8 @@ when ROI_ADDR environment variable is not empty, it will use the value as defaul
 	mux.HandleFunc("/users", handle(usersHandler))
 	mux.HandleFunc("/api/v1/show/add", addShowApiHandler)
 	mux.HandleFunc("/api/v1/shot/add", addShotApiHandler)
+	mux.HandleFunc("/api/v1/shot/get", getShotApiHandler)
+	mux.HandleFunc("/api/v1/shot-tasks/get", getShotTasksApiHandler)
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 	thumbfs := http.FileServer(http.Dir("data"))
