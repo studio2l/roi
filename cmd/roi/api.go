@@ -14,7 +14,7 @@ import (
 
 // apiOK는 api 질의가 잘 처리되었을 때
 // 그 응답을 roi.APIResponse.Msg에 담아 반환한다.
-func apiOK(w http.ResponseWriter, msg string) {
+func apiOK(w http.ResponseWriter, msg interface{}) {
 	w.WriteHeader(http.StatusOK)
 	resp, _ := json.Marshal(roi.APIResponse{Msg: msg})
 	w.Write(resp)
@@ -175,4 +175,51 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	apiOK(w, fmt.Sprintf("successfully add a shot: '%s'", shot))
+}
+
+// getShotApiHander는 사용자가 api를 통해 샷 정보를 받을수 있도록 한다.
+// id 필드가 여럿 있다면 그 순서대로 샷 정보를 반환한다.
+// 결과는 roi.APIResponse의 json 형식으로 반환된다.
+func getShotApiHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	err := mustFields(r, "id")
+	if err != nil {
+		apiBadRequest(w, err)
+		return
+	}
+	ids := r.Form["id"]
+	ss := make([]*roi.Shot, 0, len(ids))
+	for _, id := range ids {
+		s, err := roi.GetShot(DB, id)
+		if err != nil {
+			apiBadRequest(w, err)
+			return
+		}
+		ss = append(ss, s)
+	}
+	apiOK(w, ss)
+}
+
+// getShotTasksApiHander는 사용자가 api를 통해 샷을 생성할수 있도록 한다.
+// id 필드가 여럿 있다면 그 순서대로 샷의 태스크 정보를 반환한다.
+// 샷 별로 그룹을 하지는 않는다.
+// 결과는 roi.APIResponse의 json 형식으로 반환된다.
+func getShotTasksApiHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	err := mustFields(r, "id")
+	if err != nil {
+		apiBadRequest(w, err)
+		return
+	}
+	ids := r.Form["id"]
+	allTs := make([]*roi.Task, 0, len(ids))
+	for _, id := range ids {
+		ts, err := roi.ShotTasks(DB, id)
+		if err != nil {
+			apiBadRequest(w, err)
+			return
+		}
+		allTs = append(allTs, ts...)
+	}
+	apiOK(w, allTs)
 }

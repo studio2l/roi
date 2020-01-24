@@ -327,7 +327,11 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		shot := strings.Split(id, "/")[1]
 		q += shot
 	}
-	show := strings.Split(ids[0], "/")[0]
-	http.Redirect(w, r, fmt.Sprintf("/shots?show=%s&q=%s", show, q), http.StatusSeeOther)
-	return nil
+	// 여러 샷 수정 페이지 전인 shots 페이지로 돌아간다.
+	recipe := struct {
+		N int
+	}{
+		N: -2,
+	}
+	return executeTemplate(w, "history-go.html", recipe)
 }
