@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 )
@@ -241,13 +242,20 @@ func ShotTasks(db *sql.DB, id string) ([]*Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = GetShot(db, show+"/"+shot)
+	s, err := GetShot(db, show+"/"+shot)
 	if err != nil {
 		return nil, err
 	}
 	ks, _, _, err := dbKIVs(&Task{})
 	if err != nil {
 		return nil, err
+	}
+	// DB에 있는 태스크 중 샷의 Tasks에 정의된 태스크만 보이고, 그 순서대로 정렬한다.
+	taskNotHidden := make(map[string]bool)
+	taskIdx := make(map[string]int)
+	for i, task := range s.Tasks {
+		taskNotHidden[task] = true
+		taskIdx[task] = i
 	}
 	keys := strings.Join(ks, ", ")
 	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2", keys), show, shot)
@@ -258,12 +266,17 @@ func ShotTasks(db *sql.DB, id string) ([]*Task, error) {
 		if err != nil {
 			return err
 		}
-		tasks = append(tasks, t)
+		if taskNotHidden[t.Task] {
+			tasks = append(tasks, t)
+		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
+	sort.Slice(tasks, func(i, j int) bool {
+		return taskIdx[tasks[i].Task] < taskIdx[tasks[j].Task]
+	})
 	return tasks, nil
 }
 
