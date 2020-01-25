@@ -81,25 +81,27 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	recipe := struct {
-		LoggedInUser  string
-		Site          *roi.Site
-		Shows         []*roi.Show
-		Show          string
-		Shots         []*roi.Shot
-		AllShotStatus []roi.ShotStatus
-		Tasks         map[string]map[string]*roi.Task
-		AllTaskStatus []roi.TaskStatus
-		Query         string
+		LoggedInUser     string
+		Site             *roi.Site
+		Shows            []*roi.Show
+		Show             string
+		Shots            []*roi.Shot
+		AllShotStatus    []roi.ShotStatus
+		Tasks            map[string]map[string]*roi.Task
+		AllTaskStatus    []roi.TaskStatus
+		AllVersionStatus []roi.VersionStatus
+		Query            string
 	}{
-		LoggedInUser:  env.User.ID,
-		Site:          site,
-		Shows:         shows,
-		Show:          show,
-		Shots:         ss,
-		AllShotStatus: roi.AllShotStatus,
-		Tasks:         tasks,
-		AllTaskStatus: roi.AllTaskStatus,
-		Query:         query,
+		LoggedInUser:     env.User.ID,
+		Site:             site,
+		Shows:            shows,
+		Show:             show,
+		Shots:            ss,
+		AllShotStatus:    roi.AllShotStatus,
+		Tasks:            tasks,
+		AllTaskStatus:    roi.AllTaskStatus,
+		AllVersionStatus: roi.AllVersionStatus,
+		Query:            query,
 	}
 	return executeTemplate(w, "shots.html", recipe)
 }
