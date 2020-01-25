@@ -1,6 +1,28 @@
 {{template "head.html" }}
 {{template "nav.html" $}}
 {{template "search-menu.html" $}}
+<style>
+.tasks {
+	flex: 1;
+	height: max-content;
+	color: #AAA;
+	background-color: #333;
+	border-radius: 4px;
+	font-size: 0.9rem;
+}
+.task {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+	padding: 0.4rem 1.1rem;
+	border-top: solid 1px rgba(255,255,255,0.1);
+}
+.task:nth-child(even) {
+	background-color: rgba(255,255,255,0.05);
+}
+.task:nth-child(1) {
+	border-top: 0;
+}
+</style>
 <div style="padding:15px 10px 15px 10px;z-index:0;">
 <!--검색 결과-->
 {{range $s := .Shots}}
@@ -29,26 +51,18 @@
 				<div><div style="display:inline-block;">{{.Duration}}</div> f</div>
 			</div>
 		</div>
-		<div style="flex:1;">
-			<table class="ui very compact striped inverted celled table">
-				<tbody class="tasks">
-					{{range .Tasks}}
-					{{with index (index $.Tasks $s.Shot) .}}
-					<tr id="task-{{.ID}}" style="font-size:0.9rem;color:#AAAAAA">
-						<td class="ui one wide left aligned">
-							<div style="display:flex;padding:0 0.5rem;">
-								<div style="flex:1;"><a href="/update-task?id={{$.Show}}/{{.Shot}}/{{.Task}}" style="color:white;flex:1;">{{.Task}}</a></div>
-								<div class="task-due_date" style="flex:1;">{{shortStringFromDate .DueDate}}</div>
-								<div class="task-assignee" style="flex:1;"><a href="/user/{{.Assignee}}" style="color:inherit">{{.Assignee}}</a></div>
-								<div style="flex:1;">{{if .WorkingVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.WorkingVersion}}" style="color:#AAAAAA;">{{.WorkingVersion}} / {{.WorkingVersionStatus.UIString}}</a>{{end}}</div>
-								<div style="flex:1;">{{if .PublishVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.PublishVersion}}" style="color:#AAAAAA;">{{.PublishVersion}} / 퍼블리시</a>{{end}}</div>
-							</div>
-						</td>
-					</tr>
-					{{end}}
-					{{end}}
-				</tbody>
-			</table>
+		<div class="tasks">
+			{{range $i, $t := .Tasks}}
+			{{with index (index $.Tasks $s.Shot) $t}}
+			<div id="task-{{.ID}}" class="task">
+				<div class="task-id"><a href="/update-task?id={{.Show}}/{{.Shot}}/{{.Task}}" style="color:white;flex:1;">{{.Task}}</a></div>
+				<div class="task-due_date">{{shortStringFromDate .DueDate}}</div>
+				<div class="task-assignee"><a href="/user/{{.Assignee}}" style="color:inherit">{{.Assignee}}</a></div>
+				<div class="task-working_version">{{if .WorkingVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.WorkingVersion}}" style="color:inherit">{{.WorkingVersion}} / {{.WorkingVersionStatus.UIString}}</a>{{end}}</div>
+				<div class="task-publish_version">{{if .PublishVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.PublishVersion}}" style="color:inherit">{{.PublishVersion}} / 퍼블리시</a>{{end}}</div>
+			</div>
+			{{end}}
+			{{end}}
 		</div>
 	</div>
 	<div class="shot-footer" style="display:flex;">
