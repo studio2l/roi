@@ -54,12 +54,12 @@
 		<div class="tasks">
 			{{range $i, $t := .Tasks}}
 			{{with index (index $.Tasks $s.Shot) $t}}
-			<div id="task-{{.ID}}" class="task">
-				<div class="task-id"><a href="/update-task?id={{.Show}}/{{.Shot}}/{{.Task}}" style="color:white;flex:1;">{{.Task}}</a></div>
-				<div class="task-due_date">{{shortStringFromDate .DueDate}}</div>
-				<div class="task-assignee"><a href="/user/{{.Assignee}}" style="color:inherit">{{.Assignee}}</a></div>
-				<div class="task-working_version">{{if .WorkingVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.WorkingVersion}}" style="color:inherit">{{.WorkingVersion}} / {{.WorkingVersionStatus.UIString}}</a>{{end}}</div>
-				<div class="task-publish_version">{{if .PublishVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.PublishVersion}}" style="color:inherit">{{.PublishVersion}} / 퍼블리시</a>{{end}}</div>
+			<div class="task">
+				<div><a href="/update-task?id={{.Show}}/{{.Shot}}/{{.Task}}" style="color:white;flex:1;">{{.Task}}</a></div>
+				<div>{{shortStringFromDate .DueDate}}</div>
+				<div><a href="/user/{{.Assignee}}" style="color:inherit">{{.Assignee}}</a></div>
+				<div>{{if .WorkingVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.WorkingVersion}}" style="color:inherit">{{.WorkingVersion}} / {{.WorkingVersionStatus.UIString}}</a>{{end}}</div>
+				<div>{{if .PublishVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.PublishVersion}}" style="color:inherit">{{.PublishVersion}} / 퍼블리시</a>{{end}}</div>
 			</div>
 			{{end}}
 			{{end}}
@@ -210,6 +210,13 @@ let taskStatusUIString = {
 	{{end}}
 }
 
+// versionStatusUIString은 버전 상태를 UI에서 표시할 문자열로 바꾸는 사전이다.
+let versionStatusUIString = {
+	{{range $st := $.AllVersionStatus}}
+	"{{$st}}": {{$st.UIString}},
+	{{end}}
+}
+
 // isZeroTime은 받아들인 RFC3339 문자열이 Go의 빈 시간을 가리키는 문자열인지 검사한다.
 function isZeroTime(t) {
 	if (t == "0001-01-01T00:00:00Z") {
@@ -281,6 +288,8 @@ function reloadShots() {
 				for (let t of s.Tags) {
 					shotTagsEl.innerHTML += `<a class="ui grey mini label" href="?q=tag%3A${t}">${t}</a>`
 				}
+				let shotTasksEl = shotEl.getElementsByClassName("tasks")[0]
+				shotTasksEl.innerHTML = ""
 			}
 		}
 		let shots = Object.keys(selectedShots).sort()
@@ -300,14 +309,35 @@ function reloadShots() {
 				return
 			}
 			for (let t of r.msg) {
-				let taskEl = document.getElementById("task-" + t.Show + "/" + t.Shot + "/" + t.Task)
-				if (!taskEl) {
+				let shotEl = document.getElementById(t.Show + "/" + t.Shot)
+				if (!shotEl) {
 					continue
 				}
-				let taskDueDateEl = taskEl.getElementsByClassName("task-due_date")[0]
+
+				let shotTasksEl = shotEl.getElementsByClassName("tasks")[0]
+
+				let taskEl = document.createElement("div")
+				taskEl.classList.add("task")
+				let taskIdEl = document.createElement("div")
+				taskIdEl.innerHTML = `<a href="/update-task?id=${t.Show}/${t.Shot}/${t.Task}" style="color:white;flex:1;">${t.Task}</a>`
+				let taskDueDateEl = document.createElement("div")
 				taskDueDateEl.innerHTML = toShortDate(t.DueDate)
-				let taskAssigneeEl = taskEl.getElementsByClassName("task-assignee")[0]
-				taskAssigneeEl.innerHTML = '<a href="/user/' + t.Assignee + '" style="color:inherit">' + t.Assignee + '</a>'
+				let taskAssigneeEl = document.createElement("div")
+				taskAssigneeEl.innerHTML = `<a href="/user/${t.Assignee}" style="color:inherit">${t.Assignee}</a>`
+				let taskWorkingVersionEl = document.createElement("div")
+				if (t.WorkingVersion) {
+					taskWorkingVersionEl.innerHTML = `<a href="/update-version?id=${t.Show}/${t.Shot}/${t.Task}/${t.WorkingVersion}" style="color:inherit">${t.WorkingVersion} / ${versionStatusUIString[t.WorkingVersionStatus]}</a>`
+				}
+				let taskPublishVersionEl = document.createElement("div")
+				if (t.PublishVersion) {
+					taskPublishVersionEl.innerHTML = `<a href="/update-version?id=${t.Show}/${t.Shot}/${t.Task}/${t.PublishVersion}" style="color:inherit">${t.PublishVersion} / 퍼블리시</a>`
+				}
+				taskEl.appendChild(taskIdEl)
+				taskEl.appendChild(taskDueDateEl)
+				taskEl.appendChild(taskAssigneeEl)
+				taskEl.appendChild(taskWorkingVersionEl)
+				taskEl.appendChild(taskPublishVersionEl)
+				shotTasksEl.appendChild(taskEl)
 			}
 		}
 		// 샷 정보를 받아올때와 같은 id 쿼리를 사용한다.
