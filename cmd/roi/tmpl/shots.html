@@ -261,15 +261,18 @@ function toShortDate(t) {
 //
 function reloadShots() {
 	if (sessionStorage.reload) {
-		// 히스토리에서 돌아왔기 때문에 selectedShots 정보를 복구하고 세션을 지운다.
+		// 샷, 태스크 수정 페이지에서 돌아왔기 때문에 샷 선택을 복구하고
+		// 이 샷들에 대한 정보를 갱신한다.
 		selectedShots = JSON.parse(sessionStorage.selectedShots)
 		sessionStorage.clear()
-
 		redrawBottomBar()
 
-		// 샷, 태스크 수정 페이지에서 되돌아왔기 때문에 해당 샷의 정보를 갱신한다.
-		// 갱신하는 정보는 해당 페이지에서 수정할 수 있는 것들 중
-		// 이 페이지에서 보여지는 정보에 한한다.
+		let shots = Object.keys(selectedShots).sort()
+		let query = ""
+		for (let id of shots) {
+			 query += "id=" + id + "&"
+		}
+
 		let req = new XMLHttpRequest()
 		req.onload = function() {
 			let r = JSON.parse(this.responseText)
@@ -277,8 +280,10 @@ function reloadShots() {
 				console.log(r.err)
 				return
 			}
-			for (let s of r.msg) {
-				let shotEl = document.getElementById(s.Show + "/" + s.Shot)
+			for (let id of shots) {
+				// 샷 정보 갱신
+				let s = r.msg[id]
+				let shotEl = document.getElementById(id)
 				let shotStatusEl = shotEl.getElementsByClassName("shot-status")[0]
 				shotStatusEl.innerHTML = shotStatusUIString[s.Status]
 				let shotDueDateEl = shotEl.getElementsByClassName("shot-due_date")[0]
@@ -288,16 +293,9 @@ function reloadShots() {
 				for (let t of s.Tags) {
 					shotTagsEl.innerHTML += `<a class="ui grey mini label" href="?q=tag%3A${t}">${t}</a>`
 				}
-				let shotTasksEl = shotEl.getElementsByClassName("tasks")[0]
-				shotTasksEl.innerHTML = ""
 			}
 		}
-		let shots = Object.keys(selectedShots).sort()
-		let q = ""
-		for (let s of shots) {
-			 q += "id=" + s + "&"
-		}
-		req.open("POST", "/api/v1/shot/get?" + q)
+		req.open("POST", "/api/v1/shot/get?" + query)
 		req.send()
 
 		// 태스크 정보도 갱신한다.
@@ -308,40 +306,41 @@ function reloadShots() {
 				console.log(r.err)
 				return
 			}
-			for (let t of r.msg) {
-				let shotEl = document.getElementById(t.Show + "/" + t.Shot)
-				if (!shotEl) {
-					continue
-				}
-
+			for (let id of shots) {
+				// 기존 샷 태스크 엘리먼트 삭제
+				let shotEl = document.getElementById(id)
 				let shotTasksEl = shotEl.getElementsByClassName("tasks")[0]
+				shotTasksEl.innerHTML = ""
 
-				let taskEl = document.createElement("div")
-				taskEl.classList.add("task")
-				let taskIdEl = document.createElement("div")
-				taskIdEl.innerHTML = `<a href="/update-task?id=${t.Show}/${t.Shot}/${t.Task}" style="color:white;flex:1;">${t.Task}</a>`
-				let taskDueDateEl = document.createElement("div")
-				taskDueDateEl.innerHTML = toShortDate(t.DueDate)
-				let taskAssigneeEl = document.createElement("div")
-				taskAssigneeEl.innerHTML = `<a href="/user/${t.Assignee}" style="color:inherit">${t.Assignee}</a>`
-				let taskWorkingVersionEl = document.createElement("div")
-				if (t.WorkingVersion) {
-					taskWorkingVersionEl.innerHTML = `<a href="/update-version?id=${t.Show}/${t.Shot}/${t.Task}/${t.WorkingVersion}" style="color:inherit">${t.WorkingVersion} / ${versionStatusUIString[t.WorkingVersionStatus]}</a>`
+				let ts = r.msg[id]
+				for (let t of ts) {
+					// 새로 만든 태스크 엘리먼트 추가
+					let taskEl = document.createElement("div")
+					taskEl.classList.add("task")
+					let taskIdEl = document.createElement("div")
+					taskIdEl.innerHTML = `<a href="/update-task?id=${t.Show}/${t.Shot}/${t.Task}" style="color:white;flex:1;">${t.Task}</a>`
+					let taskDueDateEl = document.createElement("div")
+					taskDueDateEl.innerHTML = toShortDate(t.DueDate)
+					let taskAssigneeEl = document.createElement("div")
+					taskAssigneeEl.innerHTML = `<a href="/user/${t.Assignee}" style="color:inherit">${t.Assignee}</a>`
+					let taskWorkingVersionEl = document.createElement("div")
+					if (t.WorkingVersion) {
+						taskWorkingVersionEl.innerHTML = `<a href="/update-version?id=${t.Show}/${t.Shot}/${t.Task}/${t.WorkingVersion}" style="color:inherit">${t.WorkingVersion} / ${versionStatusUIString[t.WorkingVersionStatus]}</a>`
+					}
+					let taskPublishVersionEl = document.createElement("div")
+					if (t.PublishVersion) {
+						taskPublishVersionEl.innerHTML = `<a href="/update-version?id=${t.Show}/${t.Shot}/${t.Task}/${t.PublishVersion}" style="color:inherit">${t.PublishVersion} / 퍼블리시</a>`
+					}
+					taskEl.appendChild(taskIdEl)
+					taskEl.appendChild(taskDueDateEl)
+					taskEl.appendChild(taskAssigneeEl)
+					taskEl.appendChild(taskWorkingVersionEl)
+					taskEl.appendChild(taskPublishVersionEl)
+					shotTasksEl.appendChild(taskEl)
 				}
-				let taskPublishVersionEl = document.createElement("div")
-				if (t.PublishVersion) {
-					taskPublishVersionEl.innerHTML = `<a href="/update-version?id=${t.Show}/${t.Shot}/${t.Task}/${t.PublishVersion}" style="color:inherit">${t.PublishVersion} / 퍼블리시</a>`
-				}
-				taskEl.appendChild(taskIdEl)
-				taskEl.appendChild(taskDueDateEl)
-				taskEl.appendChild(taskAssigneeEl)
-				taskEl.appendChild(taskWorkingVersionEl)
-				taskEl.appendChild(taskPublishVersionEl)
-				shotTasksEl.appendChild(taskEl)
 			}
 		}
-		// 샷 정보를 받아올때와 같은 id 쿼리를 사용한다.
-		tReq.open("POST", "/api/v1/shot-tasks/get?" + q)
+		tReq.open("POST", "/api/v1/shot-tasks/get?" + query)
 		tReq.send()
 	}
 }
