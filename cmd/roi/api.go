@@ -188,14 +188,14 @@ func getShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ids := r.Form["id"]
-	ss := make([]*roi.Shot, 0, len(ids))
+	ss := make(map[string]*roi.Shot)
 	for _, id := range ids {
 		s, err := roi.GetShot(DB, id)
 		if err != nil {
 			apiBadRequest(w, err)
 			return
 		}
-		ss = append(ss, s)
+		ss[id] = s
 	}
 	apiOK(w, ss)
 }
@@ -212,14 +212,14 @@ func getShotTasksApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ids := r.Form["id"]
-	allTs := make([]*roi.Task, 0, len(ids))
+	allTs := make(map[string][]*roi.Task)
 	for _, id := range ids {
 		ts, err := roi.ShotTasks(DB, id)
 		if err != nil {
 			apiBadRequest(w, err)
 			return
 		}
-		allTs = append(allTs, ts...)
+		allTs[id] = ts
 	}
 	apiOK(w, allTs)
 }
