@@ -39,9 +39,10 @@ func TestVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add shot: %v", err)
 	}
-	err = AddTask(db, testTaskA)
+	// testShotA가 생성되면서 testTaskA도 함께 생성된다.
+	err = UpdateTask(db, testTaskA.ID(), testTaskA)
 	if err != nil {
-		t.Fatalf("could not add task: %v", err)
+		t.Fatalf("could not update task: %s", err)
 	}
 	err = AddVersion(db, testVersionA)
 	if err != nil {

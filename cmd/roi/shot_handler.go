@@ -80,19 +80,6 @@ func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	if err != nil {
 		return err
 	}
-	for _, task := range sh.DefaultTasks {
-		t := &roi.Task{
-			Show:    id,
-			Shot:    shot,
-			Task:    task,
-			Status:  roi.TaskInProgress,
-			DueDate: time.Time{},
-		}
-		err := roi.AddTask(DB, t)
-		if err != nil {
-			return err
-		}
-	}
 	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 	return nil
 }

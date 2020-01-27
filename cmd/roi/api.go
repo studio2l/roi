@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/studio2l/roi"
 )
@@ -158,21 +157,6 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("could not add shot: %v", err)
 		apiInternalServerError(w)
 		return
-	}
-	for _, task := range tasks {
-		t := &roi.Task{
-			Show:    show,
-			Shot:    shot,
-			Task:    task,
-			Status:  roi.TaskInProgress,
-			DueDate: time.Time{},
-		}
-		err := roi.AddTask(DB, t)
-		if err != nil {
-			log.Printf("could not add task for shot: %v", err)
-			apiInternalServerError(w)
-			return
-		}
 	}
 	apiOK(w, fmt.Sprintf("successfully add a shot: '%s'", shot))
 }
