@@ -13,7 +13,6 @@ import (
 // CreateTableIfNotExistShowsStmt는 DB에 shots 테이블을 생성하는 sql 구문이다.
 // 테이블은 타입보다 많은 정보를 담고 있을수도 있다.
 var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
-	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
 	shot STRING NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %'),
 	name STRING NOT NULL,
@@ -30,7 +29,8 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	start_date TIMESTAMPTZ NOT NULL,
 	end_date TIMESTAMPTZ NOT NULL,
 	due_date TIMESTAMPTZ NOT NULL,
-	UNIQUE(show, shot)
+	UNIQUE(show, shot),
+	CONSTRAINT shots_pk PRIMARY KEY (show, shot)
 )`
 
 type Shot struct {

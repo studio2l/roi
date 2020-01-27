@@ -12,7 +12,6 @@ import (
 // CreateTableIfNotExistShowsStmt는 DB에 shows 테이블을 생성하는 sql 구문이다.
 // 테이블은 타입보다 많은 정보를 담고 있을수도 있다.
 var CreateTableIfNotExistsShowsStmt = `CREATE TABLE IF NOT EXISTS shows (
-	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	show STRING NOT NULL UNIQUE CHECK (LENGTH(show) > 0) CHECK (show NOT LIKE '% %'),
 	name STRING NOT NULL,
 	status STRING NOT NULL,
@@ -29,7 +28,8 @@ var CreateTableIfNotExistsShowsStmt = `CREATE TABLE IF NOT EXISTS shows (
 	vfx_due_date TIMESTAMPTZ NOT NULL,
 	output_size STRING NOT NULL,
 	view_lut STRING NOT NULL,
-	default_tasks STRING[] NOT NULL
+	default_tasks STRING[] NOT NULL,
+	CONSTRAINT shows_pk PRIMARY KEY (show)
 )`
 
 type Show struct {

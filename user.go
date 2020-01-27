@@ -39,7 +39,6 @@ type User struct {
 }
 
 var CreateTableIfNotExistsUsersStmt = `CREATE TABLE IF NOT EXISTS users (
-	uniqid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	id STRING UNIQUE NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %'),
 	kor_name STRING NOT NULL,
 	name STRING NOT NULL,
@@ -49,7 +48,8 @@ var CreateTableIfNotExistsUsersStmt = `CREATE TABLE IF NOT EXISTS users (
 	phone_number STRING NOT NULL,
 	entry_date STRING NOT NULL,
 	hashed_password STRING NOT NULL,
-	current_show STRING NOT NULL
+	current_show STRING NOT NULL,
+	CONSTRAINT users_pk PRIMARY KEY (id)
 )`
 
 // AddUser는 db에 한 명의 사용자를 추가한다.
