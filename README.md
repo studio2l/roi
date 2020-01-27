@@ -58,7 +58,7 @@ sudo ./roi server -insecure
 
 ```
 cd ~/roi/cmd/roi
-./roi shot ./testdata/test.xlsx
+./roi shot -insecure ./testdata/test.xlsx
 ```
 
 이제 http://localhost 페이지를 살펴보세요.
