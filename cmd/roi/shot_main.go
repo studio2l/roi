@@ -26,7 +26,8 @@ func shotMain(args []string) {
 		sheet    string
 	)
 	shotFlag := flag.NewFlagSet("shot", flag.ExitOnError)
-	shotFlag.StringVar(&addr, "addr", "localhost:80:443", `binding address and it's http/https port.
+	addrDefault := "localhost:80:443"
+	addrHelp := `binding address and it's http/https port.
 
 when two ports are specified, first port is for http and second is for https.
 unless -insecure flag set, it will transfer data through https port.
@@ -39,7 +40,15 @@ ex) localhost:80, localhost:443
 when no port is specified, it is same as :80:443.
 ex) localhost
 
-`)
+when ROI_ADDR environment variable is not empty, it will use the value as default.
+
+`
+	addrEnv := os.Getenv("ROI_ADDR")
+	if addrEnv != "" {
+		addrDefault = addrEnv
+		addrHelp += "currently the default value is comming from ROI_ADDR"
+	}
+	shotFlag.StringVar(&addr, "addr", addrDefault, addrHelp)
 	shotFlag.BoolVar(&insecure, "insecure", false, "use insecure http protocol instead of https.")
 	shotFlag.StringVar(&show, "show", "", "샷을 추가할 프로젝트, 없으면 엑셀 파일이름을 따른다.")
 	shotFlag.StringVar(&sheet, "sheet", "Sheet1", "엑셀 시트명")
