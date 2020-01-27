@@ -1,11 +1,9 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/studio2l/roi"
 )
@@ -157,27 +155,6 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	if err != nil {
 		return err
 	}
-	// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
-	for _, task := range tasks {
-		_, err := roi.GetTask(DB, id+"/"+task)
-		if err != nil {
-			if !errors.As(err, &roi.NotFoundError{}) {
-				return err
-			} else {
-				t := &roi.Task{
-					Show:    show,
-					Shot:    shot,
-					Task:    task,
-					Status:  roi.TaskInProgress,
-					DueDate: time.Time{},
-				}
-				err = roi.AddTask(DB, t)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
 	err = saveImageFormFile(r, "thumbnail", fmt.Sprintf("data/show/%s/%s/thumbnail.png", show, shot))
 	if err != nil {
 		return err
@@ -283,27 +260,6 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		err = roi.UpdateShot(DB, id, s)
 		if err != nil {
 			return err
-		}
-		// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
-		for _, task := range s.Tasks {
-			_, err := roi.GetTask(DB, id+"/"+task)
-			if err != nil {
-				if !errors.As(err, &roi.NotFoundError{}) {
-					return err
-				} else {
-					t := &roi.Task{
-						Show:    s.Show,
-						Shot:    s.Shot,
-						Task:    task,
-						Status:  roi.TaskInProgress,
-						DueDate: time.Time{},
-					}
-					err = roi.AddTask(DB, t)
-					if err != nil {
-						return err
-					}
-				}
-			}
 		}
 	}
 	q := ""
