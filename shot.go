@@ -374,6 +374,28 @@ func UpdateShot(db *sql.DB, id string, s *Shot) error {
 	stmts := []dbStatement{
 		dbStmt(fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", keys, idxs, s.Show, s.Shot), vs...),
 	}
+	// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
+	for _, task := range s.Tasks {
+		_, err := GetTask(db, id+"/"+task)
+		if err != nil {
+			if !errors.As(err, &NotFoundError{}) {
+				return err
+			} else {
+				t := &Task{
+					Show:    s.Show,
+					Shot:    s.Shot,
+					Task:    task,
+					Status:  TaskInProgress,
+					DueDate: time.Time{},
+				}
+				st, err := addTaskStmts(t)
+				if err != nil {
+					return err
+				}
+				stmts = append(stmts, st...)
+			}
+		}
+	}
 	return dbExec(db, stmts)
 }
 
