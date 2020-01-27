@@ -193,6 +193,21 @@ func AddShot(db *sql.DB, s *Shot) error {
 	stmts := []dbStatement{
 		dbStmt(fmt.Sprintf("INSERT INTO shots (%s) VALUES (%s)", keys, idxs), vs...),
 	}
+	// 하위 태스크 생성
+	for _, task := range s.Tasks {
+		t := &Task{
+			Show:    s.Show,
+			Shot:    s.Shot,
+			Task:    task,
+			Status:  TaskInProgress,
+			DueDate: time.Time{},
+		}
+		st, err := addTaskStmts(t)
+		if err != nil {
+			return err
+		}
+		stmts = append(stmts, st...)
+	}
 	return dbExec(db, stmts)
 }
 

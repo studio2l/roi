@@ -25,9 +25,10 @@ func TestTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add shot: %s", err)
 	}
-	err = AddTask(db, testTaskA)
+	// testShotA가 생성되면서 testTaskA도 함께 생성된다.
+	err = UpdateTask(db, testTaskA.ID(), testTaskA)
 	if err != nil {
-		t.Fatalf("could not add task: %s", err)
+		t.Fatalf("could not update task: %s", err)
 	}
 	tasks, err := ShotTasks(db, testShotA.ID())
 	if err != nil {

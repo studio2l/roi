@@ -146,6 +146,25 @@ func AddTask(db *sql.DB, t *Task) error {
 	return dbExec(db, stmts)
 }
 
+// addTaskStmts는 태스크를 추가하는 db 구문을 반환한다.
+// 부모가 있는지는 검사하지 않는다.
+func addTaskStmts(t *Task) ([]dbStatement, error) {
+	err := verifyTask(t)
+	if err != nil {
+		return nil, err
+	}
+	ks, is, vs, err := dbKIVs(t)
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	idxs := strings.Join(is, ", ")
+	stmts := []dbStatement{
+		dbStmt(fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", keys, idxs), vs...),
+	}
+	return stmts, nil
+}
+
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
 // 이 함수를 호출하기 전 해당 태스크가 존재하는지 사용자가 검사해야 한다.
 func UpdateTask(db *sql.DB, id string, t *Task) error {
