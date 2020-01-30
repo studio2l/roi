@@ -301,7 +301,7 @@ func ShotTasks(db *sql.DB, id string) ([]*Task, error) {
 
 // UserTasks는 해당 유저의 모든 태스크를 db에서 검색해 반환한다.
 func UserTasks(db *sql.DB, user string) ([]*Task, error) {
-	// 샷의 working_tasks에 속하지 않은 태스크는 보이지 않는다.
+	// 샷의 tasks에 속하지 않은 태스크는 보이지 않는다.
 	ks, _, _, err := dbKIVs(&Task{})
 	if err != nil {
 		return nil, err
@@ -313,7 +313,7 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 		}
 		keys += "tasks." + ks[i]
 	}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.show = shots.show AND tasks.shot = shots.shot)  WHERE tasks.assignee='%s' AND tasks.task = ANY(shots.working_tasks)", keys, user))
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.show = shots.show AND tasks.shot = shots.shot)  WHERE tasks.assignee='%s' AND tasks.task = ANY(shots.tasks)", keys, user))
 	tasks := make([]*Task, 0)
 	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		t := &Task{}

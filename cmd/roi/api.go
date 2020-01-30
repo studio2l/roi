@@ -130,7 +130,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		duration = int(f)
 	}
-	tasks := fieldSplit(r.FormValue("working_tasks"))
+	tasks := fieldSplit(r.FormValue("tasks"))
 	if len(tasks) == 0 {
 		p, err := roi.GetShow(DB, show)
 		if err != nil {
