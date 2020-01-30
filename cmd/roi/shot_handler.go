@@ -131,7 +131,7 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	if err != nil {
 		return err
 	}
-	tasks := fieldSplit(r.FormValue("working_tasks"))
+	tasks := fieldSplit(r.FormValue("tasks"))
 	tforms, err := parseTimeForms(r.Form, "due_date")
 	if err != nil {
 		return err
@@ -218,7 +218,7 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		tags = append(tags, tag)
 	}
 	workingTasks := make([]string, 0)
-	for _, task := range strings.Split(r.FormValue("working_tasks"), ",") {
+	for _, task := range strings.Split(r.FormValue("tasks"), ",") {
 		task = strings.TrimSpace(task)
 		if task == "" {
 			continue

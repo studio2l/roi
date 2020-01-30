@@ -25,7 +25,7 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	timecode_out STRING NOT NULL,
 	duration INT NOT NULL,
 	tags STRING[] NOT NULL,
-	working_tasks STRING[] NOT NULL,
+	tasks STRING[] NOT NULL,
 	start_date TIMESTAMPTZ NOT NULL,
 	end_date TIMESTAMPTZ NOT NULL,
 	due_date TIMESTAMPTZ NOT NULL,
@@ -60,7 +60,7 @@ type Shot struct {
 	// 반대로 여기에 포함되어 있지 않지만 db내에는 존재하는 태스크가 있을 수 있다.
 	// 그 태스크는 (예를 들어 태스크가 Omit 되는 등의 이유로) 숨겨진 태스크이며,
 	// 직접 지우지 않는 한 db에 보관된다.
-	Tasks []string `db:"working_tasks"`
+	Tasks []string `db:"tasks"`
 
 	StartDate time.Time `db:"start_date"`
 	EndDate   time.Time `db:"end_date"`
@@ -299,7 +299,7 @@ func SearchShots(db *sql.DB, show string, shots []string, tag, status, task, ass
 		i++
 	}
 	if task != "" {
-		where = append(where, fmt.Sprintf("$%d::string = ANY(shots.working_tasks)", i))
+		where = append(where, fmt.Sprintf("$%d::string = ANY(shots.tasks)", i))
 		vals = append(vals, task)
 		i++
 	}
