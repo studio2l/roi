@@ -172,6 +172,19 @@ func UpdateTask(db *sql.DB, id string, t *Task) error {
 	if err != nil {
 		return err
 	}
+	oldt, err := GetTask(db, id)
+	if err != nil {
+		return err
+	}
+	if oldt.WorkingVersion != t.WorkingVersion {
+		return fmt.Errorf("not allowed to update working version in UpdateTask")
+	}
+	if oldt.WorkingVersionStatus != t.WorkingVersionStatus {
+		return fmt.Errorf("not allowed to update status of working version in UpdateTask")
+	}
+	if oldt.PublishVersion != t.PublishVersion {
+		return fmt.Errorf("not allowed to update publish version in UpdateTask")
+	}
 	ks, is, vs, err := dbKIVs(t)
 	if err != nil {
 		return err
