@@ -7,7 +7,8 @@
 	<h2 class="ui header">태스크 수정</h2>
 	<h3 class="ui dividing header" style="color:#818181">
 		<a href="/update-show?id={{$t.Show}}" style="color:#9f9f9f">{{$t.Show}}</a> /
-		<a href="/update-shot?id={{$t.Show}}/{{$t.Shot}}" style="color:#9f9f9f">{{$t.Shot}}</a> /
+		{{$t.Category}} /
+		<a href="/update-shot?id={{$t.Show}}/{{$t.Category}}/{{$t.Unit}}" style="color:#9f9f9f">{{$t.Unit}}</a> /
 		<span style="color:#ccc">{{$t.Task}}</span>
 	</h3>
 	{{end}}
@@ -35,12 +36,12 @@
 	</form>
 	<h2 class="ui dividing header">
 		버전
-		<a href="/add-version?id={{$.Task.Show}}/{{$.Task.Shot}}/{{$.Task.Task}}" class="ui right floated mini basic inverted button">추가</a>
+		<a href="/add-version?id={{$.Task.ID}}" class="ui right floated mini basic inverted button">추가</a>
 	</h2>
 	<div class="ui container">
 		{{range $v := $.Versions}}
 		<!-- 만일 퍼블리시 버전이라면 푸른색, 진행중 버전이라면 초록색으로 표현하고, 퍼블리시의 우선순위가 더 높다. -->
-		<a href="/update-version?id={{$v.Show}}/{{$v.Shot}}/{{$v.Task}}/{{$v.Version}}" class="ui label {{if eq $v.Version $.Task.PublishVersion}}blue{{else if eq $v.Version $.Task.WorkingVersion}}green{{end}}">{{$v.Version}}</a>
+		<a href="/update-version?id={{$v.ID}}" class="ui label {{if eq $v.Version $.Task.PublishVersion}}blue{{else if eq $v.Version $.Task.WorkingVersion}}green{{end}}">{{$v.Version}}</a>
 		{{end}}
 	</div>
 </div>

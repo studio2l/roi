@@ -17,7 +17,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	id := r.FormValue("id")
-	show, shot, task, err := roi.SplitTaskID(id)
+	show, ctg, unit, task, err := roi.SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -28,9 +28,10 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}{
 		LoggedInUser: env.User.ID,
 		Version: &roi.Version{
-			Show: show,
-			Shot: shot,
-			Task: task,
+			Show:     show,
+			Category: ctg,
+			Unit:     unit,
+			Task:     task,
 		},
 	}
 	return executeTemplate(w, "add-version.html", recipe)
@@ -42,14 +43,15 @@ func addVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		return err
 	}
 	id := r.FormValue("id")
-	show, shot, task, err := roi.SplitTaskID(id)
+	show, ctg, unit, task, err := roi.SplitTaskID(id)
 	if err != nil {
 		return err
 	}
 	version := r.FormValue("version")
 	v := &roi.Version{
 		Show:      show,
-		Shot:      shot,
+		Category:  ctg,
+		Unit:      unit,
 		Task:      task,
 		Status:    roi.VersionInProgress,
 		Version:   version,
