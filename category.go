@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// verifyCategoryName은 받아들인 카테고리 이름이 유효하지 않다면 에러를 반환한다.
 func verifyCategoryName(ctg string) error {
 	switch ctg {
 	case "shot":
@@ -13,6 +14,7 @@ func verifyCategoryName(ctg string) error {
 	return fmt.Errorf("invalid category: %s", ctg)
 }
 
+// verifyUnitName은 받아들인 유닛 이름이 유효하지 않다면 에러를 반환한다.
 func verifyUnitName(ctg, unit string) error {
 	switch ctg {
 	case "shot":
@@ -26,13 +28,13 @@ func verifyUnitName(ctg, unit string) error {
 func SplitUnitID(id string) (string, string, string, error) {
 	ns := strings.Split(id, "/")
 	if len(ns) != 3 {
-		return "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
+		return "", "", "", BadRequest(fmt.Sprintf("invalid unit id: %s", id))
 	}
 	show := ns[0]
 	ctg := ns[1]
 	unit := ns[2]
 	if show == "" || ctg == "" || unit == "" {
-		return "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
+		return "", "", "", BadRequest(fmt.Sprintf("invalid unit id: %s", id))
 	}
 	return show, ctg, unit, nil
 }
