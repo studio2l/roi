@@ -75,28 +75,22 @@ func addShowApiHandler(w http.ResponseWriter, r *http.Request) {
 func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	show := r.PostFormValue("show")
-	if show == "" {
-		apiBadRequest(w, fmt.Errorf("'show' not specified"))
+	id := r.PostFormValue("id")
+	if id == "" {
+		apiBadRequest(w, fmt.Errorf("'id' not specified"))
 		return
 	}
-	_, err := roi.GetShow(DB, show)
+	show, shot, err := roi.SplitShotID(id)
 	if err != nil {
-		log.Printf("could not check show %q exist: %v", show, err)
-		apiInternalServerError(w)
+		apiBadRequest(w, fmt.Errorf("invalid shot id: %v", id))
 		return
 	}
-	shot := r.PostFormValue("shot")
-	if shot == "" {
-		apiBadRequest(w, fmt.Errorf("'shot' not specified"))
-		return
-	}
-	_, err = roi.GetShot(DB, show+"/"+shot)
+	_, err = roi.GetShot(DB, id)
 	if err == nil {
-		apiBadRequest(w, fmt.Errorf("shot already exist: %v", shot))
+		apiBadRequest(w, fmt.Errorf("shot already exist: %v", id))
 		return
 	} else if !errors.As(err, &roi.NotFoundError{}) {
-		log.Printf("could not check shot '%s' exist: %v", shot, err)
+		log.Printf("could not check shot '%s' exist: %v", id, err)
 		apiInternalServerError(w)
 		return
 	}

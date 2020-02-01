@@ -14,7 +14,8 @@ import (
 // 테이블은 타입보다 많은 정보를 담고 있을수도 있다.
 var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
-	shot STRING NOT NULL CHECK (length(shot) > 0) CHECK (shot NOT LIKE '% %'),
+	category STRING NOT NULL CHECK (length(category) > 0)  CHECK (category NOT LIKE '% %'),
+	unit STRING NOT NULL CHECK (length(unit) > 0) CHECK (unit NOT LIKE '% %'),
 	task STRING NOT NULL CHECK (length(task) > 0) CHECK (task NOT LIKE '% %'),
 	status STRING NOT NULL CHECK (length(status) > 0),
 	due_date TIMESTAMPTZ NOT NULL,
@@ -22,15 +23,16 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	publish_version STRING NOT NULL,
 	working_version STRING NOT NULL,
 	working_version_status STRING NOT NULL,
-	UNIQUE(show, shot, task),
-	CONSTRAINT tasks_pk PRIMARY KEY (show, shot, task)
+	UNIQUE(show, category, unit, task),
+	CONSTRAINT tasks_pk PRIMARY KEY (show, category, unit, task)
 )`
 
 type Task struct {
 	// 관련 아이디
-	Show string `db:"show"`
-	Shot string `db:"shot"`
-	Task string `db:"task"` // 타입 또는 타입_요소로 구성된다. 예) fx, fx_fire
+	Show     string `db:"show"`
+	Category string `db:"category"` // 현재는 "shot" 만 존재
+	Unit     string `db:"unit"`     // 샷 또는 애셋 유닛
+	Task     string `db:"task"`     // 파트 또는 파트_요소로 구성된다. 예) fx, fx_fire
 
 	Status   TaskStatus `db:"status"`
 	DueDate  time.Time  `db:"due_date"`
@@ -50,12 +52,13 @@ type Task struct {
 
 // ID는 Task의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
 func (t *Task) ID() string {
-	return t.Show + "/" + t.Shot + "/" + t.Task
+	return t.Show + "/" + t.Category + "/" + t.Unit + "/" + t.Task
 }
 
-// ShotID는 부모 샷의 아이디를 반환한다.
-func (t *Task) ShotID() string {
-	return t.Show + "/" + t.Shot
+// UnitID는 부모 유닛의 아이디를 반환한다.
+// 유닛은 샷 또는 애셋이다.
+func (t *Task) UnitID() string {
+	return t.Show + "/" + t.Category + "/" + t.Unit
 }
 
 // reTaskName은 가능한 태스크명을 정의하는 정규식이다.
@@ -70,25 +73,26 @@ func verifyTaskName(task string) error {
 	return nil
 }
 
-// SplitTaskID는 받아들인 샷 아이디를 쇼, 샷, 태스크로 분리해서 반환한다.
+// SplitTaskID는 받아들인 샷 아이디를 쇼, 카테고리, 샷, 태스크로 분리해서 반환한다.
 // 만일 샷 아이디가 유효하지 않다면 에러를 반환한다.
-func SplitTaskID(id string) (string, string, string, error) {
+func SplitTaskID(id string) (string, string, string, string, error) {
 	ns := strings.Split(id, "/")
-	if len(ns) != 3 {
-		return "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
+	if len(ns) != 4 {
+		return "", "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
 	}
 	show := ns[0]
-	shot := ns[1]
-	task := ns[2]
-	if show == "" || shot == "" || task == "" {
-		return "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
+	ctg := ns[1]
+	unit := ns[2]
+	task := ns[3]
+	if show == "" || ctg == "" || unit == "" || task == "" {
+		return "", "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
 	}
-	return show, shot, task, nil
+	return show, ctg, unit, task, nil
 }
 
 // verifyTaskID는 받아들인 태스크 아이디가 유효하지 않다면 에러를 반환한다.
 func verifyTaskID(id string) error {
-	show, shot, task, err := SplitTaskID(id)
+	show, ctg, unit, task, err := SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -96,7 +100,11 @@ func verifyTaskID(id string) error {
 	if err != nil {
 		return err
 	}
-	err = verifyShotName(shot)
+	err = verifyCategoryName(ctg)
+	if err != nil {
+		return err
+	}
+	err = verifyUnitName(ctg, unit)
 	if err != nil {
 		return err
 	}
@@ -123,16 +131,21 @@ func verifyTask(t *Task) error {
 	return nil
 }
 
-// AddTask는 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
+// AddTask는 db의 특정 쇼, 카테고리, 유닛에 태스크를 추가한다.
 func AddTask(db *sql.DB, t *Task) error {
 	err := verifyTask(t)
 	if err != nil {
 		return err
 	}
 	// 부모가 있는지 검사
-	_, err = GetShot(db, t.ShotID())
-	if err != nil {
-		return err
+	switch t.Category {
+	case "shot":
+		_, err = GetShot(db, t.UnitID())
+		if err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("invalid category: %s", t.Category)
 	}
 	ks, is, vs, err := dbKIVs(t)
 	if err != nil {
@@ -176,6 +189,9 @@ func UpdateTask(db *sql.DB, id string, t *Task) error {
 	if err != nil {
 		return err
 	}
+	if oldt.Category != t.Category {
+		return fmt.Errorf("not allowed to change category of task")
+	}
 	if oldt.WorkingVersion != t.WorkingVersion {
 		return fmt.Errorf("not allowed to update working version in UpdateTask")
 	}
@@ -192,14 +208,14 @@ func UpdateTask(db *sql.DB, id string, t *Task) error {
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND shot='%s' AND task='%s'", keys, idxs, t.Show, t.Shot, t.Task), vs...),
+		dbStmt(fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND category='%s' AND unit='%s' AND task='%s'", keys, idxs, t.Show, t.Category, t.Unit, t.Task), vs...),
 	}
 	return dbExec(db, stmts)
 }
 
 // UpdateTaskWorkingVersion는 db의 특정 태스크의 현재 작업중인 버전을 업데이트 한다.
 func UpdateTaskWorkingVersion(db *sql.DB, id, version string) error {
-	show, shot, task, err := SplitTaskID(id)
+	show, ctg, shot, task, err := SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -208,15 +224,15 @@ func UpdateTaskWorkingVersion(db *sql.DB, id, version string) error {
 		return err
 	}
 	stmts := []dbStatement{
-		dbStmt("UPDATE tasks SET (working_version) = ($1) WHERE show=$2 AND shot=$3 AND task=$4", version, show, shot, task),
-		dbStmt("UPDATE tasks SET (working_version_status) = ($1) WHERE show=$2 AND shot=$3 AND task=$4", v.Status, show, shot, task),
+		dbStmt("UPDATE tasks SET (working_version) = ($1) WHERE show=$2 AND category=$3 AND unit=$4 AND task=$5", version, show, ctg, shot, task),
+		dbStmt("UPDATE tasks SET (working_version_status) = ($1) WHERE show=$2 AND category=$3 AND unit=$4 AND task=$5", v.Status, show, ctg, shot, task),
 	}
 	return dbExec(db, stmts)
 }
 
 // UpdateTaskPublishVersion는 db의 특정 태스크의 현재 퍼블리시 버전을 업데이트 한다.
 func UpdateTaskPublishVersion(db *sql.DB, id, version string) error {
-	show, shot, task, err := SplitTaskID(id)
+	show, ctg, shot, task, err := SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -229,10 +245,10 @@ func UpdateTaskPublishVersion(db *sql.DB, id, version string) error {
 		return err
 	}
 	stmts := []dbStatement{
-		dbStmt("UPDATE tasks SET (publish_version) = ($1) WHERE show=$2 AND shot=$3 AND task=$4", version, show, shot, task),
+		dbStmt("UPDATE tasks SET (publish_version) = ($1) WHERE show=$2 AND category=$3 AND unit=$4 AND task=$5", version, show, ctg, shot, task),
 	}
 	if version == t.WorkingVersion {
-		stmts = append(stmts, dbStmt("UPDATE tasks SET (working_version) = ('') WHERE show=$1 AND shot=$2 AND task=$3", show, shot, task))
+		stmts = append(stmts, dbStmt("UPDATE tasks SET (working_version) = ('') WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4", show, ctg, shot, task))
 	}
 	return dbExec(db, stmts)
 }
@@ -240,27 +256,32 @@ func UpdateTaskPublishVersion(db *sql.DB, id, version string) error {
 // GetTask는 db에서 하나의 태스크를 찾는다.
 // 해당 태스크가 없다면 nil과 NotFound 에러를 반환한다.
 func GetTask(db *sql.DB, id string) (*Task, error) {
-	show, shot, task, err := SplitTaskID(id)
+	show, ctg, unit, task, err := SplitTaskID(id)
 	if err != nil {
 		return nil, err
 	}
-	_, err = GetShot(db, show+"/"+shot)
-	if err != nil {
-		return nil, err
+	// 부모가 있는지 검사
+	switch ctg {
+	case "shot":
+		_, err = GetShot(db, show+"/"+ctg+"/"+unit)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("invalid category: %s", ctg)
 	}
 	ks, _, _, err := dbKIVs(&Task{})
 	if err != nil {
 		return nil, err
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2 AND task=$3 LIMIT 1", keys), show, shot, task)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND unit=$2 AND task=$3 LIMIT 1", keys), show, unit, task)
 	t := &Task{}
 	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, t)
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			id := show + "/" + shot + "/" + task
 			return nil, NotFound("task", id)
 		}
 		return nil, err
@@ -270,13 +291,20 @@ func GetTask(db *sql.DB, id string) (*Task, error) {
 
 // ShotTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
 func ShotTasks(db *sql.DB, id string) ([]*Task, error) {
-	show, shot, err := SplitShotID(id)
+	show, ctg, unit, err := SplitUnitID(id)
 	if err != nil {
 		return nil, err
 	}
-	s, err := GetShot(db, show+"/"+shot)
-	if err != nil {
-		return nil, err
+	var tasks []string
+	switch ctg {
+	case "shot":
+		s, err := GetShot(db, id)
+		if err != nil {
+			return nil, err
+		}
+		tasks = s.Tasks
+	default:
+		return nil, fmt.Errorf("invalid category: %s", ctg)
 	}
 	ks, _, _, err := dbKIVs(&Task{})
 	if err != nil {
@@ -285,13 +313,13 @@ func ShotTasks(db *sql.DB, id string) ([]*Task, error) {
 	// DB에 있는 태스크 중 샷의 Tasks에 정의된 태스크만 보이고, 그 순서대로 정렬한다.
 	taskNotHidden := make(map[string]bool)
 	taskIdx := make(map[string]int)
-	for i, task := range s.Tasks {
+	for i, task := range tasks {
 		taskNotHidden[task] = true
 		taskIdx[task] = i
 	}
 	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND shot=$2", keys), show, shot)
-	tasks := make([]*Task, 0)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND unit=$3", keys), show, ctg, unit)
+	ts := make([]*Task, 0)
 	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		t := &Task{}
 		err := scan(rows, t)
@@ -299,17 +327,17 @@ func ShotTasks(db *sql.DB, id string) ([]*Task, error) {
 			return err
 		}
 		if taskNotHidden[t.Task] {
-			tasks = append(tasks, t)
+			ts = append(ts, t)
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	sort.Slice(tasks, func(i, j int) bool {
-		return taskIdx[tasks[i].Task] < taskIdx[tasks[j].Task]
+	sort.Slice(ts, func(i, j int) bool {
+		return taskIdx[ts[i].Task] < taskIdx[ts[j].Task]
 	})
-	return tasks, nil
+	return ts, nil
 }
 
 // UserTasks는 해당 유저의 모든 태스크를 db에서 검색해 반환한다.
@@ -326,7 +354,7 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 		}
 		keys += "tasks." + ks[i]
 	}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.show = shots.show AND tasks.shot = shots.shot)  WHERE tasks.assignee='%s' AND tasks.task = ANY(shots.tasks)", keys, user))
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.show = shots.show AND tasks.unit = shots.shot)  WHERE tasks.category='%s' AND tasks.assignee='%s' AND tasks.task = ANY(shots.tasks)", keys, "shot", user))
 	tasks := make([]*Task, 0)
 	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		t := &Task{}
@@ -347,7 +375,7 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 // 해당 태스크가 없어도 에러를 내지 않기 때문에 검사를 원한다면 TaskExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
 func DeleteTask(db *sql.DB, id string) error {
-	show, shot, task, err := SplitTaskID(id)
+	show, ctg, unit, task, err := SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -356,8 +384,8 @@ func DeleteTask(db *sql.DB, id string) error {
 		return err
 	}
 	stmts := []dbStatement{
-		dbStmt("DELETE FROM tasks WHERE show=$1 AND shot=$2 AND task=$3", show, shot, task),
-		dbStmt("DELETE FROM versions WHERE show=$1 AND shot=$2 AND task=$3", show, shot, task),
+		dbStmt("DELETE FROM tasks WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4", show, ctg, unit, task),
+		dbStmt("DELETE FROM versions WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4", show, ctg, unit, task),
 	}
 	return dbExec(db, stmts)
 }

@@ -163,15 +163,34 @@ func userHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	// tasksOfDay 또한 아이디 기준으로 정렬된다.
 	sort.Slice(tasks, func(i, j int) bool {
 		ti := tasks[i]
-		idi := ti.Show + "." + ti.Shot + "." + ti.Task
 		tj := tasks[j]
-		idj := tj.Show + "." + tj.Shot + "." + tj.Task
-		return strings.Compare(idi, idj) <= 0
+		c := strings.Compare(ti.Show, tj.Show)
+		if c < 0 {
+			return true
+		} else if c > 0 {
+			return false
+		}
+		c = strings.Compare(ti.Category, tj.Category)
+		if c < 0 {
+			return true
+		} else if c > 0 {
+			return false
+		}
+		c = strings.Compare(ti.Unit, tj.Unit)
+		if c < 0 {
+			return true
+		} else if c > 0 {
+			return false
+		}
+		c = strings.Compare(ti.Task, tj.Task)
+		if c <= 0 {
+			return true
+		}
+		return false
 	})
 	taskFromID := make(map[string]*roi.Task)
 	for _, t := range tasks {
-		tid := t.Show + "." + t.Shot + "." + t.Task
-		taskFromID[tid] = t
+		taskFromID[t.ID()] = t
 	}
 	tasksOfDay := make(map[string][]string, 28)
 	for _, t := range tasks {
@@ -179,8 +198,7 @@ func userHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		if tasksOfDay[due] == nil {
 			tasksOfDay[due] = make([]string, 0)
 		}
-		tid := t.Show + "." + t.Shot + "." + t.Task
-		tasksOfDay[due] = append(tasksOfDay[due], tid)
+		tasksOfDay[due] = append(tasksOfDay[due], t.ID())
 	}
 	// 앞으로 4주에 대한 태스크 정보를 보인다.
 	// 총 기간이나 단위는 추후 설정할 수 있도록 할 것.

@@ -60,6 +60,12 @@ func TestShot(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add project to projects table: %s", err)
 	}
+	defer func() {
+		err = DeleteShow(db, testShow.ID())
+		if err != nil {
+			t.Fatalf("could not delete project: %s", err)
+		}
+	}()
 
 	for _, s := range want {
 		err = AddShot(db, s)
@@ -113,10 +119,5 @@ func TestShot(t *testing.T) {
 		if err != nil {
 			t.Fatalf("could not delete shot from shots table: %s", err)
 		}
-	}
-
-	err = DeleteShow(db, testShow.ID())
-	if err != nil {
-		t.Fatalf("could not delete project: %s", err)
 	}
 }

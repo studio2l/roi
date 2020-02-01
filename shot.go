@@ -69,19 +69,20 @@ type Shot struct {
 
 // ID는 Shot의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
 func (s *Shot) ID() string {
-	return s.Show + "/" + s.Shot
+	return s.Show + "/shot/" + s.Shot
 }
 
 // SplitShotID는 받아들인 샷 아이디를 쇼, 샷으로 분리해서 반환한다.
 // 만일 샷 아이디가 유효하지 않다면 에러를 반환한다.
 func SplitShotID(id string) (string, string, error) {
 	ns := strings.Split(id, "/")
-	if len(ns) != 2 {
+	if len(ns) != 3 {
 		return "", "", BadRequest(fmt.Sprintf("invalid shot id: %s", id))
 	}
 	show := ns[0]
-	shot := ns[1]
-	if show == "" || shot == "" {
+	ctg := ns[1]
+	shot := ns[2]
+	if show == "" || ctg != "shot" || shot == "" {
 		return "", "", BadRequest(fmt.Sprintf("invalid shot id: %s", id))
 	}
 	return show, shot, nil
@@ -196,11 +197,12 @@ func AddShot(db *sql.DB, s *Shot) error {
 	// 하위 태스크 생성
 	for _, task := range s.Tasks {
 		t := &Task{
-			Show:    s.Show,
-			Shot:    s.Shot,
-			Task:    task,
-			Status:  TaskInProgress,
-			DueDate: time.Time{},
+			Show:     s.Show,
+			Category: "shot",
+			Unit:     s.Shot,
+			Task:     task,
+			Status:   TaskInProgress,
+			DueDate:  time.Time{},
 		}
 		st, err := addTaskStmts(t)
 		if err != nil {
@@ -234,7 +236,6 @@ func GetShot(db *sql.DB, id string) (*Shot, error) {
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			id := show + "/" + shot
 			return nil, NotFound("shot", id)
 		}
 		return nil, err
@@ -304,7 +305,7 @@ func SearchShots(db *sql.DB, show string, shots []string, tag, status, task, ass
 		i++
 	}
 	if assignee != "" || task_status != "" || !task_due_date.IsZero() {
-		stmt += " JOIN tasks ON (tasks.show = shots.show AND tasks.shot = shots.shot)"
+		stmt += " JOIN tasks ON (tasks.show = shots.show AND tasks.unit = shots.shot)"
 	}
 	if assignee != "" {
 		where = append(where, fmt.Sprintf("tasks.assignee=$%d", i))
@@ -379,14 +380,15 @@ func UpdateShot(db *sql.DB, id string, s *Shot) error {
 		_, err := GetTask(db, id+"/"+task)
 		if err != nil {
 			if !errors.As(err, &NotFoundError{}) {
-				return err
+				return fmt.Errorf("get task: %s", err)
 			} else {
 				t := &Task{
-					Show:    s.Show,
-					Shot:    s.Shot,
-					Task:    task,
-					Status:  TaskInProgress,
-					DueDate: time.Time{},
+					Show:     s.Show,
+					Category: "shot",
+					Unit:     s.Shot,
+					Task:     task,
+					Status:   TaskInProgress,
+					DueDate:  time.Time{},
 				}
 				st, err := addTaskStmts(t)
 				if err != nil {
@@ -413,8 +415,8 @@ func DeleteShot(db *sql.DB, id string) error {
 	}
 	stmts := []dbStatement{
 		dbStmt("DELETE FROM shots WHERE show=$1 AND shot=$2", show, shot),
-		dbStmt("DELETE FROM tasks WHERE show=$1 AND shot=$2", show, shot),
-		dbStmt("DELETE FROM versions WHERE show=$1 AND shot=$2", show, shot),
+		dbStmt("DELETE FROM tasks WHERE show=$1 AND category=$2 AND unit=$3", show, "shot", shot),
+		dbStmt("DELETE FROM versions WHERE show=$1 AND category=$2 AND unit=$3", show, "shot", shot),
 	}
 	return dbExec(db, stmts)
 }

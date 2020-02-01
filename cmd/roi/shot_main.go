@@ -121,8 +121,8 @@ when ROI_ADDR environment variable is not empty, it will use the value as defaul
 		if formData.Get("shot") == "" {
 			continue
 		}
-		formData.Set("show", show)
-		formData.Set("shot", formData.Get("shot"))
+		id := show + "/shot/" + formData.Get("shot")
+		formData.Set("id", id)
 		resp, err := http.PostForm(protocol+site+":"+port+"/api/v1/shot/add", formData)
 		if err != nil {
 			log.Fatal(err)

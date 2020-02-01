@@ -35,6 +35,12 @@ func TestShow(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add project to projects table: %s", err)
 	}
+	defer func() {
+		DeleteShow(db, testShow.ID())
+		if err != nil {
+			t.Fatalf("could not delete project: %s", err)
+		}
+	}()
 	got, err := GetShow(db, testShow.ID())
 	if err != nil {
 		t.Fatalf("could not get project from projects table: %s", err)
@@ -53,9 +59,5 @@ func TestShow(t *testing.T) {
 	err = UpdateShow(db, testShow.ID(), testShow)
 	if err != nil {
 		t.Fatalf("could not update project: %s", err)
-	}
-	err = DeleteShow(db, testShow.ID())
-	if err != nil {
-		t.Fatalf("could not delete project: %s", err)
 	}
 }

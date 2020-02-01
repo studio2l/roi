@@ -7,10 +7,11 @@ import (
 )
 
 var testVersionA = &Version{
-	Show:    testShow.Show,
-	Shot:    testShotA.Shot,
-	Task:    testTaskA.Task,
-	Version: "v001",
+	Show:     testShow.Show,
+	Category: "shot",
+	Unit:     testShotA.Shot,
+	Task:     testTaskA.Task,
+	Version:  "v001",
 
 	Status:      VersionInProgress,
 	Owner:       "admin",
@@ -35,11 +36,29 @@ func TestVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add project: %v", err)
 	}
+	defer func() {
+		err = DeleteShow(db, testShow.ID())
+		if err != nil {
+			t.Fatalf("could not delete project: %v", err)
+		}
+	}()
 	err = AddShot(db, testShotA)
 	if err != nil {
 		t.Fatalf("could not add shot: %v", err)
 	}
+	defer func() {
+		err = DeleteShot(db, testShotA.ID())
+		if err != nil {
+			t.Fatalf("could not delete shot: %v", err)
+		}
+	}()
 	// testShotA가 생성되면서 testTaskA도 함께 생성된다.
+	defer func() {
+		err = DeleteTask(db, testTaskA.ID())
+		if err != nil {
+			t.Fatalf("could not delete task: %v", err)
+		}
+	}()
 	err = UpdateTask(db, testTaskA.ID(), testTaskA)
 	if err != nil {
 		t.Fatalf("could not update task: %s", err)
@@ -48,6 +67,12 @@ func TestVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add version: %v", err)
 	}
+	defer func() {
+		err = DeleteVersion(db, testVersionA.ID())
+		if err != nil {
+			t.Fatalf("could not delete version: %v", err)
+		}
+	}()
 	got, err := GetVersion(db, testVersionA.ID())
 	if err != nil {
 		t.Fatalf("could not get version: %v", err)
@@ -72,21 +97,5 @@ func TestVersion(t *testing.T) {
 	err = UpdateVersion(db, testVersionA.ID(), testVersionA)
 	if err != nil {
 		t.Fatalf("could not update version: %v", err)
-	}
-	err = DeleteVersion(db, testVersionA.ID())
-	if err != nil {
-		t.Fatalf("could not delete version: %v", err)
-	}
-	err = DeleteTask(db, testTaskA.ID())
-	if err != nil {
-		t.Fatalf("could not delete task: %v", err)
-	}
-	err = DeleteShot(db, testShotA.ID())
-	if err != nil {
-		t.Fatalf("could not delete shot: %v", err)
-	}
-	err = DeleteShow(db, testShow.ID())
-	if err != nil {
-		t.Fatalf("could not delete project: %v", err)
 	}
 }

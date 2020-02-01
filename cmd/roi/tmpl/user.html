@@ -57,11 +57,12 @@
 
 <script>
 let taskFromID = {
-	{{range $id, $t := $.TaskFromID -}}
+	{{range $id, $t := $.TaskFromID}}
 	"{{$id}}": {
 		"show": "{{$t.Show}}",
-		"shot": "{{$t.Shot}}",
-		"name": "{{$t.Task}}",
+		"category": "{{$t.Category}}",
+		"unit": "{{$t.Unit}}",
+		"task": "{{$t.Task}}",
 		"status": "{{$t.Status}}",
 	},
 	{{end}}
@@ -103,12 +104,12 @@ function showTasks(day) {
 		let t = taskFromID[tasks[i]];
 		let el = document.getElementById("show-" + t.show + "-tasks-of-day");
 		let label = document.createElement("a");
-		label.setAttribute("href", "/shots?show=" + t.show + "&q=" + t.shot);
+		label.setAttribute("href", "/" + t.category + "s?show=" + t.show + "&q=" + t.unit);
 		label.setAttribute("class", "ui small label");
-		label.innerHTML = t.shot;
+		label.innerHTML = t.unit;
 		detail = document.createElement("div");
 		detail.setAttribute("class", "detail");
-		detail.innerHTML = t.name;
+		detail.innerHTML = t.task;
 		label.append(detail);
 		el.append(label);
 	}

@@ -26,11 +26,11 @@
 <div style="padding:15px 10px 15px 10px;z-index:0;">
 <!--검색 결과-->
 {{range $s := .Shots}}
-<div id="{{$.Show}}/{{.Shot}}" class="ui inverted segment shot">
+<div id="{{$s.ID}}" class="ui inverted segment shot">
 	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;">
 		<div class="ui" style="width:288px;margin-right:22px;display:flex;align-items:end;">
 				<div style="display:flex;flex-direction:column;">
-					<a href="/update-shot?id={{$.Show}}/{{.Shot}}" style="font-size:1.3rem;color:white;border-bottom:solid 1px var(--{{.Status.UIColor}});">
+					<a href="/update-shot?id={{$s.ID}}" style="font-size:1.3rem;color:white;border-bottom:solid 1px var(--{{.Status.UIColor}});">
 						<b>{{.Shot}}</b>
 					</a>
 				</div>
@@ -41,8 +41,8 @@
 	</div>
 	<div class="shot-main" style="display:flex;margin-bottom:6px;">
 		<div style="width:288px;margin-right:22px;">
-			{{if hasThumbnail $.Show .Shot}}
-			<img style="width:288px;height:162px;" src="{{if hasThumbnail $.Show .Shot}}/data/show/{{$.Show}}/{{.Shot}}/thumbnail.png{{end}}" onclick="selectShot(this)" />
+			{{if hasThumbnail $s.ID}}
+			<img style="width:288px;height:162px;" src="{{if hasThumbnail $s.ID}}/data/show/{{$s.ID}}/thumbnail.png{{end}}" onclick="selectShot(this)" />
 			{{else}}
 			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;"  onclick="selectShot(this)">{{.Description}}</div>
 			{{end}}
@@ -55,11 +55,11 @@
 			{{range $i, $t := .Tasks}}
 			{{with index (index $.Tasks $s.Shot) $t}}
 			<div class="task">
-				<div><a href="/update-task?id={{.Show}}/{{.Shot}}/{{.Task}}" style="color:white;flex:1;">{{.Task}}</a></div>
+				<div><a href="/update-task?id={{.ID}}" style="color:white;flex:1;">{{.Task}}</a></div>
 				<div>{{shortStringFromDate .DueDate}}</div>
 				<div><a href="/user/{{.Assignee}}" style="color:inherit">{{.Assignee}}</a></div>
-				<div>{{if .WorkingVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.WorkingVersion}}" style="color:inherit">{{.WorkingVersion}} / {{.WorkingVersionStatus.UIString}}</a>{{end}}</div>
-				<div>{{if .PublishVersion}}<a href="/update-version?id={{.Show}}/{{.Shot}}/{{.Task}}/{{.PublishVersion}}" style="color:inherit">{{.PublishVersion}} / 퍼블리시</a>{{end}}</div>
+				<div>{{if .WorkingVersion}}<a href="/update-version?id={{.ID}}/{{.WorkingVersion}}" style="color:inherit">{{.WorkingVersion}} / {{.WorkingVersionStatus.UIString}}</a>{{end}}</div>
+				<div>{{if .PublishVersion}}<a href="/update-version?id={{.ID}}/{{.PublishVersion}}" style="color:inherit">{{.PublishVersion}} / 퍼블리시</a>{{end}}</div>
 			</div>
 			{{end}}
 			{{end}}
