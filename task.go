@@ -138,14 +138,12 @@ func AddTask(db *sql.DB, t *Task) error {
 		return err
 	}
 	// 부모가 있는지 검사
-	switch t.Category {
-	case "shot":
-		_, err = GetShot(db, t.UnitID())
-		if err != nil {
-			return err
-		}
-	default:
-		return fmt.Errorf("invalid category: %s", t.Category)
+	ok, err := CheckUnitExist(db, t.UnitID())
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("unit not found: %s", t.UnitID())
 	}
 	ks, is, vs, err := dbKIVs(t)
 	if err != nil {
@@ -261,14 +259,13 @@ func GetTask(db *sql.DB, id string) (*Task, error) {
 		return nil, err
 	}
 	// 부모가 있는지 검사
-	switch ctg {
-	case "shot":
-		_, err = GetShot(db, show+"/"+ctg+"/"+unit)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, fmt.Errorf("invalid category: %s", ctg)
+	unitID := show + "/" + ctg + "/" + unit
+	ok, err := CheckUnitExist(db, unitID)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, fmt.Errorf("unit not found: %s", unitID)
 	}
 	ks, _, _, err := dbKIVs(&Task{})
 	if err != nil {
@@ -295,17 +292,62 @@ func ShotTasks(db *sql.DB, id string) ([]*Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	var tasks []string
-	switch ctg {
-	case "shot":
-		s, err := GetShot(db, id)
-		if err != nil {
-			return nil, err
-		}
-		tasks = s.Tasks
-	default:
-		return nil, fmt.Errorf("invalid category: %s", ctg)
+	if ctg != "shot" {
+		return nil, fmt.Errorf("invalid shot id: %s", id)
 	}
+	s, err := GetShot(db, id)
+	if err != nil {
+		return nil, err
+	}
+	tasks := s.Tasks
+	ks, _, _, err := dbKIVs(&Task{})
+	if err != nil {
+		return nil, err
+	}
+	// DB에 있는 태스크 중 샷의 Tasks에 정의된 태스크만 보이고, 그 순서대로 정렬한다.
+	taskNotHidden := make(map[string]bool)
+	taskIdx := make(map[string]int)
+	for i, task := range tasks {
+		taskNotHidden[task] = true
+		taskIdx[task] = i
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND unit=$3", keys), show, ctg, unit)
+	ts := make([]*Task, 0)
+	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
+		t := &Task{}
+		err := scan(rows, t)
+		if err != nil {
+			return err
+		}
+		if taskNotHidden[t.Task] {
+			ts = append(ts, t)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(ts, func(i, j int) bool {
+		return taskIdx[ts[i].Task] < taskIdx[ts[j].Task]
+	})
+	return ts, nil
+}
+
+// AssetTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
+func AssetTasks(db *sql.DB, id string) ([]*Task, error) {
+	show, ctg, unit, err := SplitUnitID(id)
+	if err != nil {
+		return nil, err
+	}
+	if ctg != "asset" {
+		return nil, fmt.Errorf("invalid asset id: %s", id)
+	}
+	a, err := GetAsset(db, id)
+	if err != nil {
+		return nil, err
+	}
+	tasks := a.Tasks
 	ks, _, _, err := dbKIVs(&Task{})
 	if err != nil {
 		return nil, err
