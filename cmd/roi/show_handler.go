@@ -39,14 +39,14 @@ func addShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 }
 
 func addShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	err := mustFields(r, "show")
+	err := mustFields(r, "id")
 	if err != nil {
 		return err
 	}
-	show := r.FormValue("show")
-	_, err = roi.GetShow(DB, show)
+	id := r.FormValue("id")
+	_, err = roi.GetShow(DB, id)
 	if err == nil {
-		return roi.BadRequest(fmt.Sprintf("show already exist: %s", show))
+		return roi.BadRequest(fmt.Sprintf("show already exist: %s", id))
 	} else if !errors.As(err, &roi.NotFoundError{}) {
 		return err
 	}
@@ -55,7 +55,7 @@ func addShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 		return err
 	}
 	s := &roi.Show{
-		Show:         show,
+		Show:         id,
 		DefaultTasks: si.DefaultTasks,
 	}
 	err = roi.AddShow(DB, s)
@@ -66,9 +66,9 @@ func addShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	if err != nil {
 		return err
 	}
-	cfg.CurrentShow = show
+	cfg.CurrentShow = id
 	roi.UpdateUserConfig(DB, env.User.ID, cfg)
-	http.Redirect(w, r, "/update-show?show="+show, http.StatusSeeOther)
+	http.Redirect(w, r, "/update-show?id="+id, http.StatusSeeOther)
 	return nil
 }
 
