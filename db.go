@@ -30,6 +30,7 @@ func initDB(addr string) (*sql.DB, error) {
 		dbStmt(CreateTableIfNotExistsSitesStmt),
 		dbStmt(CreateTableIfNotExistsShowsStmt),
 		dbStmt(CreateTableIfNotExistsShotsStmt),
+		dbStmt(CreateTableIfNotExistsAssetsStmt),
 		dbStmt(CreateTableIfNotExistsTasksStmt),
 		dbStmt(CreateTableIfNotExistsVersionsStmt),
 		dbStmt(CreateTableIfNotExistsUsersStmt),

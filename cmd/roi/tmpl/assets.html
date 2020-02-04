@@ -22,19 +22,19 @@
 .task:nth-child(1) {
 	border-top: 0;
 }
-.selected-shot {
-	box-shadow: 0 0 0 1px yellow !important;
+.selected-asset {
+	box-shadow: 0 0 0 1px #66FFBB !important;
 }
 </style>
 <div style="padding:15px 10px 15px 10px;z-index:0;">
 <!--검색 결과-->
-{{range $s := .Shots}}
-<div id="{{$s.ID}}" class="ui inverted segment shot">
-	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;">
+{{range $a := .Assets}}
+<div id="{{$a.ID}}" class="ui inverted segment asset">
+	<div class="asset-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;">
 		<div class="ui" style="width:288px;margin-right:22px;display:flex;align-items:end;">
 				<div style="display:flex;flex-direction:column;">
-					<a href="/update-shot?id={{$s.ID}}" style="font-size:1.3rem;color:white;border-bottom:solid 1px var(--{{.Status.UIColor}});">
-						<b>{{.Shot}}</b>
+					<a href="/update-asset?id={{$a.ID}}" style="font-size:1.3rem;color:white;border-bottom:solid 1px var(--{{.Status.UIColor}});">
+						<b>{{.Asset}}</b>
 					</a>
 				</div>
 				<div style="width:1rem;display:inline-block;"></div>
@@ -42,21 +42,17 @@
 		</div>
 		<div style="flex:1;font-size:14px;"> {{.CGDescription}}</div>
 	</div>
-	<div class="shot-main" style="display:flex;margin-bottom:6px;">
+	<div class="asset-main" style="display:flex;margin-bottom:6px;">
 		<div style="width:288px;margin-right:22px;">
-			{{if hasThumbnail $s.ID}}
-			<img style="width:288px;height:162px;" src="{{if hasThumbnail $s.ID}}/data/show/{{$s.ID}}/thumbnail.png{{end}}" onclick="selectShot(this)" />
+			{{if hasThumbnail $a.ID}}
+			<img style="width:288px;height:162px;" src="{{if hasThumbnail $a.ID}}/data/show/{{$a.ID}}/thumbnail.png{{end}}" onclick="selectAsset(this)" />
 			{{else}}
-			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;"  onclick="selectShot(this)">{{.Description}}</div>
+			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;"  onclick="selectAsset(this)">{{.Description}}</div>
 			{{end}}
-			<div style="display:flex;justify-content:space-between;font-size:11px;color:gray;margin:0px;">
-				<div>{{.TimecodeIn}} - {{.TimecodeOut}}</div>
-				<div><div style="display:inline-block;">{{.Duration}}</div> f</div>
-			</div>
 		</div>
 		<div class="tasks">
 			{{range $i, $t := .Tasks}}
-			{{with index (index $.Tasks $s.Shot) $t}}
+			{{with index (index $.Tasks $a.Asset) $t}}
 			<div class="task">
 				<div><a href="/update-task?id={{.ID}}" style="color:white;flex:1;">{{.Task}}</a></div>
 				<div>{{shortStringFromDate .DueDate}}</div>
@@ -68,14 +64,14 @@
 			{{end}}
 		</div>
 	</div>
-	<div class="shot-footer" style="display:flex;">
+	<div class="asset-footer" style="display:flex;">
 		<div style="width:288px;margin-right:22px;padding:1px;display:flex;justify-content:space-between">
 			<div style="display:flex;">
-				<div class="shot-status">{{.Status.UIString}}</div>
+				<div class="asset-status">{{.Status.UIString}}</div>
 			</div>
-			<div class="shot-due_date detail">{{if not .DueDate.IsZero}}{{stringFromDate .DueDate}}{{end}}</div>
+			<div class="asset-due_date detail">{{if not .DueDate.IsZero}}{{stringFromDate .DueDate}}{{end}}</div>
 		</div>
-		<div class="shot-tags">
+		<div class="asset-tags">
 			{{range $i, $v := .Tags -}}
 			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="?q=tag%3A{{.}}">{{.}}</a>
 			{{- end}}
@@ -84,21 +80,21 @@
 </div>
 {{end}}
 
-<!-- 샷을 선택했을때 아래 바의 크기만큼 공간에 여유를 두어야 함 -->
+<!-- 애셋을 선택했을때 아래 바의 크기만큼 공간에 여유를 두어야 함 -->
 <div style="height:8rem"></div>
 
 </div>
 
 <div id="bottom-bar" hidden style="position:fixed;bottom:0;width:100%;border-top:solid 1px #333;background-color:#444">
 	<div id="bottom-bar-menu" style="background-color:#333;display:flex;height:4.5rem;padding:1rem;">
-		<button style="margin-right:1rem;width:6rem;border-radius:2px" onclick="gotoUpdateMultiShotsPage()">샷 수정</button>
+		<button style="margin-right:1rem;width:6rem;border-radius:2px" onclick="gotoUpdateMultiAssetsPage()">애셋 수정</button>
 		<button style="margin-right:1rem;width:8rem;border-radius:2px" onclick="gotoUpdateMultiTasksPage()">태스크 수정</button>
 		<div style="flex:1;justify-content:end;"></div>
 	</div>
 	<div style="display:flex;align-items:center;height:3.5rem;padding:0.5rem;border-top:solid 1px #222">
 		<div id="bottom-bar-notifier" style="color:white;margin-right:1rem"></div>
-		<a onclick="selectAllShots()" style="cursor:pointer;margin-right:1rem">전체선택</a>
-		<a onclick="deselectAllShots()" style="cursor:pointer">전체해제</a>
+		<a onclick="selectAllAssets()" style="cursor:pointer;margin-right:1rem">전체선택</a>
+		<a onclick="deselectAllAssets()" style="cursor:pointer">전체해제</a>
 	</div>
 </div>
 <!--검색 결과 끝-->
@@ -109,67 +105,67 @@ function showChanged() {
 	document.location.href = "?show=" + show;
 };
 
-// selectedshots에 선택된 샷이 담긴다.
-let selectedShots = {}
+// selectedassets에 선택된 애셋이 담긴다.
+let selectedAssets = {}
 
-// selectShot은 샷 이미지를 클릭했을때 해당 샷을 선택한다.
-function selectShot(img) {
-	let shot = img.closest(".shot").id
-	if (selectedShots[shot]) {
-		delete selectedShots[shot]
+// selectAsset은 애셋 이미지를 클릭했을때 해당 애셋을 선택한다.
+function selectAsset(img) {
+	let asset = img.closest(".asset").id
+	if (selectedAssets[asset]) {
+		delete selectedAssets[asset]
 	} else {
-		selectedShots[shot] = true
+		selectedAssets[asset] = true
 	}
 	redrawBottomBar()
 }
 
-// selectAllShots는 모든 샷을 선택한다.
-function selectAllShots() {
-	selectedShots = {}
-	for (let el of document.getElementsByClassName("shot")) {
-		selectedShots[el.id] = true
+// selectAllAssets는 모든 애셋을 선택한다.
+function selectAllAssets() {
+	selectedAssets = {}
+	for (let el of document.getElementsByClassName("asset")) {
+		selectedAssets[el.id] = true
 	}
 	redrawBottomBar()
 }
 
-// deselectAllShots는 모든 샷의 선택을 해제한다.
-function deselectAllShots() {
-	selectedShots = {}
+// deselectAllAssets는 모든 애셋의 선택을 해제한다.
+function deselectAllAssets() {
+	selectedAssets = {}
 	redrawBottomBar()
 }
 
-// redrawBottomBar는 하나 이상의 샷이 선택되었을때 이를 알려주고
+// redrawBottomBar는 하나 이상의 애셋이 선택되었을때 이를 알려주고
 // 한번에 수정할 수 있게 해주는 하단 바를 그린다.
 function redrawBottomBar() {
-	for (let el of document.getElementsByClassName("shot")) {
-		el.classList.remove("selected-shot")
+	for (let el of document.getElementsByClassName("asset")) {
+		el.classList.remove("selected-asset")
 	}
-	for (let shot in selectedShots) {
-		let el = document.getElementById(shot)
-		el.classList.add("selected-shot")
+	for (let asset in selectedAssets) {
+		let el = document.getElementById(asset)
+		el.classList.add("selected-asset")
 	}
 	let bar = document.getElementById("bottom-bar")
-	if (Object.keys(selectedShots).length == 0) {
+	if (Object.keys(selectedAssets).length == 0) {
 		bar.hidden = true
 	} else {
 		bar.hidden = false
 	}
 	let notifier = document.getElementById("bottom-bar-notifier")
-	notifier.innerHTML = String(Object.keys(selectedShots).length) + "개의 샷이 선택되었습니다."
+	notifier.innerHTML = String(Object.keys(selectedAssets).length) + "개의 애셋이 선택되었습니다."
 }
 
-// gotoUpdateMultiShotsPage는 선택된 샷들을 한번에 수정할 수 있도록 해주는 페이지로 이동한다.
-function gotoUpdateMultiShotsPage() {
+// gotoUpdateMultiAssetsPage는 선택된 애셋들을 한번에 수정할 수 있도록 해주는 페이지로 이동한다.
+function gotoUpdateMultiAssetsPage() {
 	// 나중에 히스토리의 뒤로가기 기능을 이용해 이 페이지로 되돌아올 경우
-	// 선택된 샷들의 정보는 변경되었을 가능성이 크므로 다시 불러와야 한다.
+	// 선택된 애셋들의 정보는 변경되었을 가능성이 크므로 다시 불러와야 한다.
 	sessionStorage.reload = "1"
-	sessionStorage.selectedShots = JSON.stringify(selectedShots)
+	sessionStorage.selectedAssets = JSON.stringify(selectedAssets)
 
 	let form = document.createElement("form")
-	form.action = "/update-multi-shots"
+	form.action = "/update-multi-assets"
 	// 주의: GET의 최대 데이터 전송 크기 제한때문에 현재 POST로 전송한다.
 	form.method = "POST"
-	for (let s of Object.keys(selectedShots)) {
+	for (let s of Object.keys(selectedAssets)) {
 		let input = document.createElement("input")
 		input.hidden = true
 		input.type = "text"
@@ -181,18 +177,18 @@ function gotoUpdateMultiShotsPage() {
 	form.submit()
 }
 
-// gotoUpdateMultiTasksPage는 선택된 샷들의 태스크를 한번에 수정할 수 있도록 해주는 페이지로 이동한다.
+// gotoUpdateMultiTasksPage는 선택된 애셋들의 태스크를 한번에 수정할 수 있도록 해주는 페이지로 이동한다.
 function gotoUpdateMultiTasksPage() {
 	// 나중에 히스토리의 뒤로가기 기능을 이용해 이 페이지로 되돌아올 경우
-	// 선택된 샷들의 정보는 변경되었을 가능성이 크므로 다시 불러와야 한다.
+	// 선택된 애셋들의 정보는 변경되었을 가능성이 크므로 다시 불러와야 한다.
 	sessionStorage.reload = "1"
-	sessionStorage.selectedShots = JSON.stringify(selectedShots)
+	sessionStorage.selectedAssets = JSON.stringify(selectedAssets)
 
 	let form = document.createElement("form")
 	form.action = "/update-multi-tasks"
 	// 주의: GET의 최대 데이터 전송 크기 제한때문에 현재 POST로 전송한다.
 	form.method = "POST"
-	for (let s of Object.keys(selectedShots)) {
+	for (let s of Object.keys(selectedAssets)) {
 		let input = document.createElement("input")
 		input.hidden = true
 		input.type = "text"
@@ -204,9 +200,9 @@ function gotoUpdateMultiTasksPage() {
 	form.submit()
 }
 
-// shotStatusUIString은 샷 상태를 UI에서 표시할 문자열로 바꾸는 사전이다.
-let shotStatusUIString = {
-	{{range $st := $.AllShotStatus}}
+// assetStatusUIString은 애셋 상태를 UI에서 표시할 문자열로 바꾸는 사전이다.
+let assetStatusUIString = {
+	{{range $st := $.AllAssetStatus}}
 	{{$st}}: {{$st.UIString}},
 	{{end}}
 }
@@ -255,29 +251,29 @@ function toShortDate(t) {
 	return ymds[1] + "-" + ymds[2]
 }
 
-// reloadShots는 이 페이지에서 다른 페이지로 갔다가 히스토리를 이용하여 되돌아 왔을때
-// 선택되었던 샷을 되살리고 그 정보를 다시 부른다.
+// reloadAssets는 이 페이지에서 다른 페이지로 갔다가 히스토리를 이용하여 되돌아 왔을때
+// 선택되었던 애셋을 되살리고 그 정보를 다시 부른다.
 //
 // F5 등을 눌러 문서를 리로드하면 당연히 모든 정보를 새로 부르겠지만 현재 뷰나 선택된
-// 샷에 대한 정보가 날아간다. 계속해서 샷 정보를 수정해야하는 PM 입장에서는 이 과정이
+// 애셋에 대한 정보가 날아간다. 계속해서 애셋 정보를 수정해야하는 PM 입장에서는 이 과정이
 // 귀찮은 일이 될 것이다. 이를 방지하고자 이런 방식을 사용한다.
 //
 // 정보를 되살리는데는 다음 세션 정보를 사용한다.
 //
 // sessionStorage.reload
-// sessionStorage.selectedShots
+// sessionStorage.selectedAssets
 //
-function reloadShots() {
+function reloadAssets() {
 	if (sessionStorage.reload) {
-		// 샷, 태스크 수정 페이지에서 돌아왔기 때문에 샷 선택을 복구하고
-		// 이 샷들에 대한 정보를 갱신한다.
-		selectedShots = JSON.parse(sessionStorage.selectedShots)
+		// 애셋, 태스크 수정 페이지에서 돌아왔기 때문에 애셋 선택을 복구하고
+		// 이 애셋들에 대한 정보를 갱신한다.
+		selectedAssets = JSON.parse(sessionStorage.selectedAssets)
 		sessionStorage.clear()
 		redrawBottomBar()
 
-		let shots = Object.keys(selectedShots).sort()
+		let assets = Object.keys(selectedAssets).sort()
 		let query = ""
-		for (let id of shots) {
+		for (let id of assets) {
 			 query += "id=" + id + "&"
 		}
 
@@ -288,22 +284,22 @@ function reloadShots() {
 				console.log(r.err)
 				return
 			}
-			for (let id of shots) {
-				// 샷 정보 갱신
+			for (let id of assets) {
+				// 애셋 정보 갱신
 				let s = r.msg[id]
-				let shotEl = document.getElementById(id)
-				let shotStatusEl = shotEl.getElementsByClassName("shot-status")[0]
-				shotStatusEl.innerHTML = shotStatusUIString[s.Status]
-				let shotDueDateEl = shotEl.getElementsByClassName("shot-due_date")[0]
-				shotDueDateEl.innerHTML = toDate(s.DueDate)
-				let shotTagsEl = shotEl.getElementsByClassName("shot-tags")[0]
-				shotTagsEl.innerHTML = ""
+				let assetEl = document.getElementById(id)
+				let assetStatusEl = assetEl.getElementsByClassName("asset-status")[0]
+				assetStatusEl.innerHTML = assetStatusUIString[s.Status]
+				let assetDueDateEl = assetEl.getElementsByClassName("asset-due_date")[0]
+				assetDueDateEl.innerHTML = toDate(s.DueDate)
+				let assetTagsEl = assetEl.getElementsByClassName("asset-tags")[0]
+				assetTagsEl.innerHTML = ""
 				for (let t of s.Tags) {
-					shotTagsEl.innerHTML += `<a class="ui grey mini label" href="?q=tag%3A${t}">${t}</a>`
+					assetTagsEl.innerHTML += `<a class="ui grey mini label" href="?q=tag%3A${t}">${t}</a>`
 				}
 			}
 		}
-		req.open("POST", "/api/v1/shot/get?" + query)
+		req.open("POST", "/api/v1/asset/get?" + query)
 		req.send()
 
 		// 태스크 정보도 갱신한다.
@@ -314,11 +310,11 @@ function reloadShots() {
 				console.log(r.err)
 				return
 			}
-			for (let id of shots) {
-				// 기존 샷 태스크 엘리먼트 삭제
-				let shotEl = document.getElementById(id)
-				let shotTasksEl = shotEl.getElementsByClassName("tasks")[0]
-				shotTasksEl.innerHTML = ""
+			for (let id of assets) {
+				// 기존 애셋 태스크 엘리먼트 삭제
+				let assetEl = document.getElementById(id)
+				let assetTasksEl = assetEl.getElementsByClassName("tasks")[0]
+				assetTasksEl.innerHTML = ""
 
 				let ts = r.msg[id]
 				for (let t of ts) {
@@ -326,29 +322,29 @@ function reloadShots() {
 					let taskEl = document.createElement("div")
 					taskEl.classList.add("task")
 					let taskIdEl = document.createElement("div")
-					taskIdEl.innerHTML = `<a href="/update-task?id=${t.Show}/${t.Shot}/${t.Task}" style="color:white;flex:1;">${t.Task}</a>`
+					taskIdEl.innerHTML = `<a href="/update-task?id=${t.Show}/${t.Asset}/${t.Task}" style="color:white;flex:1;">${t.Task}</a>`
 					let taskDueDateEl = document.createElement("div")
 					taskDueDateEl.innerHTML = toShortDate(t.DueDate)
 					let taskAssigneeEl = document.createElement("div")
 					taskAssigneeEl.innerHTML = `<a href="/user/${t.Assignee}" style="color:inherit">${t.Assignee}</a>`
 					let taskWorkingVersionEl = document.createElement("div")
 					if (t.WorkingVersion) {
-						taskWorkingVersionEl.innerHTML = `<a href="/update-version?id=${t.Show}/${t.Shot}/${t.Task}/${t.WorkingVersion}" style="color:inherit">${t.WorkingVersion} / ${versionStatusUIString[t.WorkingVersionStatus]}</a>`
+						taskWorkingVersionEl.innerHTML = `<a href="/update-version?id=${t.Show}/${t.Asset}/${t.Task}/${t.WorkingVersion}" style="color:inherit">${t.WorkingVersion} / ${versionStatusUIString[t.WorkingVersionStatus]}</a>`
 					}
 					let taskPublishVersionEl = document.createElement("div")
 					if (t.PublishVersion) {
-						taskPublishVersionEl.innerHTML = `<a href="/update-version?id=${t.Show}/${t.Shot}/${t.Task}/${t.PublishVersion}" style="color:inherit">${t.PublishVersion} / 퍼블리시</a>`
+						taskPublishVersionEl.innerHTML = `<a href="/update-version?id=${t.Show}/${t.Asset}/${t.Task}/${t.PublishVersion}" style="color:inherit">${t.PublishVersion} / 퍼블리시</a>`
 					}
 					taskEl.appendChild(taskIdEl)
 					taskEl.appendChild(taskDueDateEl)
 					taskEl.appendChild(taskAssigneeEl)
 					taskEl.appendChild(taskWorkingVersionEl)
 					taskEl.appendChild(taskPublishVersionEl)
-					shotTasksEl.appendChild(taskEl)
+					assetTasksEl.appendChild(taskEl)
 				}
 			}
 		}
-		tReq.open("POST", "/api/v1/shot-tasks/get?" + query)
+		tReq.open("POST", "/api/v1/asset-tasks/get?" + query)
 		tReq.send()
 	}
 }
@@ -358,13 +354,13 @@ function reloadShots() {
 let isFirefox = navigator.userAgent.indexOf("Firefox")
 if (isFirefox) {
 	window.onfocus = function(event) {
-		reloadShots()
+		reloadAssets()
 	}
 }
 let isChrome = navigator.userAgent.indexOf("Chrome")
 if (isChrome) {
 	window.onload = function(event) {
-		reloadShots()
+		reloadAssets()
 	}
 }
 </script>

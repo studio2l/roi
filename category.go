@@ -1,6 +1,7 @@
 package roi
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 )
@@ -8,7 +9,7 @@ import (
 // verifyCategoryName은 받아들인 카테고리 이름이 유효하지 않다면 에러를 반환한다.
 func verifyCategoryName(ctg string) error {
 	switch ctg {
-	case "shot":
+	case "shot", "asset":
 		return nil
 	}
 	return fmt.Errorf("invalid category: %s", ctg)
@@ -19,6 +20,8 @@ func verifyUnitName(ctg, unit string) error {
 	switch ctg {
 	case "shot":
 		return verifyShotName(unit)
+	case "asset":
+		return verifyAssetName(unit)
 	}
 	return fmt.Errorf("invalid category: %s", ctg)
 }
@@ -37,4 +40,28 @@ func SplitUnitID(id string) (string, string, string, error) {
 		return "", "", "", BadRequest(fmt.Sprintf("invalid unit id: %s", id))
 	}
 	return show, ctg, unit, nil
+}
+
+// CheckUnitExist는 해당 유닛이 존재하는지를 검사한다.
+// 만일 검사중 에러가 있었다면 에러를 반환한다.
+func CheckUnitExist(db *sql.DB, id string) (bool, error) {
+	_, ctg, _, err := SplitUnitID(id)
+	if err != nil {
+		return false, err
+	}
+	switch ctg {
+	case "shot":
+		_, err := GetShot(db, id)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	case "asset":
+		_, err := GetAsset(db, id)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+	return false, fmt.Errorf("invalid category: %s", ctg)
 }

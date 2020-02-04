@@ -90,6 +90,9 @@ func TestShot(t *testing.T) {
 		t.Fatalf("could not search shots from shots table: %s", err)
 	}
 	if !reflect.DeepEqual(got, want) {
+		// 애셋을 테스트 중에 두 슬라이스의 순서가 다를 수 있다는 것을 발견하였다.
+		// 운이 좋게 여기서 에러가 나지 않았지만 비교 방식을 바꾸어야 한다.
+		// 애셋 테스트 코드처럼 갯수를 비교하거나 더 나은 비교 방식을 생각해보자.
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
 
