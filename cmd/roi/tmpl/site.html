@@ -63,29 +63,57 @@
 		</div>
 		<div class="field">
 			<div style="display:flex;color:black">
-				<label>태스크</label>
-				<div class="multi-input-add-button" onclick='appendTemplate("tasks_g", "tasks_t")'>+</div>
+				<label>샷 태스크</label>
+				<div class="multi-input-add-button" onclick='appendTemplate("shot_tasks_g", "shot_tasks_t")'>+</div>
 			</div>
-			<template id="tasks_t">
-				<input type="text" name="tasks" value=""/>
+			<template id="shot_tasks_t">
+				<input type="text" name="shot_tasks" value=""/>
 			</template>
-			<div id="tasks_g" class="multi-input">
-				{{range .Site.Tasks}}
-				<input type="text" name="tasks" value="{{.}}"/>
+			<div id="shot_tasks_g" class="multi-input">
+				{{range .Site.ShotTasks}}
+				<input type="text" name="shot_tasks" value="{{.}}"/>
 				{{end}}
 			</div>
 		</div>
 		<div class="field">
 			<div style="display:flex;color:black">
-				<label>기본 태스크</label>
-				<div class="multi-input-add-button" onclick='appendTemplate("default_tasks_g", "default_tasks_t")'>+</div>
+				<label>기본 샷 태스크</label>
+				<div class="multi-input-add-button" onclick='appendTemplate("default_shot_tasks_g", "default_shot_tasks_t")'>+</div>
 			</div>
-			<template id="default_tasks_t">
-				<input type="text" name="default_tasks" onkeydown="suggest(this)" value=""/>
+			<template id="default_shot_tasks_t">
+				<input type="text" name="default_shot_tasks" onkeydown="suggest(this)" value=""/>
 			</template>
-			<div id="default_tasks_g" class="multi-input">
-				{{range .Site.DefaultTasks}}
-				<input type="text" name="default_tasks" onkeydown="suggest(this)" value="{{.}}"/>
+			<div id="default_shot_tasks_g" class="multi-input">
+				{{range .Site.DefaultShotTasks}}
+				<input type="text" name="default_shot_tasks" onkeydown="suggest(this)" value="{{.}}"/>
+				{{end}}
+			</div>
+		</div>
+		<div class="field">
+			<div style="display:flex;color:black">
+				<label>애셋 태스크</label>
+				<div class="multi-input-add-button" onclick='appendTemplate("asset_tasks_g", "asset_tasks_t")'>+</div>
+			</div>
+			<template id="asset_tasks_t">
+				<input type="text" name="asset_tasks" value=""/>
+			</template>
+			<div id="asset_tasks_g" class="multi-input">
+				{{range .Site.AssetTasks}}
+				<input type="text" name="asset_tasks" value="{{.}}"/>
+				{{end}}
+			</div>
+		</div>
+		<div class="field">
+			<div style="display:flex;color:black">
+				<label>기본 애셋 태스크</label>
+				<div class="multi-input-add-button" onclick='appendTemplate("default_asset_tasks_g", "default_asset_tasks_t")'>+</div>
+			</div>
+			<template id="default_asset_tasks_t">
+				<input type="text" name="default_asset_tasks" onkeydown="suggest(this)" value=""/>
+			</template>
+			<div id="default_asset_tasks_g" class="multi-input">
+				{{range .Site.DefaultAssetTasks}}
+				<input type="text" name="default_asset_tasks" onkeydown="suggest(this)" value="{{.}}"/>
 				{{end}}
 			</div>
 		</div>

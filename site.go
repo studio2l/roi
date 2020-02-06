@@ -15,8 +15,14 @@ type Site struct {
 	VFXProducers    []string `db:"vfx_producers"`
 	CGSupervisors   []string `db:"cg_supervisors"`
 	ProjectManagers []string `db:"project_managers"`
-	Tasks           []string `db:"tasks"`
-	DefaultTasks    []string `db:"default_tasks"` // 샷이 생성될 때 기본적으로 생겨야 하는 태스크
+	// 샷에 생성할 수 있는 태스크
+	ShotTasks []string `db:"shot_tasks"`
+	// 샷이 생성될 때 기본적으로 생기는 태스크
+	DefaultShotTasks []string `db:"default_shot_tasks"`
+	// 애셋에 생성할 수 있는 태스크
+	AssetTasks []string `db:"asset_tasks"`
+	// 애셋이 생성될 때 기본적으로 생기는 태스크
+	DefaultAssetTasks []string `db:"default_asset_tasks"`
 	// Leads는 task:name 형식이고 한 파트에 여러명이 등록될 수 있다.
 	// 이 때 [... rnd:kybin rnd:kaycho ...] 처럼 등록한다.
 	// 형식이 맞지 않거나 Tasks에 없는 태스크명을 쓰면 에러를 낸다.
@@ -29,8 +35,10 @@ var CreateTableIfNotExistsSitesStmt = `CREATE TABLE IF NOT EXISTS sites (
 	vfx_producers STRING[] NOT NULL,
 	cg_supervisors STRING[] NOT NULL,
 	project_managers STRING[] NOT NULL,
-	tasks STRING[] NOT NULL,
-	default_tasks STRING[] NOT NULL,
+	shot_tasks STRING[] NOT NULL,
+	default_shot_tasks STRING[] NOT NULL,
+	asset_tasks STRING[] NOT NULL,
+	default_asset_tasks STRING[] NOT NULL,
 	leads STRING[] NOT NULL
 )`
 

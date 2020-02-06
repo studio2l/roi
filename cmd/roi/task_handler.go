@@ -132,13 +132,17 @@ func updateMultiTasksHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 	}
 	ids := r.Form["id"]
 	id := ids[0]
-	show, _, err := roi.SplitShotID(id)
+	show, ctg, _, err := roi.SplitUnitID(id)
 	if err != nil {
 		return err
 	}
 	site, err := roi.GetSite(DB)
 	if err != nil {
 		return err
+	}
+	tasks := site.ShotTasks
+	if ctg == "asset" {
+		tasks = site.AssetTasks
 	}
 	recipe := struct {
 		LoggedInUser  string
@@ -150,7 +154,7 @@ func updateMultiTasksHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		LoggedInUser:  env.User.ID,
 		Show:          show,
 		IDs:           ids,
-		Tasks:         site.Tasks,
+		Tasks:         tasks,
 		AllTaskStatus: roi.AllTaskStatus,
 	}
 	return executeTemplate(w, "update-multi-tasks.html", recipe)
