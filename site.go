@@ -9,7 +9,8 @@ import (
 
 // Site는 현재 스튜디오를 뜻한다.
 type Site struct {
-	// 현재로서는 only라는 하나의 사이트만 존재
+	// 현재로서는 빈 이름의 하나의 사이트만 존재한다.
+	// 추후 여러 사이트로 확장할것인지 고민중이다.
 	Site            string   `db:"site"`
 	VFXSupervisors  []string `db:"vfx_supervisors"`
 	VFXProducers    []string `db:"vfx_producers"`
@@ -42,9 +43,74 @@ var CreateTableIfNotExistsSitesStmt = `CREATE TABLE IF NOT EXISTS sites (
 	leads STRING[] NOT NULL
 )`
 
-// AddSite는 DB에 빈 사이트를 생성한다.
+// DefaultSite는 기본적으로 제공되는 사이트이다.
+var DefaultSite = &Site{
+	ShotTasks: []string{
+		"motion",
+		"match",
+		"ani",
+		"fx",
+		"lit",
+		"matte",
+		"comp",
+	},
+	DefaultShotTasks: []string{
+		"comp",
+	},
+	AssetTasks: []string{
+		"mod",
+		"rig",
+		"tex",
+	},
+	DefaultAssetTasks: []string{
+		"mod",
+		"rig",
+		"tex",
+	},
+}
+
+// verifySite는 받아들인 사이트가 유효하지 않다면 에러를 반환한다.
+func verifySite(s *Site) error {
+	if s == nil {
+		return fmt.Errorf("nil site")
+	}
+	hasShotTask := make(map[string]bool)
+	for _, task := range s.ShotTasks {
+		err := verifyTaskName(task)
+		if err != nil {
+			return fmt.Errorf("invalid site: %w", err)
+		}
+		hasShotTask[task] = true
+	}
+	for _, task := range s.DefaultShotTasks {
+		if !hasShotTask[task] {
+			return fmt.Errorf("invalid site: %s shot task not specified but used as default shot task", task)
+		}
+	}
+	hasAssetTask := make(map[string]bool)
+	for _, task := range s.AssetTasks {
+		err := verifyTaskName(task)
+		if err != nil {
+			return fmt.Errorf("invalid site: %w", err)
+		}
+		hasAssetTask[task] = true
+	}
+	for _, task := range s.DefaultAssetTasks {
+		if !hasAssetTask[task] {
+			return fmt.Errorf("invalid site: %s asset task not specified but used as default asset task", task)
+		}
+	}
+	return nil
+}
+
+// AddSite는 DB에 하나의 사이트를 생성한다.
+// 현재는 하나의 사이트만 지원하기 때문에 db생성시 한번만 사용되어야 한다.
 func AddSite(db *sql.DB) error {
-	ks, is, vs, err := dbKIVs(&Site{Site: "only"})
+	err := verifySite(DefaultSite)
+	if err != nil {
+		return err
+	}
+	ks, is, vs, err := dbKIVs(DefaultSite)
 	if err != nil {
 		return err
 	}
@@ -58,7 +124,6 @@ func AddSite(db *sql.DB) error {
 
 // UpdateSite는 DB의 사이트 정보를 업데이트한다.
 func UpdateSite(db *sql.DB, s *Site) error {
-	s.Site = "only"
 	ks, is, vs, err := dbKIVs(s)
 	if err != nil {
 		return err
@@ -66,7 +131,7 @@ func UpdateSite(db *sql.DB, s *Site) error {
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE sites SET (%s) = (%s) WHERE site='only'", keys, idxs), vs...),
+		dbStmt(fmt.Sprintf("UPDATE sites SET (%s) = (%s)", keys, idxs), vs...),
 	}
 	return dbExec(db, stmts)
 }
@@ -74,7 +139,7 @@ func UpdateSite(db *sql.DB, s *Site) error {
 // GetSite는 db에서 사이트 정보를 가지고 온다.
 // 사이트 정보가 존재하지 않으면 nil과 NotFound 에러를 반환한다.
 func GetSite(db *sql.DB) (*Site, error) {
-	ks, _, _, err := dbKIVs(&Site{Site: "only"})
+	ks, _, _, err := dbKIVs(&Site{})
 	if err != nil {
 		return nil, err
 	}
