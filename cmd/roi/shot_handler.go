@@ -72,7 +72,7 @@ func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 		Show:   id,
 		Shot:   shot,
 		Status: roi.ShotWaiting,
-		Tasks:  sh.DefaultTasks,
+		Tasks:  sh.DefaultShotTasks,
 	}
 	err = roi.AddShot(DB, s)
 	if err != nil {

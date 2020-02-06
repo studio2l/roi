@@ -55,8 +55,9 @@ func addShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 		return err
 	}
 	s := &roi.Show{
-		Show:         id,
-		DefaultTasks: si.DefaultTasks,
+		Show:              id,
+		DefaultShotTasks:  si.DefaultShotTasks,
+		DefaultAssetTasks: si.DefaultAssetTasks,
 	}
 	err = roi.AddShow(DB, s)
 	if err != nil {
@@ -134,7 +135,8 @@ func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	s.VFXDueDate = timeForms["vfx_due_date"]
 	s.OutputSize = r.FormValue("output_size")
 	s.ViewLUT = r.FormValue("view_lut")
-	s.DefaultTasks = fieldSplit(r.FormValue("default_tasks"))
+	s.DefaultShotTasks = fieldSplit(r.FormValue("default_shot_tasks"))
+	s.DefaultAssetTasks = fieldSplit(r.FormValue("default_asset_tasks"))
 
 	err = roi.UpdateShow(DB, id, s)
 	if err != nil {

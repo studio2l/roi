@@ -28,7 +28,8 @@ var CreateTableIfNotExistsShowsStmt = `CREATE TABLE IF NOT EXISTS shows (
 	vfx_due_date TIMESTAMPTZ NOT NULL,
 	output_size STRING NOT NULL,
 	view_lut STRING NOT NULL,
-	default_tasks STRING[] NOT NULL,
+	default_shot_tasks STRING[] NOT NULL,
+	default_asset_tasks STRING[] NOT NULL,
 	CONSTRAINT shows_pk PRIMARY KEY (show)
 )`
 
@@ -52,9 +53,10 @@ type Show struct {
 	ReleaseDate time.Time `db:"release_date"`
 	VFXDueDate  time.Time `db:"vfx_due_date"`
 
-	OutputSize   string   `db:"output_size"`
-	ViewLUT      string   `db:"view_lut"`
-	DefaultTasks []string `db:"default_tasks"`
+	OutputSize        string   `db:"output_size"`
+	ViewLUT           string   `db:"view_lut"`
+	DefaultShotTasks  []string `db:"default_shot_tasks"`
+	DefaultAssetTasks []string `db:"default_asset_tasks"`
 }
 
 // ID는 Show의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.

@@ -72,7 +72,7 @@ func addAssetPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error
 		Show:   id,
 		Asset:  asset,
 		Status: roi.AssetWaiting,
-		Tasks:  sh.DefaultTasks,
+		Tasks:  sh.DefaultAssetTasks,
 	}
 	err = roi.AddAsset(DB, s)
 	if err != nil {

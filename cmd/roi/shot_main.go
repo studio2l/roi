@@ -107,8 +107,8 @@ when ROI_ADDR environment variable is not empty, it will use the value as defaul
 		InsecureSkipVerify: true,
 	}
 	_, err = http.PostForm(protocol+site+":"+port+"/api/v1/show/add", url.Values{
-		"show":          []string{"test"},
-		"default_tasks": []string{"fx, lit"},
+		"show":               []string{"test"},
+		"default_shot_tasks": []string{"fx, lit"},
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "could not add show: %v", err)
