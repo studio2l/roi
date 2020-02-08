@@ -17,7 +17,8 @@ var testShotA = &Shot{
 	TimecodeOut:   "00:00:05:12",
 	Duration:      132,
 	Tags:          []string{"로이", "리무브"},
-	Tasks:         []string{"fx_fire"}, // testTaskA 확인
+	// 사이트에 이 샷 태스크가 존재해야만 에러가 나지 않는다.
+	Tasks: []string{"fx"},
 }
 
 var testShotB = &Shot{
@@ -44,7 +45,7 @@ var testShotC = &Shot{
 	TimecodeOut:   "00:00:08:15",
 	Duration:      36,
 	Tags:          []string{"가로등", "창문"},
-	Tasks:         []string{"mod"},
+	Tasks:         []string{"comp"},
 }
 
 var testShots = []*Shot{testShotA, testShotB, testShotC}
@@ -56,6 +57,16 @@ func TestShot(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not connect to database: %v", err)
 	}
+	err = AddSite(db)
+	if err != nil {
+		t.Fatalf("could not add site: %s", err)
+	}
+	defer func() {
+		err := DeleteSite(db)
+		if err != nil {
+			t.Fatalf("could not delete site: %s", err)
+		}
+	}()
 	err = AddShow(db, testShow)
 	if err != nil {
 		t.Fatalf("could not add project to projects table: %s", err)

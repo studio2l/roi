@@ -104,7 +104,8 @@ func verifyAssetName(asset string) error {
 }
 
 // verifyAsset은 받아들인 애셋이 유효하지 않다면 에러를 반환한다.
-func verifyAsset(s *Asset) error {
+// 필요하다면 db에 접근해서 정보를 검색한다.
+func verifyAsset(db *sql.DB, s *Asset) error {
 	if s == nil {
 		return fmt.Errorf("nil asset")
 	}
@@ -127,7 +128,7 @@ func verifyAsset(s *Asset) error {
 
 // AddAsset은 db의 특정 프로젝트에 애셋을 하나 추가한다.
 func AddAsset(db *sql.DB, s *Asset) error {
-	err := verifyAsset(s)
+	err := verifyAsset(db, s)
 	if err != nil {
 		return err
 	}
@@ -305,7 +306,7 @@ func UpdateAsset(db *sql.DB, id string, s *Asset) error {
 	if err != nil {
 		return err
 	}
-	err = verifyAsset(s)
+	err = verifyAsset(db, s)
 	if err != nil {
 		return err
 	}
@@ -332,6 +333,10 @@ func UpdateAsset(db *sql.DB, id string, s *Asset) error {
 					Task:     task,
 					Status:   TaskInProgress,
 					DueDate:  time.Time{},
+				}
+				err := verifyTask(db, t)
+				if err != nil {
+					return err
 				}
 				st, err := addTaskStmts(t)
 				if err != nil {

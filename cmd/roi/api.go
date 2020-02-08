@@ -56,12 +56,15 @@ func addShowApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiInternalServerError(w)
 		return
 	}
-	default_shot_tasks := fieldSplit(r.FormValue("default_shot_tasks"))
-	default_asset_tasks := fieldSplit(r.FormValue("default_asset_tasks"))
+	si, err := roi.GetSite(DB)
+	if err != nil {
+		apiInternalServerError(w)
+		return
+	}
 	p := &roi.Show{
 		Show:              show,
-		DefaultShotTasks:  default_shot_tasks,
-		DefaultAssetTasks: default_asset_tasks,
+		DefaultShotTasks:  si.DefaultShotTasks,
+		DefaultAssetTasks: si.DefaultAssetTasks,
 	}
 	err = roi.AddShow(DB, p)
 	if err != nil {

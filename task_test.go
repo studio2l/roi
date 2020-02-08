@@ -8,7 +8,7 @@ var testTaskA = &Task{
 	Show:     testShotA.Show,
 	Category: "shot",
 	Unit:     testShotA.Shot,
-	Task:     "fx_fire",
+	Task:     "fx", // testShotA에 정의되어 있어야만 테스트가 통과한다.
 	Status:   TaskInProgress,
 	Assignee: "kybin",
 }
@@ -18,6 +18,16 @@ func TestTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not connect to database: %v", err)
 	}
+	err = AddSite(db)
+	if err != nil {
+		t.Fatalf("could not add site: %s", err)
+	}
+	defer func() {
+		err := DeleteSite(db)
+		if err != nil {
+			t.Fatalf("could not delete site: %s", err)
+		}
+	}()
 	err = AddShow(db, testShow)
 	if err != nil {
 		t.Fatalf("could not add project: %s", err)

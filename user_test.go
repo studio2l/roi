@@ -22,6 +22,16 @@ func TestUser(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not connect to database: %v", err)
 	}
+	err = AddSite(db)
+	if err != nil {
+		t.Fatalf("could not add site: %s", err)
+	}
+	defer func() {
+		err := DeleteSite(db)
+		if err != nil {
+			t.Fatalf("could not delete site: %s", err)
+		}
+	}()
 	err = AddUser(db, u.ID, password)
 	if err != nil {
 		t.Fatalf("could not add user: %s", err)

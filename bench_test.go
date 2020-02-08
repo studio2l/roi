@@ -5,7 +5,7 @@ import "testing"
 func BenchmarkDBExecStmt(b *testing.B) {
 	db, err := testDB()
 	if err != nil {
-		b.Fatalf("could not open db: %w", err)
+		b.Fatalf("could not open db: %v", err)
 	}
 	_, err = db.Exec("CREATE TABLE IF NOT EXISTS bench (val INT)")
 	if err != nil {
@@ -26,7 +26,7 @@ func BenchmarkDBExecStmt(b *testing.B) {
 func BenchmarkDBExecFunc(b *testing.B) {
 	db, err := testDB()
 	if err != nil {
-		b.Fatalf("could not open db: %w", err)
+		b.Fatalf("could not open db: %v", err)
 	}
 	_, err = db.Exec("CREATE TABLE IF NOT EXISTS bench (val INT)")
 	if err != nil {
