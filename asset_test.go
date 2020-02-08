@@ -13,7 +13,8 @@ var testAssetA = &Asset{
 	Description:   "일반적인 여성",
 	CGDescription: "좋아요.",
 	Tags:          []string{"인간"},
-	Tasks:         []string{"mod"}, // testTaskA 확인
+	// 사이트에 이 애셋 태스크가 존재해야만 에러가 나지 않는다.
+	Tasks: []string{"mod", "rig"},
 }
 
 var testAssetB = &Asset{
@@ -44,6 +45,16 @@ func TestAsset(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not connect to database: %v", err)
 	}
+	err = AddSite(db)
+	if err != nil {
+		t.Fatalf("could not add site: %s", err)
+	}
+	defer func() {
+		err := DeleteSite(db)
+		if err != nil {
+			t.Fatalf("could not delete site: %s", err)
+		}
+	}()
 	err = AddShow(db, testShow)
 	if err != nil {
 		t.Fatalf("could not add project to projects table: %s", err)

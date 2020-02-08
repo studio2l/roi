@@ -116,7 +116,8 @@ func verifyTaskID(id string) error {
 }
 
 // verifyTask는 받아들인 태스크가 유효하지 않다면 에러를 반환한다.
-func verifyTask(t *Task) error {
+// 필요하다면 db에 접근해서 정보를 검색한다.
+func verifyTask(db *sql.DB, t *Task) error {
 	if t == nil {
 		return fmt.Errorf("nil task")
 	}
@@ -133,7 +134,7 @@ func verifyTask(t *Task) error {
 
 // AddTask는 db의 특정 쇼, 카테고리, 유닛에 태스크를 추가한다.
 func AddTask(db *sql.DB, t *Task) error {
-	err := verifyTask(t)
+	err := verifyTask(db, t)
 	if err != nil {
 		return err
 	}
@@ -160,10 +161,6 @@ func AddTask(db *sql.DB, t *Task) error {
 // addTaskStmts는 태스크를 추가하는 db 구문을 반환한다.
 // 부모가 있는지는 검사하지 않는다.
 func addTaskStmts(t *Task) ([]dbStatement, error) {
-	err := verifyTask(t)
-	if err != nil {
-		return nil, err
-	}
 	ks, is, vs, err := dbKIVs(t)
 	if err != nil {
 		return nil, err
@@ -179,7 +176,7 @@ func addTaskStmts(t *Task) ([]dbStatement, error) {
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
 // 이 함수를 호출하기 전 해당 태스크가 존재하는지 사용자가 검사해야 한다.
 func UpdateTask(db *sql.DB, id string, t *Task) error {
-	err := verifyTask(t)
+	err := verifyTask(db, t)
 	if err != nil {
 		return err
 	}

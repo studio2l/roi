@@ -70,7 +70,8 @@ var DefaultSite = &Site{
 }
 
 // verifySite는 받아들인 사이트가 유효하지 않다면 에러를 반환한다.
-func verifySite(s *Site) error {
+// 필요하다면 db에 접근해서 정보를 검색한다.
+func verifySite(db *sql.DB, s *Site) error {
 	if s == nil {
 		return fmt.Errorf("nil site")
 	}
@@ -84,7 +85,7 @@ func verifySite(s *Site) error {
 	}
 	for _, task := range s.DefaultShotTasks {
 		if !hasShotTask[task] {
-			return fmt.Errorf("invalid site: %s shot task not specified but used as default shot task", task)
+			return fmt.Errorf("invalid site: shot task %q not specified but used as default shot task", task)
 		}
 	}
 	hasAssetTask := make(map[string]bool)
@@ -97,7 +98,7 @@ func verifySite(s *Site) error {
 	}
 	for _, task := range s.DefaultAssetTasks {
 		if !hasAssetTask[task] {
-			return fmt.Errorf("invalid site: %s asset task not specified but used as default asset task", task)
+			return fmt.Errorf("invalid site: asset task %q not specified but used as default asset task", task)
 		}
 	}
 	return nil
@@ -106,7 +107,7 @@ func verifySite(s *Site) error {
 // AddSite는 DB에 하나의 사이트를 생성한다.
 // 현재는 하나의 사이트만 지원하기 때문에 db생성시 한번만 사용되어야 한다.
 func AddSite(db *sql.DB) error {
-	err := verifySite(DefaultSite)
+	err := verifySite(db, DefaultSite)
 	if err != nil {
 		return err
 	}
@@ -124,9 +125,24 @@ func AddSite(db *sql.DB) error {
 
 // UpdateSite는 DB의 사이트 정보를 업데이트한다.
 func UpdateSite(db *sql.DB, s *Site) error {
+	err := verifySite(db, s)
+	if err != nil {
+		return err
+	}
 	ks, is, vs, err := dbKIVs(s)
 	if err != nil {
 		return err
+	}
+	oldS, err := GetSite(db)
+	if err != nil {
+		return err
+	}
+	delShotTasks := subtractStringSlice(oldS.ShotTasks, s.ShotTasks)
+	for _, task := range delShotTasks {
+		err := SiteMustNotHaveShotTask(db, task)
+		if err != nil {
+			return fmt.Errorf("could not delete site shot task: %w", err)
+		}
 	}
 	keys := strings.Join(ks, ", ")
 	idxs := strings.Join(is, ", ")
@@ -134,6 +150,24 @@ func UpdateSite(db *sql.DB, s *Site) error {
 		dbStmt(fmt.Sprintf("UPDATE sites SET (%s) = (%s)", keys, idxs), vs...),
 	}
 	return dbExec(db, stmts)
+}
+
+// SiteMustNotHavShotTask는 사이트 내의 샷에 해당 태스크가 하나라도 있으면 에러를 반환한다.
+func SiteMustNotHaveShotTask(db *sql.DB, task string) error {
+	s := &Shot{}
+	ks, err := dbKeys(s)
+	keys := strings.Join(ks, ", ")
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shots WHERE $1::string = ANY(shots.tasks)", keys), task)
+	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+		return scan(row, s)
+	})
+	if err == nil {
+		return BadRequest(fmt.Sprintf("shot %q has task %q (and there's possibly more)", s.ID(), task))
+	}
+	if err != sql.ErrNoRows {
+		return err
+	}
+	return nil
 }
 
 // GetSite는 db에서 사이트 정보를 가지고 온다.
@@ -156,4 +190,11 @@ func GetSite(db *sql.DB) (*Site, error) {
 		return nil, err
 	}
 	return s, err
+}
+
+func DeleteSite(db *sql.DB) error {
+	stmts := []dbStatement{
+		dbStmt("DELETE FROM sites"),
+	}
+	return dbExec(db, stmts)
 }

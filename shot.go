@@ -151,7 +151,8 @@ func ShotPrefix(shot string) string {
 }
 
 // verifyShot은 받아들인 샷이 유효하지 않다면 에러를 반환한다.
-func verifyShot(s *Shot) error {
+// 필요하다면 db에 접근해서 정보를 검색한다.
+func verifyShot(db *sql.DB, s *Shot) error {
 	if s == nil {
 		return fmt.Errorf("nil shot")
 	}
@@ -163,10 +164,17 @@ func verifyShot(s *Shot) error {
 	if err != nil {
 		return err
 	}
+	si, err := GetSite(db)
+	if err != nil {
+		return err
+	}
+	hasTask := make(map[string]bool)
+	for _, task := range si.ShotTasks {
+		hasTask[task] = true
+	}
 	for _, task := range s.Tasks {
-		err = verifyTaskName(task)
-		if err != nil {
-			return err
+		if !hasTask[task] {
+			return BadRequest(fmt.Sprintf("task %q not defined at site", task))
 		}
 	}
 	return nil
@@ -174,7 +182,7 @@ func verifyShot(s *Shot) error {
 
 // AddShot은 db의 특정 프로젝트에 샷을 하나 추가한다.
 func AddShot(db *sql.DB, s *Shot) error {
-	err := verifyShot(s)
+	err := verifyShot(db, s)
 	if err != nil {
 		return err
 	}
@@ -203,6 +211,10 @@ func AddShot(db *sql.DB, s *Shot) error {
 			Task:     task,
 			Status:   TaskInProgress,
 			DueDate:  time.Time{},
+		}
+		err := verifyTask(db, t)
+		if err != nil {
+			return err
 		}
 		st, err := addTaskStmts(t)
 		if err != nil {
@@ -360,7 +372,7 @@ func UpdateShot(db *sql.DB, id string, s *Shot) error {
 	if err != nil {
 		return err
 	}
-	err = verifyShot(s)
+	err = verifyShot(db, s)
 	if err != nil {
 		return err
 	}

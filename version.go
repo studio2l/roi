@@ -122,7 +122,8 @@ func verifyVersionID(id string) error {
 }
 
 // verifyVersion은 받아들인 버전이 유효하지 않다면 에러를 반환한다.
-func verifyVersion(v *Version) error {
+// 필요하다면 db에 접근해서 정보를 검색한다.
+func verifyVersion(db *sql.DB, v *Version) error {
 	if v == nil {
 		return fmt.Errorf("nil version")
 	}
@@ -139,7 +140,7 @@ func verifyVersion(v *Version) error {
 
 // AddVersion은 db의 특정 프로젝트, 특정 샷에 태스크를 추가한다.
 func AddVersion(db *sql.DB, v *Version) error {
-	err := verifyVersion(v)
+	err := verifyVersion(db, v)
 	if err != nil {
 		return err
 	}
@@ -164,7 +165,7 @@ func AddVersion(db *sql.DB, v *Version) error {
 // UpdateVersion은 db의 특정 태스크를 업데이트 한다.
 // 이 함수를 호출하기 전 해당 태스크가 존재하는지 사용자가 검사해야 한다.
 func UpdateVersion(db *sql.DB, id string, v *Version) error {
-	err := verifyVersion(v)
+	err := verifyVersion(db, v)
 	if err != nil {
 		return err
 	}

@@ -32,6 +32,16 @@ func TestVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not connect to database: %v", err)
 	}
+	err = AddSite(db)
+	if err != nil {
+		t.Fatalf("could not add site: %s", err)
+	}
+	defer func() {
+		err := DeleteSite(db)
+		if err != nil {
+			t.Fatalf("could not delete site: %s", err)
+		}
+	}()
 	err = AddShow(db, testShow)
 	if err != nil {
 		t.Fatalf("could not add project: %v", err)
