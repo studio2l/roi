@@ -148,6 +148,7 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	s.TimecodeOut = r.FormValue("timecode_out")
 	s.Duration = atoi(r.FormValue("duration"))
 	s.Tags = fieldSplit(r.FormValue("tags"))
+	s.Assets = fieldSplit(r.FormValue("assets"))
 	s.Tasks = tasks
 	s.DueDate = tforms["due_date"]
 
@@ -217,6 +218,17 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		}
 		tags = append(tags, tag)
 	}
+	assets := make([]string, 0)
+	for _, asset := range strings.Split(r.FormValue("assets"), ",") {
+		asset = strings.TrimSpace(asset)
+		if asset == "" {
+			continue
+		}
+		if asset[0] != '+' && asset[0] != '-' {
+			return roi.BadRequest(fmt.Sprintf("asset must be started with +/- got %s", asset))
+		}
+		assets = append(assets, asset)
+	}
 	workingTasks := make([]string, 0)
 	for _, task := range strings.Split(r.FormValue("tasks"), ",") {
 		task = strings.TrimSpace(task)
@@ -246,6 +258,15 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 				s.Tags = appendIfNotExist(s.Tags, tag)
 			} else if prefix == '-' {
 				s.Tags = removeIfExist(s.Tags, tag)
+			}
+		}
+		for _, asset := range assets {
+			prefix := asset[0]
+			asset = asset[1:]
+			if prefix == '+' {
+				s.Assets = appendIfNotExist(s.Assets, asset)
+			} else if prefix == '-' {
+				s.Assets = removeIfExist(s.Assets, asset)
 			}
 		}
 		for _, task := range workingTasks {

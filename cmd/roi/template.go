@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -38,6 +39,7 @@ func parseTemplate() {
 		"mod":                 func(i, m int) int { return i % m },
 		"sub":                 func(a, b int) int { return a - b },
 		"fieldJoin":           fieldJoin,
+		"spaceJoin":           func(words []string) string { return strings.Join(words, " ") },
 	}).ParseGlob("tmpl/*.html"))
 }
 
