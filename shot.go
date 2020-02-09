@@ -164,19 +164,25 @@ func verifyShot(db *sql.DB, s *Shot) error {
 	if err != nil {
 		return err
 	}
+	// 태스크에는 순서가 있으므로 사이트에 정의된 순서대로 재정렬한다.
 	si, err := GetSite(db)
 	if err != nil {
 		return err
 	}
 	hasTask := make(map[string]bool)
-	for _, task := range si.ShotTasks {
+	taskIdx := make(map[string]int)
+	for i, task := range si.ShotTasks {
 		hasTask[task] = true
+		taskIdx[task] = i
 	}
 	for _, task := range s.Tasks {
 		if !hasTask[task] {
 			return BadRequest(fmt.Sprintf("task %q not defined at site", task))
 		}
 	}
+	sort.Slice(s.Tasks, func(i, j int) bool {
+		return taskIdx[s.Tasks[i]] <= taskIdx[s.Tasks[j]]
+	})
 	return nil
 }
 

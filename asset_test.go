@@ -24,7 +24,7 @@ var testAssetB = &Asset{
 	Description:   "일반적인 남성",
 	CGDescription: "아주 잘 했습니다.",
 	Tags:          []string{"인간"},
-	Tasks:         []string{"mod", "look"},
+	Tasks:         []string{"mod", "tex"},
 }
 var testAssetC = &Asset{
 	Asset:         "char_lion_1",
