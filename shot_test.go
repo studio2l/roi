@@ -17,6 +17,7 @@ var testShotA = &Shot{
 	TimecodeOut:   "00:00:05:12",
 	Duration:      132,
 	Tags:          []string{"로이", "리무브"},
+	Assets:        []string{},
 	// 사이트에 이 샷 태스크가 존재해야만 에러가 나지 않는다.
 	Tasks: []string{"fx"},
 }
@@ -32,6 +33,7 @@ var testShotB = &Shot{
 	TimecodeOut:   "00:00:06:03",
 	Duration:      15,
 	Tags:          []string{"로이", "창문"},
+	Assets:        []string{},
 	Tasks:         []string{"lit"},
 }
 var testShotC = &Shot{
@@ -45,6 +47,7 @@ var testShotC = &Shot{
 	TimecodeOut:   "00:00:08:15",
 	Duration:      36,
 	Tags:          []string{"가로등", "창문"},
+	Assets:        []string{},
 	Tasks:         []string{"comp"},
 }
 

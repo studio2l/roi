@@ -25,6 +25,7 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	timecode_out STRING NOT NULL,
 	duration INT NOT NULL,
 	tags STRING[] NOT NULL,
+	assets STRING[] NOT NULL,
 	tasks STRING[] NOT NULL,
 	start_date TIMESTAMPTZ NOT NULL,
 	end_date TIMESTAMPTZ NOT NULL,
@@ -52,6 +53,12 @@ type Shot struct {
 	TimecodeOut   string     `db:"timecode_out"`
 	Duration      int        `db:"duration"`
 	Tags          []string   `db:"tags"`
+
+	// Assets는 샷이 필요로 하는 애셋 이름 리스트이다.
+	// 현재는 애셋이 같은 쇼 안에 존재할 때만 처리가 가능하다.
+	// 여기에 등록된 애셋은 존재해야만 하며,
+	// 애셋이 삭제되기 전 우선 모든 샷의 애셋 태그에서 지워져야 한다.
+	Assets []string `db:"assets"`
 
 	// Tasks는 샷에 작업중인 어떤 태스크가 있는지를 나타낸다.
 	// 웹 페이지에는 여기에 포함된 태스크만 이 순서대로 보여져야 한다.
@@ -183,6 +190,15 @@ func verifyShot(db *sql.DB, s *Shot) error {
 	sort.Slice(s.Tasks, func(i, j int) bool {
 		return taskIdx[s.Tasks[i]] <= taskIdx[s.Tasks[j]]
 	})
+	sort.Slice(s.Assets, func(i, j int) bool {
+		return strings.Compare(s.Assets[i], s.Assets[j]) <= 0
+	})
+	for _, asset := range s.Assets {
+		_, err := GetAsset(db, s.Show+"/asset/"+asset)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

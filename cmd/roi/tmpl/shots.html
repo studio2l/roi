@@ -75,9 +75,12 @@
 			</div>
 			<div class="shot-due_date detail">{{if not .DueDate.IsZero}}{{stringFromDate .DueDate}}{{end}}</div>
 		</div>
-		<div class="shot-tags">
-			{{range $i, $v := .Tags -}}
-			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="?q=tag%3A{{.}}">{{.}}</a>
+		<div class="shot-links">
+			{{if ne (len .Assets) 0 -}}
+			<a class="ui mini label" style="background-color:#977;color:white;" href="/assets?show={{$s.Show}}&q={{spaceJoin .Assets}}">애셋 ({{fieldJoin .Assets}})</a>
+			{{- end -}}
+			{{- range $i, $v := .Tags -}}
+			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="?q=tag%3A{{$v}}">{{$v}}</a>
 			{{- end}}
 		</div>
 	</div>
@@ -296,10 +299,14 @@ function reloadShots() {
 				shotStatusEl.innerHTML = shotStatusUIString[s.Status]
 				let shotDueDateEl = shotEl.getElementsByClassName("shot-due_date")[0]
 				shotDueDateEl.innerHTML = toDate(s.DueDate)
-				let shotTagsEl = shotEl.getElementsByClassName("shot-tags")[0]
-				shotTagsEl.innerHTML = ""
-				for (let t of s.Tags) {
-					shotTagsEl.innerHTML += `<a class="ui grey mini label" href="?q=tag%3A${t}">${t}</a>`
+				let shotLinksEl = shotEl.getElementsByClassName("shot-links")[0]
+				shotLinksEl.innerHTML = ""
+				let astr = s.Links.join(" ")
+				for (let t of s.Links) {
+					shotLinksEl.innerHTML += `<a class="ui mini label" style="background-color:#977;color:white;" href="/assets?show=${s.Show}&q=${astr}">애셋 (${astr})</a>`
+				}
+				for (let t of s.Links) {
+					shotLinksEl.innerHTML += `<a class="ui grey mini label" href="?q=tag%3A${t}">${t}</a>`
 				}
 			}
 		}
