@@ -13,12 +13,12 @@ import (
 // InitDB는 로이 DB 및 DB유저를 생성한고 생성된 DB를 반환한다.
 // 여러번 실행해도 문제되지 않는다.
 // 실패하면 진행된 프로세스를 취소하고 에러를 반환한다.
-func InitDB() (*sql.DB, error) {
-	return initDB("postgresql://root@localhost:26257/roi?sslmode=disable")
+func InitDB(addr, ca, cert, key string) (*sql.DB, error) {
+	return initDB(fmt.Sprintf("postgresql://root@%s/roi?sslrootcert=%s&sslcert=%s&sslkey=%s&sslmode=verify-full", addr, ca, cert, key))
 }
 
-func initDB(addr string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", addr)
+func initDB(url string) (*sql.DB, error) {
+	db, err := sql.Open("postgres", url)
 	if err != nil {
 		return nil, fmt.Errorf("could not open database with root user: %w", err)
 	}

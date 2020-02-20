@@ -4,6 +4,7 @@ cmd/roishot/roishot
 cmd/roishot/roishot.exe
 data
 cert
+db-cert
 cockroach-data
 .rgignore
 

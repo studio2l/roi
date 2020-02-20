@@ -42,6 +42,10 @@ func serverMain(args []string) {
 		insecure bool
 		cert     string
 		key      string
+		dbAddr   string
+		dbCA     string
+		dbCert   string
+		dbKey    string
 	)
 	serverFlag := flag.NewFlagSet("server", flag.ExitOnError)
 	addrDefault := "localhost:80:443"
@@ -70,6 +74,10 @@ when ROI_ADDR environment variable is not empty, it will use the value as defaul
 	serverFlag.BoolVar(&insecure, "insecure", false, "use insecure http protocol instead of https.")
 	serverFlag.StringVar(&cert, "cert", "cert/cert.pem", "https cert file. need to use https protocol.")
 	serverFlag.StringVar(&key, "key", "cert/key.pem", "https key file. need to use https protocol.")
+	serverFlag.StringVar(&dbAddr, "db-addr", "localhost:26257", "host url and port of database.")
+	serverFlag.StringVar(&dbCA, "db-ca", "db-cert/ca.crt", "root certificate authority file of the database.")
+	serverFlag.StringVar(&dbCert, "db-cert", "db-cert/client.root.crt", "client certificate file of database.")
+	serverFlag.StringVar(&dbKey, "db-key", "db-cert/client.root.key", "client key file of database.")
 	serverFlag.Parse(args)
 
 	hashFile := "cert/cookie.hash"
@@ -91,7 +99,7 @@ when ROI_ADDR environment variable is not empty, it will use the value as defaul
 		ioutil.WriteFile(blockFile, securecookie.GenerateRandomKey(32), 0600)
 	}
 
-	DB, err = roi.InitDB()
+	DB, err = roi.InitDB(dbAddr, dbCA, dbCert, dbKey)
 	if err != nil {
 		log.Fatalf("could not initialize database: %v", err)
 	}
