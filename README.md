@@ -37,16 +37,27 @@ cockroach db는 postgresql의 호환 문법을 사용하며, 쉽게 스케일을
 
 다운로드 받은 후 원하는 곳에서 실행하시면 그 아래에 cockroach-data 디렉토리가 생성되며 실행됩니다.
 
+cockroach db를 실행하려면 우선 db 인증서를 생성해야 합니다. 그 과정은 아래와 같습니다.
+
+```
+cd ~/roi/cmd/roi/db-cert
+cockroach cert create-ca --certs-dir=. --ca-key=ca.key
+cockroach cert create-node --certs-dir=. --ca-key=ca.key localhost
+cockroach cert create-client --certs-dir=. --ca-key=ca.key root
+```
+
 ## 실행
 
-우선 DB를 실행합니다. 여기서는 cmd/roi 안에서 실행하겠습니다.
+roi를 실행하기전 먼저 DB를 실행해야 합니다. 여기서는 cmd/roi 안에서 실행하겠습니다.
 
 ```
 cd ~/roi/cmd/roi
-cockroach start --insecure
+cockroach start-single-node --certs-dir=db-cert --listen-addr=localhost:26257
 ```
 
-이제 새 터미널에서 roi를 실행합니다.
+이제 새 터미널에서 roi를 실행합니다. 아래 예제에서는 -insecure 플래그를 써 http 프로토콜로
+프로그램을 실행하지만, 도메인이 있는 서버에서는 네트워크간 전송되는 정보를 보호할 수 있는
+https 프로토콜을 사용하는 것이 좋습니다.
 
 ```
 # 서버 실행
