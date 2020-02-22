@@ -74,7 +74,18 @@ when ROI_ADDR environment variable is not empty, it will use the value as defaul
 	serverFlag.BoolVar(&insecure, "insecure", false, "use insecure http protocol instead of https.")
 	serverFlag.StringVar(&cert, "cert", "cert/cert.pem", "https cert file. need to use https protocol.")
 	serverFlag.StringVar(&key, "key", "cert/key.pem", "https key file. need to use https protocol.")
-	serverFlag.StringVar(&dbAddr, "db-addr", "localhost:26257", "host url and port of database.")
+	dbAddrHelp := `host url and port of database.
+
+when ROI_DB_ADDR environment variable is not empty, it will use the value as default.
+
+`
+	dbAddrDefault := "localhost:26257"
+	dbAddrEnv := os.Getenv("ROI_DB_ADDR")
+	if dbAddrEnv != "" {
+		dbAddrDefault = dbAddrEnv
+		dbAddrHelp += "currently the default value is comming from ROI_DB_ADDR"
+	}
+	serverFlag.StringVar(&dbAddr, "db-addr", dbAddrDefault, dbAddrHelp)
 	serverFlag.StringVar(&dbCA, "db-ca", "db-cert/ca.crt", "root certificate authority file of the database.")
 	serverFlag.StringVar(&dbCert, "db-cert", "db-cert/client.root.crt", "client certificate file of database.")
 	serverFlag.StringVar(&dbKey, "db-key", "db-cert/client.root.key", "client key file of database.")

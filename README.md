@@ -95,3 +95,12 @@ mkcert -cert-file=cert.pem -key-file=key.pem localhost
 cd ~/roi/cmd/roi
 sudo ./roi server
 ```
+
+### 환경변수
+
+로이가 사용하는 환경변수는 다음과 같습니다.
+
+```
+ROI_ADDR: -addr 플래그를 지정하지 않았을때 서버가 바인딩하고, 클라이언트가 접근하는 주소입니다.
+ROI_DB_ADDR: -db-addr 플래그를 지정하지 않았을때 서버가 사용하는 DB 주소입니다.
+```
