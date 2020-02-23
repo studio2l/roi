@@ -76,8 +76,8 @@ func verifyShowName(name string) error {
 }
 
 // verifyShow는 받아들인 쇼가 유효하지 않다면 에러를 반환한다.
-// 필요하다면 유효성 확보를 위해 정보를 수정한다.
-func verifyShow(s *Show) error {
+// 필요하다면 db의 정보와 비교하거나 유효성 확보를 위해 정보를 수정한다.
+func verifyShow(db *sql.DB, s *Show) error {
 	if s == nil {
 		return fmt.Errorf("nil show")
 	}
@@ -90,7 +90,7 @@ func verifyShow(s *Show) error {
 
 // AddShow는 db에 쇼를 추가한다.
 func AddShow(db *sql.DB, s *Show) error {
-	err := verifyShow(s)
+	err := verifyShow(db, s)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func AddShow(db *sql.DB, s *Show) error {
 // UpdateShow는 db의 쇼 정보를 수정한다.
 // 이 함수를 호출하기 전 해당 쇼가 존재하는지 사용자가 검사해야 한다.
 func UpdateShow(db *sql.DB, show string, s *Show) error {
-	err := verifyShow(s)
+	err := verifyShow(db, s)
 	if err != nil {
 		return err
 	}
