@@ -103,4 +103,5 @@ sudo ./roi server
 ```
 ROI_ADDR: -addr 플래그를 지정하지 않았을때 서버가 바인딩하고, 클라이언트가 접근하는 주소입니다.
 ROI_DB_ADDR: -db-addr 플래그를 지정하지 않았을때 서버가 사용하는 DB 주소입니다.
+ROI_DB_HTTP_ADDR: start-db.sh가 사용하는 DB의 웹 서비스 주소입니다.
 ```
