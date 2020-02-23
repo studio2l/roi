@@ -4,7 +4,11 @@
 </body>
 <script>
 window.onload = function() {
-	history.go({{$.N}})
+	if (!{{.}}) {
+		document.body.innerHTML= "history.go(" + String({{.}}) + ") here is a bad decision"
+		return
+	}
+	history.go({{.}})
 }
 </script>
 </html>

@@ -263,10 +263,5 @@ func updateMultiAssetsPostHandler(w http.ResponseWriter, r *http.Request, env *E
 		q += asset
 	}
 	// 여러 애셋 수정 페이지 전인 assets 페이지로 돌아간다.
-	recipe := struct {
-		N int
-	}{
-		N: -2,
-	}
-	return executeTemplate(w, "history-go.html", recipe)
+	return executeTemplate(w, "history-go.html", -2)
 }
