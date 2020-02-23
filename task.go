@@ -116,7 +116,7 @@ func verifyTaskID(id string) error {
 }
 
 // verifyTask는 받아들인 태스크가 유효하지 않다면 에러를 반환한다.
-// 필요하다면 db에 접근해서 정보를 검색한다.
+// 필요하다면 db의 정보와 비교하거나 유효성 확보를 위해 정보를 수정한다.
 func verifyTask(db *sql.DB, t *Task) error {
 	if t == nil {
 		return fmt.Errorf("nil task")

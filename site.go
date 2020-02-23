@@ -70,7 +70,7 @@ var DefaultSite = &Site{
 }
 
 // verifySite는 받아들인 사이트가 유효하지 않다면 에러를 반환한다.
-// 필요하다면 db에 접근해서 정보를 검색한다.
+// 필요하다면 db의 정보와 비교하거나 유효성 확보를 위해 정보를 수정한다.
 func verifySite(db *sql.DB, s *Site) error {
 	if s == nil {
 		return fmt.Errorf("nil site")
