@@ -127,10 +127,6 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		return err
 	}
 	id := r.FormValue("id")
-	show, shot, err := roi.SplitShotID(id)
-	if err != nil {
-		return err
-	}
 	tasks := fieldSplit(r.FormValue("tasks"))
 	tforms, err := parseTimeForms(r.Form, "due_date")
 	if err != nil {
@@ -156,7 +152,7 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	if err != nil {
 		return err
 	}
-	err = saveImageFormFile(r, "thumbnail", fmt.Sprintf("data/show/%s/%s/thumbnail.png", show, shot))
+	err = saveImageFormFile(r, "thumbnail", fmt.Sprintf("data/show/%s/thumbnail.png", id))
 	if err != nil {
 		return err
 	}
