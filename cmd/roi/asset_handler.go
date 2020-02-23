@@ -127,10 +127,6 @@ func updateAssetPostHandler(w http.ResponseWriter, r *http.Request, env *Env) er
 		return err
 	}
 	id := r.FormValue("id")
-	show, asset, err := roi.SplitAssetID(id)
-	if err != nil {
-		return err
-	}
 	tasks := fieldSplit(r.FormValue("tasks"))
 	tforms, err := parseTimeForms(r.Form, "due_date")
 	if err != nil {
@@ -151,7 +147,7 @@ func updateAssetPostHandler(w http.ResponseWriter, r *http.Request, env *Env) er
 	if err != nil {
 		return err
 	}
-	err = saveImageFormFile(r, "thumbnail", fmt.Sprintf("data/show/%s/%s/thumbnail.png", show, asset))
+	err = saveImageFormFile(r, "thumbnail", fmt.Sprintf("data/show/%s/thumbnail.png", id))
 	if err != nil {
 		return err
 	}
