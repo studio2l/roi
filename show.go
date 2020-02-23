@@ -76,6 +76,7 @@ func verifyShowName(name string) error {
 }
 
 // verifyShow는 받아들인 쇼가 유효하지 않다면 에러를 반환한다.
+// 필요하다면 유효성 확보를 위해 정보를 수정한다.
 func verifyShow(s *Show) error {
 	if s == nil {
 		return fmt.Errorf("nil show")
