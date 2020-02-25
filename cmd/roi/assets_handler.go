@@ -81,27 +81,25 @@ func assetsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	recipe := struct {
-		LoggedInUser     string
-		Site             *roi.Site
-		Shows            []*roi.Show
-		Show             string
-		Assets           []*roi.Asset
-		AllAssetStatus   []roi.AssetStatus
-		Tasks            map[string]map[string]*roi.Task
-		AllTaskStatus    []roi.TaskStatus
-		AllVersionStatus []roi.VersionStatus
-		Query            string
+		LoggedInUser   string
+		Site           *roi.Site
+		Shows          []*roi.Show
+		Show           string
+		Assets         []*roi.Asset
+		AllAssetStatus []roi.AssetStatus
+		Tasks          map[string]map[string]*roi.Task
+		AllTaskStatus  []roi.TaskStatus
+		Query          string
 	}{
-		LoggedInUser:     env.User.ID,
-		Site:             site,
-		Shows:            shows,
-		Show:             show,
-		Assets:           ss,
-		AllAssetStatus:   roi.AllAssetStatus,
-		Tasks:            tasks,
-		AllTaskStatus:    roi.AllTaskStatus,
-		AllVersionStatus: roi.AllVersionStatus,
-		Query:            query,
+		LoggedInUser:   env.User.ID,
+		Site:           site,
+		Shows:          shows,
+		Show:           show,
+		Assets:         ss,
+		AllAssetStatus: roi.AllAssetStatus,
+		Tasks:          tasks,
+		AllTaskStatus:  roi.AllTaskStatus,
+		Query:          query,
 	}
 	return executeTemplate(w, "assets.html", recipe)
 }

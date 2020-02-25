@@ -11,39 +11,42 @@
 		<a href="/update-shot?id={{$t.Show}}/{{$t.Category}}/{{$t.Unit}}" style="color:#9f9f9f">{{$t.Unit}}</a> /
 		<span style="color:#ccc">{{$t.Task}}</span>
 	</h3>
-	{{end}}
 	<form method="post" class="ui form">
-		<input hidden type="text" name="id" value="{{.Task.ID}}"/>
+		<input hidden type="text" name="id" value="{{$t.ID}}"/>
 		<div class="field"><label>마감일</label>
-			<input type="date" name="due_date" value="{{stringFromDate $.Task.DueDate}}">
+			<input type="date" name="due_date" value="{{stringFromDate $t.DueDate}}">
 		</div>
 		<div class="field"><label>상태</label>
 			<select type="text" name="status">
-				{{with $t := $.Task}}
 				{{range $ts := $.AllTaskStatus}}
 				<option value="{{$ts}}" {{if eq $ts $t.Status}}selected{{end}}>{{$ts.UIString}}</option>
-				{{end}}
 				{{end}}
 			</select>
 		</div>
 		<div class="field"><label>담당</label>
 			<div class="autocomplete" style="display:grid;grid-template-columns:1fr">
-			<input id="autocomplete-user" type="text" name="assignee" value="{{.Task.Assignee}}"/>
+			<input id="autocomplete-user" type="text" name="assignee" value="{{$t.Assignee}}"/>
 			</div>
+		</div>
+		<div class="field"><label>퍼블리시된 버전</label>
+			<input type="text" name="publish_version" value="{{$t.PublishVersion}}">
+		</div>
+		<div class="field"><label>진행중인 버전</label>
+			<input type="text" name="working_version" value="{{$t.WorkingVersion}}">
 		</div>
 		<button class="ui button green" type="submit" value="Submit">수정</button>
 		<div style="height:2rem;"></div>
 	</form>
 	<h2 class="ui dividing header">
 		버전
-		<a href="/add-version?id={{$.Task.ID}}" class="ui right floated mini basic inverted button">추가</a>
+		<a href="/add-version?id={{$t.ID}}" class="ui right floated mini basic inverted button">추가</a>
 	</h2>
 	<div class="ui container">
 		{{range $v := $.Versions}}
-		<!-- 만일 퍼블리시 버전이라면 푸른색, 진행중 버전이라면 초록색으로 표현하고, 퍼블리시의 우선순위가 더 높다. -->
-		<a href="/update-version?id={{$v.ID}}" class="ui label {{if eq $v.Version $.Task.PublishVersion}}blue{{else if eq $v.Version $.Task.WorkingVersion}}green{{end}}">{{$v.Version}}</a>
+		<a href="/update-version?id={{$v.ID}}" class="ui label">{{$v.Version}}</a>
 		{{end}}
 	</div>
+	{{end}}
 </div>
 
 <script>

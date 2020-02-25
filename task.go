@@ -22,7 +22,6 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	assignee STRING NOT NULL,
 	publish_version STRING NOT NULL,
 	working_version STRING NOT NULL,
-	working_version_status STRING NOT NULL,
 	UNIQUE(show, category, unit, task),
 	CONSTRAINT tasks_pk PRIMARY KEY (show, category, unit, task)
 )`
@@ -40,11 +39,6 @@ type Task struct {
 
 	// WorkingVersion은 현재 작업중인 버전이다.
 	WorkingVersion string `db:"working_version"`
-	// WorkingVersionStatus는 현재 작업중인 버전의 상태이다.
-	// 물론 버전의 상태를 검사해보면 얻을수 있지만 샷 페이지에 띄워야 할
-	// 중요한 정보이기 때문에 태스크에도 함께 저장한다.
-	// 둘은 항상 싱크가 되어있어야 한다.
-	WorkingVersionStatus VersionStatus `db:"working_version_status"`
 
 	// PublishVersion은 퍼블리시된 버전이다.
 	PublishVersion string `db:"publish_version"`
@@ -187,14 +181,17 @@ func UpdateTask(db *sql.DB, id string, t *Task) error {
 	if oldt.Category != t.Category {
 		return fmt.Errorf("not allowed to change category of task")
 	}
-	if oldt.WorkingVersion != t.WorkingVersion {
-		return fmt.Errorf("not allowed to update working version in UpdateTask")
+	if t.PublishVersion != "" {
+		_, err = GetVersion(db, id+"/"+t.PublishVersion)
+		if err != nil {
+			return fmt.Errorf("publish version: %w", err)
+		}
 	}
-	if oldt.WorkingVersionStatus != t.WorkingVersionStatus {
-		return fmt.Errorf("not allowed to update status of working version in UpdateTask")
-	}
-	if oldt.PublishVersion != t.PublishVersion {
-		return fmt.Errorf("not allowed to update publish version in UpdateTask")
+	if t.WorkingVersion != "" {
+		_, err = GetVersion(db, id+"/"+t.WorkingVersion)
+		if err != nil {
+			return fmt.Errorf("working version: %w", err)
+		}
 	}
 	ks, is, vs, err := dbKIVs(t)
 	if err != nil {
@@ -204,46 +201,6 @@ func UpdateTask(db *sql.DB, id string, t *Task) error {
 	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
 		dbStmt(fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND category='%s' AND unit='%s' AND task='%s'", keys, idxs, t.Show, t.Category, t.Unit, t.Task), vs...),
-	}
-	return dbExec(db, stmts)
-}
-
-// UpdateTaskWorkingVersion는 db의 특정 태스크의 현재 작업중인 버전을 업데이트 한다.
-func UpdateTaskWorkingVersion(db *sql.DB, id, version string) error {
-	show, ctg, shot, task, err := SplitTaskID(id)
-	if err != nil {
-		return err
-	}
-	v, err := GetVersion(db, id+"/"+version)
-	if err != nil {
-		return err
-	}
-	stmts := []dbStatement{
-		dbStmt("UPDATE tasks SET (working_version) = ($1) WHERE show=$2 AND category=$3 AND unit=$4 AND task=$5", version, show, ctg, shot, task),
-		dbStmt("UPDATE tasks SET (working_version_status) = ($1) WHERE show=$2 AND category=$3 AND unit=$4 AND task=$5", v.Status, show, ctg, shot, task),
-	}
-	return dbExec(db, stmts)
-}
-
-// UpdateTaskPublishVersion는 db의 특정 태스크의 현재 퍼블리시 버전을 업데이트 한다.
-func UpdateTaskPublishVersion(db *sql.DB, id, version string) error {
-	show, ctg, shot, task, err := SplitTaskID(id)
-	if err != nil {
-		return err
-	}
-	t, err := GetTask(db, id)
-	if err != nil {
-		return err
-	}
-	_, err = GetVersion(db, id+"/"+version)
-	if err != nil {
-		return err
-	}
-	stmts := []dbStatement{
-		dbStmt("UPDATE tasks SET (publish_version) = ($1) WHERE show=$2 AND category=$3 AND unit=$4 AND task=$5", version, show, ctg, shot, task),
-	}
-	if version == t.WorkingVersion {
-		stmts = append(stmts, dbStmt("UPDATE tasks SET (working_version) = ('') WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4", show, ctg, shot, task))
 	}
 	return dbExec(db, stmts)
 }

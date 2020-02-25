@@ -69,48 +69,10 @@ func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	t.Status = roi.TaskStatus(r.FormValue("status"))
 	t.Assignee = assignee
 	t.DueDate = tforms["due_date"]
+	t.PublishVersion = r.FormValue("publish_version")
+	t.WorkingVersion = r.FormValue("working_version")
 
 	err = roi.UpdateTask(DB, id, t)
-	if err != nil {
-		return err
-	}
-	// 수정 페이지로 돌아간다.
-	r.Method = "GET"
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
-	return nil
-}
-
-func updateTaskWorkingVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	if r.Method != "POST" {
-		return roi.BadRequest("only post method allowed")
-	}
-	err := mustFields(r, "id", "version")
-	if err != nil {
-		return err
-	}
-	id := r.FormValue("id")
-	version := r.FormValue("version")
-	err = roi.UpdateTaskWorkingVersion(DB, id, version)
-	if err != nil {
-		return err
-	}
-	// 수정 페이지로 돌아간다.
-	r.Method = "GET"
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
-	return nil
-}
-
-func updateTaskPublishVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	if r.Method != "POST" {
-		return roi.BadRequest("only post method allowed")
-	}
-	err := mustFields(r, "id", "version")
-	if err != nil {
-		return err
-	}
-	id := r.FormValue("id")
-	version := r.FormValue("version")
-	err = roi.UpdateTaskPublishVersion(DB, id, version)
 	if err != nil {
 		return err
 	}
