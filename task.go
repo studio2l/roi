@@ -21,6 +21,8 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	due_date TIMESTAMPTZ NOT NULL,
 	assignee STRING NOT NULL,
 	publish_version STRING NOT NULL,
+	approved_version STRING NOT NULL,
+	review_versions STRING[] NOT NULL,
 	working_version STRING NOT NULL,
 	UNIQUE(show, category, unit, task),
 	CONSTRAINT tasks_pk PRIMARY KEY (show, category, unit, task)
@@ -37,11 +39,10 @@ type Task struct {
 	DueDate  time.Time  `db:"due_date"`
 	Assignee string     `db:"assignee"`
 
-	// WorkingVersion은 현재 작업중인 버전이다.
-	WorkingVersion string `db:"working_version"`
-
-	// PublishVersion은 퍼블리시된 버전이다.
-	PublishVersion string `db:"publish_version"`
+	PublishVersion  string   `db:"publish_version"`
+	ApprovedVersion string   `db:"approved_version"`
+	ReviewVersions  []string `db:"review_versions"`
+	WorkingVersion  string   `db:"working_version"`
 }
 
 // ID는 Task의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
@@ -123,6 +124,52 @@ func verifyTask(db *sql.DB, t *Task) error {
 	if err != nil {
 		return err
 	}
+	t.PublishVersion = strings.TrimSpace(t.PublishVersion)
+	if t.PublishVersion != "" {
+		_, err = GetVersion(db, t.ID()+"/"+t.PublishVersion)
+		if err != nil {
+			return fmt.Errorf("publish version: %w", err)
+		}
+	}
+	t.ApprovedVersion = strings.TrimSpace(t.ApprovedVersion)
+	if t.ApprovedVersion != "" {
+		_, err = GetVersion(db, t.ID()+"/"+t.ApprovedVersion)
+		if err != nil {
+			return fmt.Errorf("approved version: %w", err)
+		}
+	}
+	hasVersion := make(map[string]bool)
+	for _, v := range t.ReviewVersions {
+		v = strings.TrimSpace(v)
+		if v != "" && !hasVersion[v] {
+			hasVersion[v] = true
+			_, err = GetVersion(db, t.ID()+"/"+v)
+			if err != nil {
+				return fmt.Errorf("review version: %w", err)
+			}
+		}
+	}
+	t.ReviewVersions = make([]string, 0, len(hasVersion))
+	for v := range hasVersion {
+		t.ReviewVersions = append(t.ReviewVersions, v)
+	}
+	sort.Strings(t.ReviewVersions)
+	t.WorkingVersion = strings.TrimSpace(t.WorkingVersion)
+	if t.WorkingVersion != "" {
+		_, err = GetVersion(db, t.ID()+"/"+t.WorkingVersion)
+		if err != nil {
+			return fmt.Errorf("working version: %w", err)
+		}
+	}
+	if t.Status == TaskDone && t.PublishVersion == "" {
+		return BadRequest(fmt.Sprintf("cannot set task status to TaskDone: no publish version"))
+	}
+	if t.Status == TaskApproved && t.ApprovedVersion == "" {
+		return BadRequest(fmt.Sprintf("cannot set task status to TaskApproved: no approved version"))
+	}
+	if t.Status == TaskNeedReview && len(t.ReviewVersions) == 0 {
+		return BadRequest(fmt.Sprintf("cannot set task status to TaskNeedReview: no review versions"))
+	}
 	return nil
 }
 
@@ -180,18 +227,6 @@ func UpdateTask(db *sql.DB, id string, t *Task) error {
 	}
 	if oldt.Category != t.Category {
 		return fmt.Errorf("not allowed to change category of task")
-	}
-	if t.PublishVersion != "" {
-		_, err = GetVersion(db, id+"/"+t.PublishVersion)
-		if err != nil {
-			return fmt.Errorf("publish version: %w", err)
-		}
-	}
-	if t.WorkingVersion != "" {
-		_, err = GetVersion(db, id+"/"+t.WorkingVersion)
-		if err != nil {
-			return fmt.Errorf("working version: %w", err)
-		}
 	}
 	ks, is, vs, err := dbKIVs(t)
 	if err != nil {

@@ -7,12 +7,18 @@ type TaskStatus string
 const (
 	TaskInProgress = TaskStatus("in-progress")
 	TaskHold       = TaskStatus("hold")
+	TaskNeedReview = TaskStatus("need-review")
+	TaskRetake     = TaskStatus("retake")
+	TaskApproved   = TaskStatus("approved")
 	TaskDone       = TaskStatus("done")
 )
 
 var AllTaskStatus = []TaskStatus{
 	TaskInProgress,
 	TaskHold,
+	TaskNeedReview,
+	TaskRetake,
+	TaskApproved,
 	TaskDone,
 }
 
@@ -34,6 +40,12 @@ func (s TaskStatus) UIString() string {
 		return "진행"
 	case TaskHold:
 		return "홀드"
+	case TaskNeedReview:
+		return "리뷰요청"
+	case TaskRetake:
+		return "리테이크"
+	case TaskApproved:
+		return "승인됨"
 	case TaskDone:
 		return "완료"
 	}
