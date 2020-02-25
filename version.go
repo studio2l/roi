@@ -19,7 +19,6 @@ var CreateTableIfNotExistsVersionsStmt = `CREATE TABLE IF NOT EXISTS versions (
 	task STRING NOT NULL CHECK (length(task) > 0) CHECK (task NOT LIKE '% %'),
 	version STRING NOT NULL CHECK (length(version) > 0),
 	owner STRING NOT NULL CHECK (length(owner) > 0),
-	status STRING NOT NULL,
 	output_files STRING[] NOT NULL,
 	images STRING[] NOT NULL,
 	mov STRING NOT NULL,
@@ -38,14 +37,13 @@ type Version struct {
 	Task     string `db:"task"`
 	Version  string `db:"version"` // 버전명
 
-	Owner       string        `db:"owner"`        // 버전 소유자
-	Status      VersionStatus `db:"status"`       // 버전 상태
-	OutputFiles []string      `db:"output_files"` // 결과물 경로
-	Images      []string      `db:"images"`       // 결과물을 확인할 수 있는 이미지
-	Mov         string        `db:"mov"`          // 결과물을 영상으로 볼 수 있는 경로
-	WorkFile    string        `db:"work_file"`    // 이 결과물을 만든 작업 파일
-	StartDate   time.Time     `db:"start_date"`   // 버전 작업 시작 시간
-	EndDate     time.Time     `db:"end_date"`     // 버전 작업 마감 시간
+	Owner       string    `db:"owner"`        // 버전 소유자
+	OutputFiles []string  `db:"output_files"` // 결과물 경로
+	Images      []string  `db:"images"`       // 결과물을 확인할 수 있는 이미지
+	Mov         string    `db:"mov"`          // 결과물을 영상으로 볼 수 있는 경로
+	WorkFile    string    `db:"work_file"`    // 이 결과물을 만든 작업 파일
+	StartDate   time.Time `db:"start_date"`   // 버전 작업 시작 시간
+	EndDate     time.Time `db:"end_date"`     // 버전 작업 마감 시간
 }
 
 // ID는 Version의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
@@ -131,10 +129,6 @@ func verifyVersion(db *sql.DB, v *Version) error {
 	if err != nil {
 		return err
 	}
-	err = verifyVersionStatus(v.Status)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -157,7 +151,7 @@ func AddVersion(db *sql.DB, v *Version) error {
 	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
 		dbStmt(fmt.Sprintf("INSERT INTO versions (%s) VALUES (%s)", keys, idxs), vs...),
-		dbStmt("UPDATE tasks SET (working_version, working_version_status) = ($1, $2) WHERE show=$3 AND category=$4 AND unit=$5 AND task=$6", v.Version, v.Status, v.Show, v.Category, v.Unit, v.Task),
+		dbStmt("UPDATE tasks SET (working_version) = ($1) WHERE show=$2 AND category=$3 AND unit=$4 AND task=$5", v.Version, v.Show, v.Category, v.Unit, v.Task),
 	}
 	return dbExec(db, stmts)
 }
@@ -177,35 +171,6 @@ func UpdateVersion(db *sql.DB, id string, v *Version) error {
 	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
 		dbStmt(fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND category='%s' AND unit='%s' AND task='%s' AND version='%s'", keys, idxs, v.Show, v.Category, v.Unit, v.Task, v.Version), vs...),
-	}
-	return dbExec(db, stmts)
-}
-
-// UpdateVersionStatus은 db의 특정 태스크를 업데이트 한다.
-func UpdateVersionStatus(db *sql.DB, id string, status VersionStatus) error {
-	show, ctg, unit, task, version, err := SplitVersionID(id)
-	if err != nil {
-		return err
-	}
-	err = verifyVersionStatus(status)
-	if err != nil {
-		return err
-	}
-	t, err := GetTask(db, show+"/"+ctg+"/"+unit+"/"+task)
-	if err != nil {
-		return err
-	}
-	_, err = GetVersion(db, id)
-	if err != nil {
-		return err
-	}
-	stmts := []dbStatement{
-		dbStmt("UPDATE versions SET (status) = ($1) WHERE show=$2 AND category=$3 AND unit=$4 AND task=$5 AND version=$6", status, show, ctg, unit, task, version),
-	}
-	// 작업중인 버전의 상태는 태스크에도 업데이트 되어야한다.
-	if version == t.WorkingVersion {
-		stmt := dbStmt("UPDATE tasks SET (working_version_status) = ($1) WHERE show=$2 AND category=$3 AND unit=$4 AND task=$5", status, show, ctg, unit, task)
-		stmts = append(stmts, stmt)
 	}
 	return dbExec(db, stmts)
 }

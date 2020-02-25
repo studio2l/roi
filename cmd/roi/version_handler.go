@@ -53,7 +53,6 @@ func addVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		Category:  ctg,
 		Unit:      unit,
 		Task:      task,
-		Status:    roi.VersionInProgress,
 		Version:   version,
 		StartDate: time.Now(),
 		Owner:     env.User.ID,
@@ -88,13 +87,11 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) erro
 		Version          *roi.Version
 		IsWorkingVersion bool
 		IsPublishVersion bool
-		AllVersionStatus []roi.VersionStatus
 	}{
 		LoggedInUser:     env.User.ID,
 		Version:          v,
 		IsWorkingVersion: t.WorkingVersion == v.Version,
 		IsPublishVersion: t.PublishVersion == v.Version,
-		AllVersionStatus: roi.AllVersionStatus,
 	}
 	return executeTemplate(w, "update-version.html", recipe)
 }
@@ -125,24 +122,6 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 	v.EndDate = timeForms["end_date"]
 
 	err = roi.UpdateVersion(DB, id, v)
-	if err != nil {
-		return err
-	}
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
-	return nil
-}
-
-func updateVersionStatusHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	if r.Method != "POST" {
-		return roi.BadRequest("only post method allowed")
-	}
-	err := mustFields(r, "id", "update-status")
-	if err != nil {
-		return err
-	}
-	id := r.FormValue("id")
-	status := roi.VersionStatus(r.FormValue("update-status"))
-	err = roi.UpdateVersionStatus(DB, id, status)
 	if err != nil {
 		return err
 	}

@@ -61,7 +61,7 @@
 				<div><a href="/update-task?id={{.ID}}" style="color:white;flex:1;">{{.Task}}</a></div>
 				<div>{{shortStringFromDate .DueDate}}</div>
 				<div><a href="/user/{{.Assignee}}" style="color:inherit">{{.Assignee}}</a></div>
-				<div>{{if .WorkingVersion}}<a href="/update-version?id={{.ID}}/{{.WorkingVersion}}" style="color:inherit">{{.WorkingVersion}} / {{.WorkingVersionStatus.UIString}}</a>{{end}}</div>
+				<div>{{if .WorkingVersion}}<a href="/update-version?id={{.ID}}/{{.WorkingVersion}}" style="color:inherit">{{.WorkingVersion}} / 진행중</a>{{end}}</div>
 				<div>{{if .PublishVersion}}<a href="/update-version?id={{.ID}}/{{.PublishVersion}}" style="color:inherit">{{.PublishVersion}} / 퍼블리시</a>{{end}}</div>
 			</div>
 			{{end}}
