@@ -31,6 +31,12 @@
 		<div class="field"><label>퍼블리시된 버전</label>
 			<input type="text" name="publish_version" value="{{$t.PublishVersion}}">
 		</div>
+		<div class="field"><label>승인된 버전</label>
+			<input type="text" name="approved_version" value="{{$t.ApprovedVersion}}">
+		</div>
+		<div class="field"><label>리뷰가 필요한 버전</label>
+			<input type="text" name="review_versions" placeholder="version, version" value="{{fieldJoin $t.ReviewVersions}}">
+		</div>
 		<div class="field"><label>진행중인 버전</label>
 			<input type="text" name="working_version" value="{{$t.WorkingVersion}}">
 		</div>
