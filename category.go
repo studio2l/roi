@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 )
 
 // verifyCategoryName은 받아들인 카테고리 이름이 유효하지 않다면 에러를 반환한다.
@@ -13,6 +14,16 @@ func verifyCategoryName(ctg string) error {
 		return nil
 	}
 	return fmt.Errorf("invalid category: %s", ctg)
+}
+
+type Unit struct {
+	Show     string
+	Category string
+	Unit     string
+	Status   UnitStatus
+	Tags     []string
+	Tasks    []string
+	DueDate  time.Time
 }
 
 // verifyUnitName은 받아들인 유닛 이름이 유효하지 않다면 에러를 반환한다.
@@ -64,4 +75,30 @@ func CheckUnitExist(db *sql.DB, id string) (bool, error) {
 		return true, nil
 	}
 	return false, fmt.Errorf("invalid category: %s", ctg)
+}
+
+func UnitsHavingDue(db *sql.DB, show, ctg string) ([]*Unit, error) {
+	us := make([]*Unit, 0)
+	if ctg == "shot" {
+		ss, err := ShotsHavingDue(db, show)
+		if err != nil {
+			return nil, err
+		}
+		for _, s := range ss {
+			u := UnitFromShot(s)
+			us = append(us, u)
+		}
+		return us, nil
+	} else if ctg == "asset" {
+		as, err := AssetsHavingDue(db, show)
+		if err != nil {
+			return nil, err
+		}
+		for _, a := range as {
+			u := UnitFromAsset(a)
+			us = append(us, u)
+		}
+		return us, nil
+	}
+	return nil, fmt.Errorf("invalid category: %s", ctg)
 }

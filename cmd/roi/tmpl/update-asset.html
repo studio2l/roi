@@ -21,7 +21,7 @@
 		</div>
 		<div class="field"><label>상태</label>
 			<select type="text" name="status">
-				{{range $as := $.AllAssetStatus}}
+				{{range $as := $.AllUnitStatus}}
 				<option value="{{$as}}" {{if eq $as $a.Status}}selected{{end}}>{{$as.UIString}}</option>
 				{{end}}
 			</select>

@@ -32,10 +32,10 @@ type Asset struct {
 	Asset string `db:"asset"`
 
 	// 애셋 정보
-	Status        AssetStatus `db:"status"`
-	Description   string      `db:"description"`
-	CGDescription string      `db:"cg_description"`
-	Tags          []string    `db:"tags"`
+	Status        UnitStatus `db:"status"`
+	Description   string     `db:"description"`
+	CGDescription string     `db:"cg_description"`
+	Tags          []string   `db:"tags"`
 
 	// Tasks는 애셋에 작업중인 어떤 태스크가 있는지를 나타낸다.
 	// 웹 페이지에는 여기에 포함된 태스크만 이 순서대로 보여져야 한다.
@@ -54,6 +54,19 @@ type Asset struct {
 // ID는 Asset의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
 func (s *Asset) ID() string {
 	return s.Show + "/asset/" + s.Asset
+}
+
+// UnitFromAsset은 Asset을 샷과 어셋의 공통된 주요 기능을 가진 Unit으로 변경한다.
+func UnitFromAsset(a *Asset) *Unit {
+	return &Unit{
+		Show:     a.Show,
+		Category: "asset",
+		Unit:     a.Asset,
+		Tasks:    a.Tasks,
+		Status:   a.Status,
+		Tags:     a.Tags,
+		DueDate:  a.DueDate,
+	}
 }
 
 // SplitAssetID는 받아들인 애셋 아이디를 쇼, 애셋으로 분리해서 반환한다.
@@ -113,7 +126,7 @@ func verifyAsset(db *sql.DB, s *Asset) error {
 	if err != nil {
 		return err
 	}
-	err = verifyAssetStatus(s.Status)
+	err = verifyUnitStatus(s.Status)
 	if err != nil {
 		return err
 	}
@@ -206,6 +219,33 @@ func GetAsset(db *sql.DB, id string) (*Asset, error) {
 		return nil, err
 	}
 	return s, err
+}
+
+// AssetsHavingDue는 db에서 마감일이 정해진 샷을 불러온다.
+func AssetsHavingDue(db *sql.DB, show string) ([]*Asset, error) {
+	ks, _, _, err := dbKIVs(&Asset{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM assets WHERE show=$1 AND due_date!=$2", keys), show, time.Time{})
+	as := make([]*Asset, 0)
+	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
+		s := &Asset{}
+		err := scan(rows, s)
+		if err != nil {
+			return err
+		}
+		as = append(as, s)
+		return nil
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, NotFound("assets", "having-due-date")
+		}
+		return nil, err
+	}
+	return as, nil
 }
 
 // SearchAssets는 db의 특정 프로젝트에서 검색 조건에 맞는 애셋 리스트를 반환한다.

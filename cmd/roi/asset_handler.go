@@ -71,7 +71,7 @@ func addAssetPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error
 	s := &roi.Asset{
 		Show:   id,
 		Asset:  asset,
-		Status: roi.AssetWaiting,
+		Status: roi.UnitHold,
 		Tasks:  sh.DefaultAssetTasks,
 	}
 	err = roi.AddAsset(DB, s)
@@ -104,19 +104,19 @@ func updateAssetHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 		tm[t.Task] = t
 	}
 	recipe := struct {
-		LoggedInUser   string
-		Asset          *roi.Asset
-		AllAssetStatus []roi.AssetStatus
-		Tasks          map[string]*roi.Task
-		AllTaskStatus  []roi.TaskStatus
-		Thumbnail      string
+		LoggedInUser  string
+		Asset         *roi.Asset
+		AllUnitStatus []roi.UnitStatus
+		Tasks         map[string]*roi.Task
+		AllTaskStatus []roi.TaskStatus
+		Thumbnail     string
 	}{
-		LoggedInUser:   env.User.ID,
-		Asset:          s,
-		AllAssetStatus: roi.AllAssetStatus,
-		Tasks:          tm,
-		AllTaskStatus:  roi.AllTaskStatus,
-		Thumbnail:      "data/show/" + id + "/thumbnail.png",
+		LoggedInUser:  env.User.ID,
+		Asset:         s,
+		AllUnitStatus: roi.AllUnitStatus,
+		Tasks:         tm,
+		AllTaskStatus: roi.AllTaskStatus,
+		Thumbnail:     "data/show/" + id + "/thumbnail.png",
 	}
 	return executeTemplate(w, "update-asset.html", recipe)
 }
@@ -136,7 +136,7 @@ func updateAssetPostHandler(w http.ResponseWriter, r *http.Request, env *Env) er
 	if err != nil {
 		return err
 	}
-	s.Status = roi.AssetStatus(r.FormValue("status"))
+	s.Status = roi.UnitStatus(r.FormValue("status"))
 	s.Description = r.FormValue("description")
 	s.CGDescription = r.FormValue("cg_description")
 	s.Tags = fieldSplit(r.FormValue("tags"))
@@ -172,15 +172,15 @@ func updateMultiAssetsHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 		return err
 	}
 	recipe := struct {
-		LoggedInUser   string
-		Show           string
-		IDs            []string
-		AllAssetStatus []roi.AssetStatus
+		LoggedInUser  string
+		Show          string
+		IDs           []string
+		AllUnitStatus []roi.UnitStatus
 	}{
-		LoggedInUser:   env.User.ID,
-		Show:           show,
-		IDs:            ids,
-		AllAssetStatus: roi.AllAssetStatus,
+		LoggedInUser:  env.User.ID,
+		Show:          show,
+		IDs:           ids,
+		AllUnitStatus: roi.AllUnitStatus,
 	}
 	return executeTemplate(w, "update-multi-assets.html", recipe)
 
@@ -229,7 +229,7 @@ func updateMultiAssetsPostHandler(w http.ResponseWriter, r *http.Request, env *E
 			s.DueDate = dueDate
 		}
 		if status != "" {
-			s.Status = roi.AssetStatus(status)
+			s.Status = roi.UnitStatus(status)
 		}
 		for _, tag := range tags {
 			prefix := tag[0]

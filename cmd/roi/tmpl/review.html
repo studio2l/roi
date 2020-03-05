@@ -1,0 +1,58 @@
+{{template "head.html" }}
+{{template "nav.html" $}}
+
+<div style="width:100%;background-color:rgb(48, 48, 48);padding:15px;">
+    <div style="display:flex;">
+        <form style="flex:1;display:flex;">
+            <select style="width:8rem;" id="show-select" onchange="refresh()">
+                {{range $.Shows}}
+                <option value={{.Show}} {{if eq .Show $.Show}}selected{{end}}>{{.Show}}</option>
+                {{end}}
+            </select>
+            <div style="width:2rem"></div>
+            <button style="width:4rem;border-radius:2px 0 0 2px;border-right:solid 1px grey;{{if eq $.Category "shot"}}background-color:#CCAA11{{end}}" onclick="selectShot()">샷</button>
+            <button style="width:4rem;border-radius:0 2px 2px 0;{{if eq $.Category "asset"}}background-color:#CCAA11{{end}}" onclick="selectAsset()">애셋</button>
+            <input hidden id="category-input" name="category" type="text"></input>
+        </form>
+    </div>
+</div>
+
+<div style="padding:15px 10px 15px 10px;z-index:0;">
+    {{range $d, $units := $.ByDue}}
+    <div class="ui inverted segment">
+        <div class="ui grid">
+            <div class="ui four wide column">
+                <a href="/shots?show={{$.Show}}&q=due-date:{{$d}}">
+                    <div style="color:#CCC;" class="ui large header">{{$d}}</div>
+                </a>
+            </div>
+        </div>
+        <div class="ui divider">
+        </div>
+        <div id="show-{{$.Show}}-shots-by-due" class="shots-per-due ui grey inverted segment">
+            {{range $u := $units}}
+            <a class="ui small label" href="">{{$u.Unit}}<div class="detail">{{$u.Status.UIString}}</div></a>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+</div>
+
+<script>
+// refresh는 현재 설정에 맞는 리뷰 페이지를 다시 부른다.
+function refresh() {
+    let show = document.getElementById("show-select").value
+    let ctg = document.getElementById("category-input").value
+    document.location.href = "?show=" + show + "&category=" + ctg
+}
+
+function selectShot() {
+    document.getElementById("category-input").value = "shot"
+}
+
+function selectAsset() {
+    document.getElementById("category-input").value = "asset"
+}
+</script>
+
+{{template "footer.html"}}

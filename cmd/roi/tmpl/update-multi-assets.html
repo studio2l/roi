@@ -23,7 +23,7 @@
 		<div class="field"><label>상태</label>
 			<select type="text" name="status">
 				<option value="" selected></option>
-				{{range $s := $.AllAssetStatus}}
+				{{range $s := $.AllUnitStatus}}
 				<option value="{{$s}}">{{$s.UIString}}</option>
 				{{end}}
 			</select>

@@ -71,7 +71,7 @@ func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	s := &roi.Shot{
 		Show:   id,
 		Shot:   shot,
-		Status: roi.ShotWaiting,
+		Status: roi.UnitInProgress,
 		Tasks:  sh.DefaultShotTasks,
 	}
 	err = roi.AddShot(DB, s)
@@ -106,14 +106,14 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	recipe := struct {
 		LoggedInUser  string
 		Shot          *roi.Shot
-		AllShotStatus []roi.ShotStatus
+		AllUnitStatus []roi.UnitStatus
 		Tasks         map[string]*roi.Task
 		AllTaskStatus []roi.TaskStatus
 		Thumbnail     string
 	}{
 		LoggedInUser:  env.User.ID,
 		Shot:          s,
-		AllShotStatus: roi.AllShotStatus,
+		AllUnitStatus: roi.AllUnitStatus,
 		Tasks:         tm,
 		AllTaskStatus: roi.AllTaskStatus,
 		Thumbnail:     "data/show/" + id + "/thumbnail.png",
@@ -136,7 +136,7 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	if err != nil {
 		return err
 	}
-	s.Status = roi.ShotStatus(r.FormValue("status"))
+	s.Status = roi.UnitStatus(r.FormValue("status"))
 	s.EditOrder = atoi(r.FormValue("edit_order"))
 	s.Description = r.FormValue("description")
 	s.CGDescription = r.FormValue("cg_description")
@@ -180,12 +180,12 @@ func updateMultiShotsHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		LoggedInUser  string
 		Show          string
 		IDs           []string
-		AllShotStatus []roi.ShotStatus
+		AllUnitStatus []roi.UnitStatus
 	}{
 		LoggedInUser:  env.User.ID,
 		Show:          show,
 		IDs:           ids,
-		AllShotStatus: roi.AllShotStatus,
+		AllUnitStatus: roi.AllUnitStatus,
 	}
 	return executeTemplate(w, "update-multi-shots.html", recipe)
 
@@ -245,7 +245,7 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 			s.DueDate = dueDate
 		}
 		if status != "" {
-			s.Status = roi.ShotStatus(status)
+			s.Status = roi.UnitStatus(status)
 		}
 		for _, tag := range tags {
 			prefix := tag[0]
