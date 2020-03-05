@@ -86,7 +86,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Shows         []*roi.Show
 		Show          string
 		Shots         []*roi.Shot
-		AllShotStatus []roi.ShotStatus
+		AllUnitStatus []roi.UnitStatus
 		Tasks         map[string]map[string]*roi.Task
 		AllTaskStatus []roi.TaskStatus
 		Query         string
@@ -96,7 +96,7 @@ func shotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Shows:         shows,
 		Show:          show,
 		Shots:         ss,
-		AllShotStatus: roi.AllShotStatus,
+		AllUnitStatus: roi.AllUnitStatus,
 		Tasks:         tasks,
 		AllTaskStatus: roi.AllTaskStatus,
 		Query:         query,

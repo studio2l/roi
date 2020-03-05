@@ -45,7 +45,7 @@ type Shot struct {
 	Prefix string `db:"prefix"`
 
 	// 샷 정보
-	Status        ShotStatus `db:"status"`
+	Status        UnitStatus `db:"status"`
 	EditOrder     int        `db:"edit_order"`
 	Description   string     `db:"description"`
 	CGDescription string     `db:"cg_description"`
@@ -77,6 +77,19 @@ type Shot struct {
 // ID는 Shot의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
 func (s *Shot) ID() string {
 	return s.Show + "/shot/" + s.Shot
+}
+
+// UnitFromShot은 Shot을 샷과 어셋의 공통된 주요 기능을 가진 Unit으로 변경한다.
+func UnitFromShot(s *Shot) *Unit {
+	return &Unit{
+		Show:     s.Show,
+		Category: "shot",
+		Unit:     s.Shot,
+		Tasks:    s.Tasks,
+		Status:   s.Status,
+		Tags:     s.Tags,
+		DueDate:  s.DueDate,
+	}
 }
 
 // SplitShotID는 받아들인 샷 아이디를 쇼, 샷으로 분리해서 반환한다.
@@ -167,7 +180,7 @@ func verifyShot(db *sql.DB, s *Shot) error {
 	if err != nil {
 		return err
 	}
-	err = verifyShotStatus(s.Status)
+	err = verifyUnitStatus(s.Status)
 	if err != nil {
 		return err
 	}
@@ -275,6 +288,33 @@ func GetShot(db *sql.DB, id string) (*Shot, error) {
 		return nil, err
 	}
 	return s, err
+}
+
+// ShotsHavingDue는 db에서 마감일이 정해진 샷을 불러온다.
+func ShotsHavingDue(db *sql.DB, show string) ([]*Shot, error) {
+	ks, _, _, err := dbKIVs(&Shot{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND due_date!=$2", keys), show, time.Time{})
+	ss := make([]*Shot, 0)
+	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
+		s := &Shot{}
+		err := scan(rows, s)
+		if err != nil {
+			return err
+		}
+		ss = append(ss, s)
+		return nil
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, NotFound("shot", "having-due-date")
+		}
+		return nil, err
+	}
+	return ss, nil
 }
 
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
