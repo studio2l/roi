@@ -141,7 +141,7 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	s := &roi.Shot{
 		Show:          show,
 		Shot:          shot,
-		Status:        roi.UnitStatus(status),
+		Status:        roi.Status(status),
 		EditOrder:     editOrder,
 		Description:   r.PostFormValue("description"),
 		CGDescription: r.PostFormValue("cg_description"),

@@ -71,7 +71,7 @@ func addAssetPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error
 	s := &roi.Asset{
 		Show:   id,
 		Asset:  asset,
-		Status: roi.UnitHold,
+		Status: roi.StatusHold,
 		Tasks:  sh.DefaultAssetTasks,
 	}
 	err = roi.AddAsset(DB, s)
@@ -106,9 +106,9 @@ func updateAssetHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	recipe := struct {
 		LoggedInUser  string
 		Asset         *roi.Asset
-		AllUnitStatus []roi.UnitStatus
+		AllUnitStatus []roi.Status
 		Tasks         map[string]*roi.Task
-		AllTaskStatus []roi.TaskStatus
+		AllTaskStatus []roi.Status
 		Thumbnail     string
 	}{
 		LoggedInUser:  env.User.ID,
@@ -136,7 +136,7 @@ func updateAssetPostHandler(w http.ResponseWriter, r *http.Request, env *Env) er
 	if err != nil {
 		return err
 	}
-	s.Status = roi.UnitStatus(r.FormValue("status"))
+	s.Status = roi.Status(r.FormValue("status"))
 	s.Description = r.FormValue("description")
 	s.CGDescription = r.FormValue("cg_description")
 	s.Tags = fieldSplit(r.FormValue("tags"))
@@ -175,7 +175,7 @@ func updateMultiAssetsHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 		LoggedInUser  string
 		Show          string
 		IDs           []string
-		AllUnitStatus []roi.UnitStatus
+		AllUnitStatus []roi.Status
 	}{
 		LoggedInUser:  env.User.ID,
 		Show:          show,
@@ -229,7 +229,7 @@ func updateMultiAssetsPostHandler(w http.ResponseWriter, r *http.Request, env *E
 			s.DueDate = dueDate
 		}
 		if status != "" {
-			s.Status = roi.UnitStatus(status)
+			s.Status = roi.Status(status)
 		}
 		for _, tag := range tags {
 			prefix := tag[0]

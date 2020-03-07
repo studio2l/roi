@@ -9,7 +9,7 @@ var testTaskA = &Task{
 	Category: "shot",
 	Unit:     testShotA.Shot,
 	Task:     "fx", // testShotA에 정의되어 있어야만 테스트가 통과한다.
-	Status:   TaskInProgress,
+	Status:   StatusInProgress,
 	Assignee: "kybin",
 }
 

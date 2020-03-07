@@ -49,19 +49,19 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		usd[due] = append(usd[due], u)
 	}
 	recipe := struct {
-		LoggedInUser  string
-		Shows         []*roi.Show
-		Show          string
-		Category      string
-		ByDue         map[string][]*roi.Unit
-		AllUnitStatus []roi.UnitStatus
+		LoggedInUser string
+		Shows        []*roi.Show
+		Show         string
+		Category     string
+		ByDue        map[string][]*roi.Unit
+		AllStatus    []roi.Status
 	}{
-		LoggedInUser:  env.User.ID,
-		Shows:         shows,
-		Show:          show,
-		Category:      ctg,
-		ByDue:         usd,
-		AllUnitStatus: roi.AllUnitStatus,
+		LoggedInUser: env.User.ID,
+		Shows:        shows,
+		Show:         show,
+		Category:     ctg,
+		ByDue:        usd,
+		AllStatus:    roi.AllStatus,
 	}
 	return executeTemplate(w, "review.html", recipe)
 }

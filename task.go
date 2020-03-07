@@ -35,9 +35,9 @@ type Task struct {
 	Unit     string `db:"unit"`     // 샷 또는 애셋 유닛
 	Task     string `db:"task"`     // 파트 또는 파트_요소로 구성된다. 예) fx, fx_fire
 
-	Status   TaskStatus `db:"status"`
-	DueDate  time.Time  `db:"due_date"`
-	Assignee string     `db:"assignee"`
+	Status   Status    `db:"status"`
+	DueDate  time.Time `db:"due_date"`
+	Assignee string    `db:"assignee"`
 
 	PublishVersion  string   `db:"publish_version"`
 	ApprovedVersion string   `db:"approved_version"`
@@ -161,13 +161,13 @@ func verifyTask(db *sql.DB, t *Task) error {
 			return fmt.Errorf("working version: %w", err)
 		}
 	}
-	if t.Status == TaskDone && t.PublishVersion == "" {
+	if t.Status == StatusDone && t.PublishVersion == "" {
 		return BadRequest(fmt.Sprintf("cannot set task status to TaskDone: no publish version"))
 	}
-	if t.Status == TaskApproved && t.ApprovedVersion == "" {
+	if t.Status == StatusApproved && t.ApprovedVersion == "" {
 		return BadRequest(fmt.Sprintf("cannot set task status to TaskApproved: no approved version"))
 	}
-	if t.Status == TaskNeedReview && len(t.ReviewVersions) == 0 {
+	if t.Status == StatusNeedReview && len(t.ReviewVersions) == 0 {
 		return BadRequest(fmt.Sprintf("cannot set task status to TaskNeedReview: no review versions"))
 	}
 	return nil

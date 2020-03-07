@@ -69,10 +69,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	for i := range timeline {
 		timeline[i] = stringFromDate(today.Add(time.Duration(i) * 24 * time.Hour))
 	}
-	numTasks := make(map[string]map[roi.TaskStatus]int)
+	numTasks := make(map[string]map[roi.Status]int)
 	for _, t := range tasks {
 		if numTasks[t.Show] == nil {
-			numTasks[t.Show] = make(map[roi.TaskStatus]int)
+			numTasks[t.Show] = make(map[roi.Status]int)
 		}
 		numTasks[t.Show][t.Status] += 1
 	}
@@ -80,10 +80,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser  string
 		User          string
 		Timeline      []string
-		NumTasks      map[string]map[roi.TaskStatus]int
+		NumTasks      map[string]map[roi.Status]int
 		TaskFromID    map[string]*roi.Task
 		TasksOfDay    map[string][]string
-		AllTaskStatus []roi.TaskStatus
+		AllTaskStatus []roi.Status
 	}{
 		LoggedInUser:  env.User.ID,
 		User:          env.User.ID,

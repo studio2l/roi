@@ -32,7 +32,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	recipe := struct {
 		LoggedInUser  string
 		Task          *roi.Task
-		AllTaskStatus []roi.TaskStatus
+		AllTaskStatus []roi.Status
 		Versions      []*roi.Version
 		Users         []*roi.User
 	}{
@@ -66,7 +66,7 @@ func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	if err != nil {
 		return err
 	}
-	t.Status = roi.TaskStatus(r.FormValue("status"))
+	t.Status = roi.Status(r.FormValue("status"))
 	t.Assignee = assignee
 	t.DueDate = tforms["due_date"]
 	t.PublishVersion = r.FormValue("publish_version")
@@ -113,7 +113,7 @@ func updateMultiTasksHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		Show          string
 		IDs           []string
 		Tasks         []string
-		AllTaskStatus []roi.TaskStatus
+		AllTaskStatus []roi.Status
 	}{
 		LoggedInUser:  env.User.ID,
 		Show:          show,
@@ -154,7 +154,7 @@ func updateMultiTasksPostHandler(w http.ResponseWriter, r *http.Request, env *En
 			s.DueDate = dueDate
 		}
 		if status != "" {
-			s.Status = roi.TaskStatus(status)
+			s.Status = roi.Status(status)
 		}
 		if assignee != "" {
 			s.Assignee = assignee
