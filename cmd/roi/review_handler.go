@@ -54,14 +54,12 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Show         string
 		Category     string
 		ByDue        map[string][]*roi.Unit
-		AllStatus    []roi.Status
 	}{
 		LoggedInUser: env.User.ID,
 		Shows:        shows,
 		Show:         show,
 		Category:     ctg,
 		ByDue:        usd,
-		AllStatus:    roi.AllStatus,
 	}
 	return executeTemplate(w, "review.html", recipe)
 }
