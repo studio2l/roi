@@ -32,10 +32,10 @@ type Asset struct {
 	Asset string `db:"asset"`
 
 	// 애셋 정보
-	Status        UnitStatus `db:"status"`
-	Description   string     `db:"description"`
-	CGDescription string     `db:"cg_description"`
-	Tags          []string   `db:"tags"`
+	Status        Status   `db:"status"`
+	Description   string   `db:"description"`
+	CGDescription string   `db:"cg_description"`
+	Tags          []string `db:"tags"`
 
 	// Tasks는 애셋에 작업중인 어떤 태스크가 있는지를 나타낸다.
 	// 웹 페이지에는 여기에 포함된 태스크만 이 순서대로 보여져야 한다.
@@ -179,7 +179,7 @@ func AddAsset(db *sql.DB, s *Asset) error {
 			Category: "asset",
 			Unit:     s.Asset,
 			Task:     task,
-			Status:   TaskInProgress,
+			Status:   StatusInProgress,
 			DueDate:  time.Time{},
 		}
 		st, err := addTaskStmts(t)
@@ -384,7 +384,7 @@ func UpdateAsset(db *sql.DB, id string, s *Asset) error {
 					Category: "asset",
 					Unit:     s.Asset,
 					Task:     task,
-					Status:   TaskInProgress,
+					Status:   StatusInProgress,
 					DueDate:  time.Time{},
 				}
 				err := verifyTask(db, t)

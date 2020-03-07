@@ -9,7 +9,7 @@ import (
 var testAssetA = &Asset{
 	Show:          testShow.Show,
 	Asset:         "woman1",
-	Status:        UnitInProgress,
+	Status:        StatusInProgress,
 	Description:   "일반적인 여성",
 	CGDescription: "좋아요.",
 	Tags:          []string{"인간"},
@@ -20,7 +20,7 @@ var testAssetA = &Asset{
 var testAssetB = &Asset{
 	Asset:         "man1",
 	Show:          testShow.Show,
-	Status:        UnitHold,
+	Status:        StatusHold,
 	Description:   "일반적인 남성",
 	CGDescription: "아주 잘 했습니다.",
 	Tags:          []string{"인간"},
@@ -29,7 +29,7 @@ var testAssetB = &Asset{
 var testAssetC = &Asset{
 	Asset:         "char_lion_1",
 	Show:          testShow.Show,
-	Status:        UnitHold,
+	Status:        StatusHold,
 	Description:   "라이프 오브 파이급 사자",
 	CGDescription: "털이 더 가늘어야 할 것 같네요.",
 	Tags:          []string{"크리쳐", "사자", "털"},

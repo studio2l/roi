@@ -86,9 +86,9 @@ func assetsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Shows         []*roi.Show
 		Show          string
 		Assets        []*roi.Asset
-		AllUnitStatus []roi.UnitStatus
+		AllUnitStatus []roi.Status
 		Tasks         map[string]map[string]*roi.Task
-		AllTaskStatus []roi.TaskStatus
+		AllTaskStatus []roi.Status
 		Query         string
 	}{
 		LoggedInUser:  env.User.ID,

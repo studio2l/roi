@@ -20,7 +20,7 @@ type Unit struct {
 	Show     string
 	Category string
 	Unit     string
-	Status   UnitStatus
+	Status   Status
 	Tags     []string
 	Tasks    []string
 	DueDate  time.Time

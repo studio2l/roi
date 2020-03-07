@@ -45,14 +45,14 @@ type Shot struct {
 	Prefix string `db:"prefix"`
 
 	// 샷 정보
-	Status        UnitStatus `db:"status"`
-	EditOrder     int        `db:"edit_order"`
-	Description   string     `db:"description"`
-	CGDescription string     `db:"cg_description"`
-	TimecodeIn    string     `db:"timecode_in"`
-	TimecodeOut   string     `db:"timecode_out"`
-	Duration      int        `db:"duration"`
-	Tags          []string   `db:"tags"`
+	Status        Status   `db:"status"`
+	EditOrder     int      `db:"edit_order"`
+	Description   string   `db:"description"`
+	CGDescription string   `db:"cg_description"`
+	TimecodeIn    string   `db:"timecode_in"`
+	TimecodeOut   string   `db:"timecode_out"`
+	Duration      int      `db:"duration"`
+	Tags          []string `db:"tags"`
 
 	// Assets는 샷이 필요로 하는 애셋 이름 리스트이다.
 	// 현재는 애셋이 같은 쇼 안에 존재할 때만 처리가 가능하다.
@@ -244,7 +244,7 @@ func AddShot(db *sql.DB, s *Shot) error {
 			Category: "shot",
 			Unit:     s.Shot,
 			Task:     task,
-			Status:   TaskInProgress,
+			Status:   StatusInProgress,
 			DueDate:  time.Time{},
 		}
 		err := verifyTask(db, t)
@@ -461,7 +461,7 @@ func UpdateShot(db *sql.DB, id string, s *Shot) error {
 					Category: "shot",
 					Unit:     s.Shot,
 					Task:     task,
-					Status:   TaskInProgress,
+					Status:   StatusInProgress,
 					DueDate:  time.Time{},
 				}
 				st, err := addTaskStmts(t)
