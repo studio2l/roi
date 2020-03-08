@@ -56,16 +56,14 @@ func (s *Asset) ID() string {
 	return s.Show + "/asset/" + s.Asset
 }
 
-// UnitFromAsset은 Asset을 샷과 어셋의 공통된 주요 기능을 가진 Unit으로 변경한다.
-func UnitFromAsset(a *Asset) *Unit {
-	return &Unit{
-		Show:     a.Show,
-		Category: "asset",
-		Unit:     a.Asset,
-		Tasks:    a.Tasks,
-		Status:   a.Status,
-		Tags:     a.Tags,
-		DueDate:  a.DueDate,
+// ReviewTargetFromAsset은 Asset을 샷과 어셋의 공통된 주요 기능을 가진 ReviewTarget으로 변경한다.
+func ReviewTargetFromAsset(a *Asset) *ReviewTarget {
+	return &ReviewTarget{
+		Show:    a.Show,
+		Kind:    "asset",
+		Name:    a.Asset,
+		Status:  a.Status,
+		DueDate: a.DueDate,
 	}
 }
 

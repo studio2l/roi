@@ -79,16 +79,14 @@ func (s *Shot) ID() string {
 	return s.Show + "/shot/" + s.Shot
 }
 
-// UnitFromShot은 Shot을 샷과 어셋의 공통된 주요 기능을 가진 Unit으로 변경한다.
-func UnitFromShot(s *Shot) *Unit {
-	return &Unit{
-		Show:     s.Show,
-		Category: "shot",
-		Unit:     s.Shot,
-		Tasks:    s.Tasks,
-		Status:   s.Status,
-		Tags:     s.Tags,
-		DueDate:  s.DueDate,
+// ReviewTargetFromShot은 Shot을 샷과 어셋의 공통된 주요 기능을 가진 Unit으로 변경한다.
+func ReviewTargetFromShot(s *Shot) *ReviewTarget {
+	return &ReviewTarget{
+		Show:    s.Show,
+		Kind:    "shot",
+		Name:    s.Shot,
+		Status:  s.Status,
+		DueDate: s.DueDate,
 	}
 }
 

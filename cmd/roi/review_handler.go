@@ -24,6 +24,10 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if ctg == "" {
 		ctg = "shot"
 	}
+	kind := r.FormValue("kind")
+	if kind == "" {
+		kind = "unit"
+	}
 	if show == "" {
 		// 요청이 프로젝트를 가리키지 않을 경우 사용자가
 		// 보고 있던 프로젝트를 선택한다.
@@ -33,33 +37,35 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			// 첫번째 프로젝트를 가리킨다.
 			show = shows[0].Show
 		}
-		http.Redirect(w, r, "/review?show="+show+"&category="+ctg, http.StatusSeeOther)
+		http.Redirect(w, r, "/review?show="+show+"&category="+ctg+"&kind="+kind, http.StatusSeeOther)
 		return nil
 	}
-	us, err := roi.UnitsHavingDue(DB, show, ctg)
+	rts, err := roi.ReviewTargetsHavingDue(DB, show, ctg, kind)
 	if err != nil {
 		return err
 	}
-	usd := make(map[string][]*roi.Unit)
-	for _, u := range us {
-		due := stringFromDate(u.DueDate)
-		if usd[due] == nil {
-			usd[due] = make([]*roi.Unit, 0)
+	rtsd := make(map[string][]*roi.ReviewTarget)
+	for _, rt := range rts {
+		due := stringFromDate(rt.DueDate)
+		if rtsd[due] == nil {
+			rtsd[due] = make([]*roi.ReviewTarget, 0)
 		}
-		usd[due] = append(usd[due], u)
+		rtsd[due] = append(rtsd[due], rt)
 	}
 	recipe := struct {
 		LoggedInUser string
 		Shows        []*roi.Show
 		Show         string
 		Category     string
-		ByDue        map[string][]*roi.Unit
+		Kind         string
+		ByDue        map[string][]*roi.ReviewTarget
 	}{
 		LoggedInUser: env.User.ID,
 		Shows:        shows,
 		Show:         show,
 		Category:     ctg,
-		ByDue:        usd,
+		Kind:         kind,
+		ByDue:        rtsd,
 	}
 	return executeTemplate(w, "review.html", recipe)
 }
