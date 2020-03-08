@@ -50,6 +50,17 @@ func (t *Task) ID() string {
 	return t.Show + "/" + t.Category + "/" + t.Unit + "/" + t.Task
 }
 
+// ReviewTargetFromTask은 Task을 샷과 어셋의 공통된 주요 기능을 가진 Unit으로 변경한다.
+func ReviewTargetFromTask(s *Task) *ReviewTarget {
+	return &ReviewTarget{
+		Show:    s.Show,
+		Kind:    "task",
+		Name:    s.Unit + "/" + s.Task,
+		Status:  s.Status,
+		DueDate: s.DueDate,
+	}
+}
+
 // UnitID는 부모 유닛의 아이디를 반환한다.
 // 유닛은 샷 또는 애셋이다.
 func (t *Task) UnitID() string {
@@ -273,6 +284,33 @@ func GetTask(db *sql.DB, id string) (*Task, error) {
 		return nil, err
 	}
 	return t, err
+}
+
+// TasksHavingDue는 db에서 마감일이 정해진 샷을 불러온다.
+func TasksHavingDue(db *sql.DB, show, ctg string) ([]*Task, error) {
+	ks, _, _, err := dbKIVs(&Task{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND due_date!=$3", keys), show, ctg, time.Time{})
+	ts := make([]*Task, 0)
+	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
+		s := &Task{}
+		err := scan(rows, s)
+		if err != nil {
+			return err
+		}
+		ts = append(ts, s)
+		return nil
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, NotFound("task", "having-due-date")
+		}
+		return nil, err
+	}
+	return ts, nil
 }
 
 // ShotTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
