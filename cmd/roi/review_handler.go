@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/studio2l/roi"
@@ -28,6 +29,10 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if kind == "" {
 		kind = "unit"
 	}
+	target := r.FormValue("target")
+	if target == "" {
+		target = "having-due"
+	}
 	if show == "" {
 		// 요청이 프로젝트를 가리키지 않을 경우 사용자가
 		// 보고 있던 프로젝트를 선택한다.
@@ -37,12 +42,22 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			// 첫번째 프로젝트를 가리킨다.
 			show = shows[0].Show
 		}
-		http.Redirect(w, r, "/review?show="+show+"&category="+ctg+"&kind="+kind, http.StatusSeeOther)
+		http.Redirect(w, r, "/review?show="+show+"&category="+ctg+"&kind="+kind+"&target="+target, http.StatusSeeOther)
 		return nil
 	}
-	rts, err := roi.ReviewTargetsHavingDue(DB, show, ctg, kind)
-	if err != nil {
-		return err
+	rts := make([]*roi.ReviewTarget, 0)
+	if target == "having-due" {
+		rts, err = roi.ReviewTargetsHavingDue(DB, show, ctg, kind)
+		if err != nil {
+			return err
+		}
+	} else if target == "need-review" {
+		rts, err = roi.ReviewTargetsNeedReview(DB, show, ctg, kind)
+		if err != nil {
+			return err
+		}
+	} else {
+		return roi.BadRequest(fmt.Sprintf("invalid review target: %s", target))
 	}
 	rtsd := make(map[string][]*roi.ReviewTarget)
 	for _, rt := range rts {
@@ -58,6 +73,7 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Show         string
 		Category     string
 		Kind         string
+		Target       string
 		ByDue        map[string][]*roi.ReviewTarget
 	}{
 		LoggedInUser: env.User.ID,
@@ -65,6 +81,7 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Show:         show,
 		Category:     ctg,
 		Kind:         kind,
+		Target:       target,
 		ByDue:        rtsd,
 	}
 	return executeTemplate(w, "review.html", recipe)
