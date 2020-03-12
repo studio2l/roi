@@ -286,7 +286,7 @@ func GetTask(db *sql.DB, id string) (*Task, error) {
 	return t, err
 }
 
-// TasksHavingDue는 db에서 마감일이 정해진 샷을 불러온다.
+// TasksHavingDue는 db에서 마감일이 정해진 태스크를 불러온다.
 func TasksHavingDue(db *sql.DB, show, ctg string) ([]*Task, error) {
 	ks, _, _, err := dbKIVs(&Task{})
 	if err != nil {
@@ -307,6 +307,33 @@ func TasksHavingDue(db *sql.DB, show, ctg string) ([]*Task, error) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, NotFound("task", "having-due-date")
+		}
+		return nil, err
+	}
+	return ts, nil
+}
+
+// TasksNeedReview는 db에서 리뷰가 필요한 태스크를 불러온다.
+func TasksNeedReview(db *sql.DB, show, ctg string) ([]*Task, error) {
+	ks, _, _, err := dbKIVs(&Task{})
+	if err != nil {
+		return nil, err
+	}
+	keys := strings.Join(ks, ", ")
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND status=$3", keys), show, ctg, StatusNeedReview)
+	ts := make([]*Task, 0)
+	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
+		s := &Task{}
+		err := scan(rows, s)
+		if err != nil {
+			return err
+		}
+		ts = append(ts, s)
+		return nil
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, NotFound("task", "status-need-review")
 		}
 		return nil, err
 	}

@@ -19,6 +19,11 @@
             <button style="width:5rem;border-radius:2px 0 0 2px;border-right:solid 1px grey;{{if eq $.Kind "unit"}}background-color:#FFCC33{{end}}" onclick="selectKind('unit')">유닛</button>
             <button style="width:5rem;border-radius:0 2px 2px 0;{{if eq $.Kind "task"}}background-color:#FFCC33{{end}}" onclick="selectKind('task')">태스크</button>
             <input type="hidden" id="kind-input" name="kind" type="text" value="{{$.Kind}}">
+
+            <div style="width:2rem"></div>
+            <button style="width:5rem;border-radius:2px 0 0 2px;border-right:solid 1px grey;{{if eq $.Target "having-due"}}background-color:#FFCC33{{end}}" onclick="selectTarget('having-due')">마감</button>
+            <button style="width:5rem;border-radius:0 2px 2px 0;{{if eq $.Target "need-review"}}background-color:#FFCC33{{end}}" onclick="selectTarget('need-review')">대기중</button>
+            <input type="hidden" id="target-input" name="target" type="text" value="{{$.Target}}">
         </form>
     </div>
 </div>
@@ -50,7 +55,8 @@ function refresh() {
     let show = document.getElementById("show-select").value
     let ctg = document.getElementById("category-input").value
     let kind = document.getElementById("kind-input").value
-    document.location.href = "?show=" + show + "&category=" + ctg + "&kind=" + kind
+    let target = document.getElementById("target-input").value
+    document.location.href = "?show=" + show + "&category=" + ctg + "&kind=" + kind + "&target=" + target
 }
 
 // selectCategory는 샷 또는 애셋을 선택한 후 리뷰 페이지를 다시 부른다.
@@ -61,6 +67,11 @@ function selectCategory(ctg) {
 // selectKind는 유닛 또는 태스크를 선택한 후 리뷰 페이지를 다시 부른다.
 function selectKind(kind) {
     document.getElementById("kind-input").value = kind
+}
+
+// selectTarget는 불러올 목표를 선택하고 리뷰 페이지를 다시 부른다.
+function selectTarget(target) {
+    document.getElementById("target-input").value = target
 }
 </script>
 
