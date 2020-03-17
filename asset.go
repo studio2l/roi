@@ -61,7 +61,7 @@ func ReviewTargetFromAsset(a *Asset) *ReviewTarget {
 	return &ReviewTarget{
 		Show:     a.Show,
 		Category: "asset",
-		Kind:     "unit",
+		Level:    "unit",
 		Name:     a.Asset,
 		Status:   a.Status,
 		DueDate:  a.DueDate,

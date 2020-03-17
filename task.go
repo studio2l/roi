@@ -55,7 +55,7 @@ func ReviewTargetFromTask(t *Task) *ReviewTarget {
 	return &ReviewTarget{
 		Show:     t.Show,
 		Category: t.Category,
-		Kind:     "task",
+		Level:    "task",
 		Name:     t.Unit + "/" + t.Task,
 		Status:   t.Status,
 		DueDate:  t.DueDate,

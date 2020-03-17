@@ -25,9 +25,9 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if ctg == "" {
 		ctg = "shot"
 	}
-	kind := r.FormValue("kind")
-	if kind == "" {
-		kind = "unit"
+	level := r.FormValue("level")
+	if level == "" {
+		level = "unit"
 	}
 	target := r.FormValue("target")
 	if target == "" {
@@ -42,17 +42,17 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			// 첫번째 프로젝트를 가리킨다.
 			show = shows[0].Show
 		}
-		http.Redirect(w, r, "/review?show="+show+"&category="+ctg+"&kind="+kind+"&target="+target, http.StatusSeeOther)
+		http.Redirect(w, r, "/review?show="+show+"&category="+ctg+"&level="+level+"&target="+target, http.StatusSeeOther)
 		return nil
 	}
 	rts := make([]*roi.ReviewTarget, 0)
 	if target == "having-due" {
-		rts, err = roi.ReviewTargetsHavingDue(DB, show, ctg, kind)
+		rts, err = roi.ReviewTargetsHavingDue(DB, show, ctg, level)
 		if err != nil {
 			return err
 		}
 	} else if target == "need-review" {
-		rts, err = roi.ReviewTargetsNeedReview(DB, show, ctg, kind)
+		rts, err = roi.ReviewTargetsNeedReview(DB, show, ctg, level)
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Shows        []*roi.Show
 		Show         string
 		Category     string
-		Kind         string
+		Level        string
 		Target       string
 		ByDue        map[string][]*roi.ReviewTarget
 	}{
@@ -80,7 +80,7 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Shows:        shows,
 		Show:         show,
 		Category:     ctg,
-		Kind:         kind,
+		Level:        level,
 		Target:       target,
 		ByDue:        rtsd,
 	}
