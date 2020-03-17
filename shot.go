@@ -84,7 +84,7 @@ func ReviewTargetFromShot(s *Shot) *ReviewTarget {
 	return &ReviewTarget{
 		Show:     s.Show,
 		Category: "shot",
-		Kind:     "unit",
+		Level:    "unit",
 		Name:     s.Shot,
 		Status:   s.Status,
 		DueDate:  s.DueDate,

@@ -9,9 +9,9 @@ import (
 // ReviewTarget은 리뷰의 대상이 되는 유닛 또는 태스크 정보이다.
 type ReviewTarget struct {
 	Category string // "shot" 또는 "asset"
-	Kind     string // "unit" 또는 "task"
+	Level    string // "unit" 또는 "task"
 	Show     string
-	Name     string // 만일 Kind가 유닛이라면 유닛명, 태스크라면 유닛명 + "/" + 태스크명이 이름이다.
+	Name     string // 만일 Level이 "unit"이라면 유닛명, "task"라면 유닛명 + "/" + 태스크명이 이름이다.
 	Status   Status
 	DueDate  time.Time
 }
