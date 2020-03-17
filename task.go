@@ -50,14 +50,15 @@ func (t *Task) ID() string {
 	return t.Show + "/" + t.Category + "/" + t.Unit + "/" + t.Task
 }
 
-// ReviewTargetFromTask은 Task을 샷과 어셋의 공통된 주요 기능을 가진 Unit으로 변경한다.
-func ReviewTargetFromTask(s *Task) *ReviewTarget {
+// ReviewTargetFromTask은 Task를 샷과 어셋의 공통된 주요 기능을 가진 Unit으로 변경한다.
+func ReviewTargetFromTask(t *Task) *ReviewTarget {
 	return &ReviewTarget{
-		Show:    s.Show,
-		Kind:    "task",
-		Name:    s.Unit + "/" + s.Task,
-		Status:  s.Status,
-		DueDate: s.DueDate,
+		Show:     t.Show,
+		Category: t.Category,
+		Kind:     "task",
+		Name:     t.Unit + "/" + t.Task,
+		Status:   t.Status,
+		DueDate:  t.DueDate,
 	}
 }
 

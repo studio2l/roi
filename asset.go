@@ -59,11 +59,12 @@ func (s *Asset) ID() string {
 // ReviewTargetFromAsset은 Asset을 샷과 어셋의 공통된 주요 기능을 가진 ReviewTarget으로 변경한다.
 func ReviewTargetFromAsset(a *Asset) *ReviewTarget {
 	return &ReviewTarget{
-		Show:    a.Show,
-		Kind:    "asset",
-		Name:    a.Asset,
-		Status:  a.Status,
-		DueDate: a.DueDate,
+		Show:     a.Show,
+		Category: "asset",
+		Kind:     "unit",
+		Name:     a.Asset,
+		Status:   a.Status,
+		DueDate:  a.DueDate,
 	}
 }
 

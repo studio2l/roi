@@ -82,11 +82,12 @@ func (s *Shot) ID() string {
 // ReviewTargetFromShot은 Shot을 샷과 어셋의 공통된 주요 기능을 가진 Unit으로 변경한다.
 func ReviewTargetFromShot(s *Shot) *ReviewTarget {
 	return &ReviewTarget{
-		Show:    s.Show,
-		Kind:    "shot",
-		Name:    s.Shot,
-		Status:  s.Status,
-		DueDate: s.DueDate,
+		Show:     s.Show,
+		Category: "shot",
+		Kind:     "unit",
+		Name:     s.Shot,
+		Status:   s.Status,
+		DueDate:  s.DueDate,
 	}
 }
 
