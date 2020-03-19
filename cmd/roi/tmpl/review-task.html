@@ -1,0 +1,80 @@
+{{template "head.html"}}
+{{template "nav.html" $}}
+<!--상단 고정 메뉴로 인해 위치 조정-->
+<style>
+.clipper {
+	flex: 1;
+	text-align: center;
+	border-bottom: 1px solid #AAA;
+	line-height: 0.1em;
+	margin: 10px 0 20px;
+}
+</style>
+
+<div style="padding-top: 2rem;"></div>
+<div class="ui raised very padded text container grey inverted segment">
+	{{with $t := $.Task}}
+	<h2 class="ui header">
+		태스크 리뷰
+	</h2>
+	<h3 class="ui dividing header" style="color:#818181">
+		<a href="/update-show?id={{$t.Show}}" style="color:#9f9f9f">{{$t.Show}}</a> /
+		{{$t.Category}} /
+		<a href="/update-shot?id={{$t.Show}}/{{$t.Category}}/{{$t.Unit}}" style="color:#9f9f9f">{{$t.Unit}}</a> /
+		<a href="/update-task?id={{$t.Show}}/{{$t.Category}}/{{$t.Unit}}/{{$t.Task}}" style="color:#9f9f9f">{{$t.Task}}</a> /
+	</h3>
+	{{end}}
+
+	{{with $.Versions}}
+		{{if not $.ShowAllVersions}}
+			<a href="?id={{$.Task.ID}}&all-versions=1" style="display:flex;justify-content:center;align-items:center;color:#8AD;cursor:pointer;">
+				<span>모든 버전 보기</span>
+			</a>
+			<div style="height:1rem"></div>
+		{{end}}
+		{{range $i, $v := $.Versions}}
+			{{if ne $i 0}}
+				<div style="height:2rem"></div>
+			{{end}}
+			<div style="border:solid 1px black;padding:1.5rem">
+				<div style="display:flex;justify-content:space-between">
+					<div>버전: {{$v.Version}}</div>
+					<div>담당: {{$v.Owner}}</div>
+				</div>
+				<div style="height:2rem"></div>
+
+				<div>영상</div>
+				{{with $movs := versionMovs $v.ID}}
+					{{range $mov := $movs}}
+						<video width=100% height=auto controls>
+							<source src="{{$mov}}" type="video/mp4">
+						</video>
+					{{end}}
+				{{else}}
+					<div style="color:#AAA;font-size:0.8rem">등록된 영상이 없습니다.</div>
+				{{end}}
+				<div style="height:1rem"></div>
+				<div>이미지</div>
+				{{with $imgs := versionImages $v.ID}}
+					{{range $img := $imgs}}
+						<img src="{{$img}}"></img>
+					{{end}}
+				{{else}}
+					<div style="color:#AAA;font-size:0.8rem">등록된 이미지가 없습니다.</div>
+				{{end}}
+				<div style="height:1rem"></div>
+				<div>결과물</div>
+				{{with $outputs := $v.OutputFiles}}
+					{{range $outputs := $outputs}}
+						<div>$f</div>
+					{{end}}
+				{{else}}
+					<div style="color:#AAA;font-size:0.8rem">등록된 파일이 없습니다.</div>
+				{{end}}
+			</div>
+		{{end}}
+	{{else}}
+		<div style="color:#AAA">등록된 버전이 없습니다.</div>
+	{{end}}
+</div>
+{{template "footer.html"}}
