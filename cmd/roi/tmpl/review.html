@@ -29,7 +29,7 @@
 </div>
 
 <div style="padding:15px 10px 15px 10px;z-index:0;">
-    {{range $d, $units := $.ByDue}}
+    {{range $d, $targets := $.ByDue}}
     <div class="ui inverted segment">
         <div class="ui grid">
             <div class="ui four wide column">
@@ -40,10 +40,10 @@
         </div>
         <div class="ui divider">
         </div>
-        <div id="show-{{$.Show}}-shots-by-due" class="shots-per-due ui grey inverted segment">
-            {{range $u := $units}}
-            <a class="ui small label" href="">{{$u.Name}}<div class="detail">{{$u.Status.UIString}}</div></a>
-            {{end}}
+        <div id="show-{{$.Show}}-targets-by-due" class="shots-per-due ui grey inverted segment">
+        {{range $t := $targets}}
+            <a class="ui small label" href="/review-task?id={{$t.ID}}">{{$t.Name}}<div class="detail">{{$t.Status.UIString}}</div></a>
+        {{end}}
         </div>
     </div>
     {{end}}

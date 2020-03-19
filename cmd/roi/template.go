@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -40,6 +41,8 @@ func parseTemplate() {
 		"sub":                 func(a, b int) int { return a - b },
 		"fieldJoin":           fieldJoin,
 		"spaceJoin":           func(words []string) string { return strings.Join(words, " ") },
+		"versionMovs":         versionMovs,
+		"versionImages":       versionImages,
 	}).ParseGlob("tmpl/*.html"))
 }
 
@@ -135,4 +138,27 @@ func dayColorInTimeline(i int) string {
 		return "orange"
 	}
 	return "red"
+}
+
+func versionMovs(id string) ([]string, error) {
+	movs, err := filepath.Glob(fmt.Sprintf("data/show/%s/*.mov", id))
+	if err != nil {
+		return nil, err
+	}
+	return movs, nil
+}
+
+func versionImages(id string) ([]string, error) {
+	jpgs, err := filepath.Glob(fmt.Sprintf("data/show/%s/*.jpg", id))
+	if err != nil {
+		return nil, err
+	}
+	pngs, err := filepath.Glob(fmt.Sprintf("data/show/%s/*.png", id))
+	if err != nil {
+		return nil, err
+	}
+	images := make([]string, 0, len(jpgs)+len(pngs))
+	images = append(images, jpgs...)
+	images = append(images, pngs...)
+	return images, nil
 }

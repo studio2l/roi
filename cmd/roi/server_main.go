@@ -174,6 +174,7 @@ when ROI_DB_ADDR environment variable is not empty, it will use the value as def
 	mux.HandleFunc("/update-asset", handle(updateAssetHandler))
 	mux.HandleFunc("/update-task", handle(updateTaskHandler))
 	mux.HandleFunc("/update-multi-tasks", handle(updateMultiTasksHandler))
+	mux.HandleFunc("/review-task", handle(reviewTaskHandler))
 	mux.HandleFunc("/add-version", handle(addVersionHandler))
 	mux.HandleFunc("/update-version", handle(updateVersionHandler))
 	mux.HandleFunc("/review/", handle(reviewHandler))

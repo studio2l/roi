@@ -172,3 +172,45 @@ func updateMultiTasksPostHandler(w http.ResponseWriter, r *http.Request, env *En
 	// 여러 샷 수정 페이지 전인 shots 페이지로 돌아간다.
 	return executeTemplate(w, "history-go.html", -2)
 }
+
+func reviewTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	if r.Method == "POST" {
+		return nil
+		// return reviewTaskPostHandler(w, r, env)
+	}
+	err := mustFields(r, "id")
+	if err != nil {
+		return err
+	}
+	id := r.FormValue("id")
+	t, err := roi.GetTask(DB, id)
+	if err != nil {
+		return err
+	}
+	vs, err := roi.TaskVersions(DB, id)
+	if err != nil {
+		return err
+	}
+	showAllVersions := false
+	if r.FormValue("all-versions") != "" {
+		showAllVersions = true
+	}
+	if !showAllVersions {
+		// 마지막 버전만 보인다.
+		if len(vs) != 0 {
+			vs = vs[len(vs)-1:]
+		}
+	}
+	recipe := struct {
+		LoggedInUser    string
+		Task            *roi.Task
+		Versions        []*roi.Version
+		ShowAllVersions bool
+	}{
+		LoggedInUser:    env.User.ID,
+		Task:            t,
+		Versions:        vs,
+		ShowAllVersions: showAllVersions,
+	}
+	return executeTemplate(w, "review-task.html", recipe)
+}
