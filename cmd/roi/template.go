@@ -41,8 +41,8 @@ func parseTemplate() {
 		"sub":                 func(a, b int) int { return a - b },
 		"fieldJoin":           fieldJoin,
 		"spaceJoin":           func(words []string) string { return strings.Join(words, " ") },
-		"versionMovs":         versionMovs,
-		"versionImages":       versionImages,
+		"versionPreviewFiles": versionPreviewFiles,
+		"basename":            filepath.Base,
 	}).ParseGlob("tmpl/*.html"))
 }
 
@@ -140,25 +140,51 @@ func dayColorInTimeline(i int) string {
 	return "red"
 }
 
-func versionMovs(id string) ([]string, error) {
-	movs, err := filepath.Glob(fmt.Sprintf("data/show/%s/*.mov", id))
-	if err != nil {
-		return nil, err
-	}
-	return movs, nil
+type versionPreview struct {
+	N    int // 영상과 이미지를 포함한 갯수
+	Movs []string
+	Imgs []string
 }
 
-func versionImages(id string) ([]string, error) {
-	jpgs, err := filepath.Glob(fmt.Sprintf("data/show/%s/*.jpg", id))
+// versionPreviewFiles는 특정 버전의 데이터 디렉토리에서 프리뷰 파일을 찾는다.
+// 리턴 값은 템플릿 안에서 쓰기 좋도록 result안에 담긴다. (코드 참조)
+// 만일 해당 디렉토리가 아직 생성되어있지 않다면 빈 결과값을 돌려준다.
+func versionPreviewFiles(id string) (*versionPreview, error) {
+	dir := "data/show/" + id
+	d, err := os.Open(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	fileinfos, err := d.Readdir(-1)
 	if err != nil {
 		return nil, err
 	}
-	pngs, err := filepath.Glob(fmt.Sprintf("data/show/%s/*.png", id))
-	if err != nil {
-		return nil, err
+	if len(fileinfos) == 0 {
+		return nil, nil
 	}
-	images := make([]string, 0, len(jpgs)+len(pngs))
-	images = append(images, jpgs...)
-	images = append(images, pngs...)
-	return images, nil
+	movs := make([]string, 0)
+	imgs := make([]string, 0)
+	for _, fi := range fileinfos {
+		if fi.IsDir() {
+			continue
+		}
+		fname := fi.Name()
+		ext := filepath.Ext(fname)
+		if ext == ".mp4" || ext == ".mov" {
+			fpath := filepath.Join(dir, fname)
+			movs = append(movs, fpath)
+		}
+		if ext == ".jpg" || ext == ".png" {
+			fpath := filepath.Join(dir, fname)
+			imgs = append(imgs, fpath)
+		}
+	}
+	return &versionPreview{
+		N:    len(movs) + len(imgs),
+		Movs: movs,
+		Imgs: imgs,
+	}, nil
 }

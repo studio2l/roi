@@ -106,8 +106,8 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 	if err != nil {
 		return err
 	}
-	mov := fmt.Sprintf("data/show/%s/1.mov", id)
-	err = saveFormFile(r, "mov", mov)
+	dstd := fmt.Sprintf("data/show/%s", id)
+	err = saveFormFiles(r, "preview_files", dstd)
 	if err != nil {
 		return err
 	}

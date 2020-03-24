@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"image"
 	"image/png"
-	"io/ioutil"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -131,32 +132,40 @@ func saveImageFormFile(r *http.Request, field string, dst string) error {
 	return nil
 }
 
-func saveFormFile(r *http.Request, field string, dst string) error {
-	f, fi, err := r.FormFile(field)
-	if err != nil {
-		if err == http.ErrMissingFile {
-			// 사용자가 파일을 업로드 하지 않은 것은 에러가 아니다.
-			return nil
-		}
-		return err
+// saveFormFiles는 리퀘스트 멀티파트로 전송되어온 파일을 dstd 디렉토리에 저장한다.
+func saveFormFiles(r *http.Request, field string, dstd string) error {
+	r.ParseMultipartForm(200000) // 사용하는 최대 메모리 사이즈: 200KB
+	fileHeaders := r.MultipartForm.File[field]
+	if len(fileHeaders) == 0 {
+		return nil
 	}
-	defer f.Close()
-	if fi.Size > (32 << 20) {
-		return roi.BadRequest(fmt.Sprintf("mov: file size too big (got %dMB, maximum 32MB)", fi.Size>>20))
-	}
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		return fmt.Errorf("could not read file data: %w", err)
-	}
-	err = os.MkdirAll(filepath.Dir(dst), 0755)
+	err := os.MkdirAll(filepath.Dir(dstd), 0755)
 	if err != nil {
 		return fmt.Errorf("could not create directory: %w", err)
 	}
-	err = ioutil.WriteFile(dst, data, 0755)
-	if err != nil {
-		return fmt.Errorf("could not save file: %w", err)
+	for _, fh := range fileHeaders {
+		err := saveMultipartFile(fh, filepath.Join(dstd, fh.Filename))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+// saveMultipartFile은 멀티파트 파일을 dstf에 저장한다.
+func saveMultipartFile(f *multipart.FileHeader, dstf string) error {
+	src, err := f.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+	dst, err := os.Create(dstf)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+	_, err = io.Copy(dst, src)
+	return err
 }
 
 // formValues는 http 요청에서 슬라이스 형식의 필드값을 가지고 온다.

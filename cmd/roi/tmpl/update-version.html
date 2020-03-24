@@ -19,11 +19,20 @@
 		<div class="field"><label>소유자</label>
 			<input readonly type="text" name="owner" value="{{$v.Owner}}" />
 		</div>
-		<div class="field"><label>프리뷰 이미지</label>
-			<input type="text" name="images" value="{{fieldJoin $v.Images}}"/>
-		</div>
-		<div class="field"><label>프리뷰 Mov</label>
-			<input type="file" name="mov"/>
+		<div class="field"><label>프리뷰 영상 및 이미지</label>
+			{{with $prev := versionPreviewFiles $v.ID}}
+				{{if $prev.N}}
+					{{range $mov := $prev.Movs}}
+						<div><a href={{$mov}} style="font-size:0.8rem;color:#AAA">{{basename $mov}}</a></div>
+					{{end}}
+					{{range $img := $prev.Imgs}}
+						<div><a href={{$img}} style="font-size:0.8rem;color:#AAA">{{basename $img}}</a></div>
+					{{end}}
+				{{else}}
+					<div style="color:#AAA;font-size:0.8rem">등록된 영상 또는 이미지가 없습니다.</div>
+				{{end}}
+			{{end}}
+			<input type="file" multiple=true name="preview_files" value=""/>
 		</div>
 		<div class="field"><label>결과물</label>
 			<input type="text" name="output_files" value="{{fieldJoin $v.OutputFiles}}"/>
