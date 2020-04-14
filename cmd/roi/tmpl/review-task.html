@@ -19,6 +19,39 @@
 .version-divider {
 	height:2.5rem;
 }
+.sub-title {
+	font-size:1.3rem;
+	color:#ccc;
+	margin-bottom:1rem;
+}
+#retake-button {
+	background-color: #a33;
+	padding: 0.7rem;
+	border-radius: 1px;
+	color: white;
+}
+#retake-button:hover {
+	background-color: #a33;
+	color: white;
+}
+#retake-button:disabled {
+	background-color: #655;
+	padding: 0.7rem;
+	border-radius: 1px;
+	color: #ccc;
+}
+#approve-button {
+	width: 4rem;
+	// background-color: #565;
+	background-color: #292;
+	padding: 0.7rem;
+	border-radius: 1px;
+	color: white;
+}
+#approve-button:hover {
+	background-color: #292;
+	color: white;
+}
 </style>
 
 <div id="bg" style="width:100%;display:flex;justify-content:center;margin:4rem 0rem"> <!-- ( -->
@@ -82,6 +115,19 @@
 						<div style="color:#aaa">등록된 파일이 없습니다.</div>
 					{{end}}
 				</div>
+				{{if eq $i (sub (len $.Versions) 1)}}
+				<div class="version-divider"></div>
+				<div class="version-review"> <!-- ( -->
+					<div class="sub-title">리뷰</div>
+					<textarea id="review-msg" style="width:100%;height:8rem" onkeyup="onComment()"></textarea>
+					<div style="height:0.5rem;"></div>
+					<div style="display:flex;justify-content:flex-end;">
+						<button disabled id="retake-button">리테이크</button>
+						<div style="width:0.5rem"></div>
+						<button id="approve-button">승인</button>
+					</div>
+				</div> <!-- ) .version-review -->
+				{{end}}
 			</div> <!-- ) .version -->
 			{{end}}
 
@@ -91,4 +137,16 @@
 		</div> <!-- ) .versions -->
 	</div> <!-- ) main -->
 </div> <!-- ) bg -->
+
+<script>
+function onComment() {
+	el = document.getElementById("review-msg")
+	retakeBtn = document.getElementById("retake-button")
+	retakeBtn.disabled = true
+	if (el.value != "") {
+		retakeBtn.disabled = false
+	}
+}
+</script>
+
 {{template "footer.html"}}
