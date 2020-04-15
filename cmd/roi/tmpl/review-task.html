@@ -16,8 +16,13 @@
 	padding:1rem;
 	border: solid 1px #333;
 }
-.version-divider {
-	height:2.5rem;
+.chapter {
+	margin-top: 2.5rem;
+}
+.title {
+	font-size:1.5rem;
+	color:#ccc;
+	margin-bottom:1rem;
 }
 .sub-title {
 	font-size:1.3rem;
@@ -42,7 +47,6 @@
 }
 #approve-button {
 	width: 4rem;
-	// background-color: #565;
 	background-color: #292;
 	padding: 0.7rem;
 	border-radius: 1px;
@@ -84,40 +88,39 @@
 			<div class="versions-divider"></div>
 			{{end}}
 			<div class="version" style="background-color:#393939"> <!-- ( -->
-				<div style="display:flex;justify-content:space-between;font-size:1.5rem;color:#ccc;margin-bottom:2rem">
-					<div>버전 {{$v.Version}}</div>
-					<div>{{$v.Owner}}</div>
+				<div style="display:flex;justify-content:space-between">
+					<div class="title">버전 {{$v.Version}}</div>
+					<div class="title">{{$v.Owner}}</div>
 				</div>
-				<div class="version-divider"></div>
-				{{with $prev := versionPreviewFiles $v.ID}}
-				<div class="version-previews">
-					<div style="font-size:1.3rem;color:#ccc;margin-bottom:1rem">프리뷰 영상 및 이미지</div>
-					{{if $prev.N}}
-						{{range $mov := $prev.Movs}}
-							<div style="margin-bottom:0.3rem"><a href={{$mov}} style="color:#38d">{{basename $mov}}</a></div>
+				<div class="chapter">
+					<div class="sub-title">프리뷰 영상 및 이미지</div>
+					{{with $prev := versionPreviewFiles $v.ID}}
+					<div class="version-previews">
+						{{if $prev.N}}
+							{{range $mov := $prev.Movs}}
+								<div style="margin-bottom:0.3rem"><a href={{$mov}} style="color:#38d">{{basename $mov}}</a></div>
+							{{end}}
+							{{range $img := $prev.Imgs}}
+								<div style="margin-bottom:0.3rem"><a href={{$img}} style="color:#38d">{{basename $img}}</a></div>
+							{{end}}
 						{{end}}
-						{{range $img := $prev.Imgs}}
-							<div style="margin-bottom:0.3rem"><a href={{$img}} style="color:#38d">{{basename $img}}</a></div>
-						{{end}}
+					</div>
 					{{else}}
-						<div style="color:#AAA;font-size:0.8rem">등록된 영상 또는 이미지가 없습니다.</div>
+						<div style="color:#777;">등록된 영상 또는 이미지가 없습니다.</div>
 					{{end}}
 				</div>
-				{{end}}
-				<div class="version-divider"></div>
-				<div class="version-outputs">
+				<div class="chapter version-outputs">
 					<div style="font-size:1.3rem;color:#ccc;margin-bottom:1rem">아웃풋 경로</div>
 					{{with $outputs := $v.OutputFiles}}
 						{{range $output := $outputs}}
 							<div style="margin-bottom:0.3rem;color:#aaa">{{$output}}</div>
 						{{end}}
 					{{else}}
-						<div style="color:#aaa">등록된 파일이 없습니다.</div>
+						<div style="color:#777">등록된 파일이 없습니다.</div>
 					{{end}}
 				</div>
 				{{if eq $i (sub (len $.Versions) 1)}}
-				<div class="version-divider"></div>
-				<div class="version-review"> <!-- ( -->
+				<div class="chapter version-review"> <!-- ( -->
 					<div class="sub-title">리뷰</div>
 					<textarea id="review-msg" style="width:100%;height:8rem" onkeyup="onComment()"></textarea>
 					<div style="height:0.5rem;"></div>
@@ -130,7 +133,6 @@
 				{{end}}
 			</div> <!-- ) .version -->
 			{{end}}
-
 		{{else}}
 			<div style="color:#AAA">등록된 버전이 없습니다.</div>
 		{{end}}
