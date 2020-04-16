@@ -212,5 +212,5 @@ func reviewTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Versions:        vs,
 		ShowAllVersions: showAllVersions,
 	}
-	return executeTemplate(w, "review-task.html", recipe)
+	return executeTemplate(w, "review-task", recipe)
 }

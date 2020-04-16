@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/kybin/bml"
 )
 
 // templates에는 사용자에게 보일 페이지의 템플릿이 담긴다.
@@ -30,7 +32,7 @@ func executeTemplate(w http.ResponseWriter, name string, data interface{}) error
 
 // parseTemplate은 tmpl 디렉토리 안의 html파일들을 파싱하여 http 응답에 사용될 수 있도록 한다.
 func parseTemplate() {
-	templates = template.Must(template.New("").Funcs(template.FuncMap{
+	fmap := template.FuncMap{
 		"hasThumbnail":        hasThumbnail,
 		"stringFromTime":      stringFromTime,
 		"stringFromDate":      stringFromDate,
@@ -43,7 +45,9 @@ func parseTemplate() {
 		"spaceJoin":           func(words []string) string { return strings.Join(words, " ") },
 		"versionPreviewFiles": versionPreviewFiles,
 		"basename":            filepath.Base,
-	}).ParseGlob("tmpl/*.html"))
+	}
+	templates = template.Must(bml.ToHTMLParseGlob("", fmap, "tmpl/*.bml"))
+	templates = template.Must(templates.ParseGlob("tmpl/*.html"))
 }
 
 // 아래는 템플릿 안에서 사용되는 함수들이다.
