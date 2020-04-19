@@ -1,7 +1,7 @@
 {{define "review-task"}}
 
 {{template "head.bml"}}
-{{template "nav.html" $}}
+{{template "nav.bml" $}}
 
 <style> [``
 .clipper {

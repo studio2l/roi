@@ -1,0 +1,50 @@
+<nav> [
+	<div class="ui inverted top fixed menu"> [
+		<a class="item" href="/"> [<h5 class="ui header inverted"> [ROI]]
+
+		<a class="item" href="/site" title="사이트 정보 수정 페이지"> [Site]
+		<a class="item" href="/shows" title="프로젝트들의 정보를 확인하는 페이지입니다."> [Shows]
+		<a class="item" href="/shots" title="샷을 검색하는 페이지입니다."> [Shots]
+		<a class="item" href="/assets" title="애셋을 검색하는 페이지입니다."> [Assets]
+		<a class="item" href="/review" title="리뷰 페이지"> [Review]
+		<a class="item" href="/users"> [Users]
+		<div class="right menu"> [
+			{{if eq $.LoggedInUser ""}}
+			<a class="item" href="/login/"> [Log-in]
+			<a class="item" href="/signup/"> [Sign-Up]
+			{{else}}
+			<a class="item" href="/" title="알림 정보 페이지입니다."> [<i class="icon red inbox"> []]
+			<div id="add-menu" class="ui dropdown item" title="정보 등록을 위한 메뉴입니다."> [
+				<i class="plus circle icon"> []
+				<div class="menu"> [
+					<a class="item" href="/add-show"> [Show]
+					<a class="item" href="/add-shot"> [Shot]
+					<a class="item" href="/add-asset"> [Asset]
+				]
+			]
+			<div id="user-menu" class="ui dropdown item" title="개인계정과 설정을 위한 페이지입니다."> [
+				<i class="user circle icon"> []
+				<div class="menu"> [
+					<div class="ui header"> [{{$.LoggedInUser}}]
+						<a class="item" href="/settings/profile"> [Profile]
+						<a class="item" href="/"> [Settings]
+						<a class="item" href="/"> [Help]
+					<!--매니저-->
+					<div class="ui divider"> []
+					<div class="ui gray header"> [Manager]
+						<a class="item" href="/"> [Accounts]
+					<!--관리자-->
+					<div class="ui divider"> []
+					<div class="ui header"> [Admin]
+						<a class="item" href="/"> [Settings]
+					<!--로그아웃-->
+					<div class="ui divider"> []
+					<a class="item" href="/logout"> [Log-Out]
+				]
+			]
+			{{end}}
+		]
+	]
+	<!-- 상단 메뉴만큼 다른 문서들이 아래로 배치되어야 함 -->
+	<div style="height:3rem"> []
+]
