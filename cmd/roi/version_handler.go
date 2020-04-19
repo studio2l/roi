@@ -34,7 +34,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			Task:     task,
 		},
 	}
-	return executeTemplate(w, "add-version.html", recipe)
+	return executeTemplate(w, "add-version.bml", recipe)
 }
 
 func addVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
