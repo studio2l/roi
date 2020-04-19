@@ -93,5 +93,5 @@ func rootHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		TasksOfDay:    tasksOfDay,
 		AllTaskStatus: roi.AllTaskStatus,
 	}
-	return executeTemplate(w, "user.html", recipe)
+	return executeTemplate(w, "user.bml", recipe)
 }
