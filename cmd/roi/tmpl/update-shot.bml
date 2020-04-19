@@ -1,0 +1,60 @@
+{{template "head.bml"}}
+{{template "nav.bml" $}}
+<div class="ui raised very padded text container grey inverted segment"> [
+	{{with $s := $.Shot}}
+	<h2 class="ui header"> [샷 수정]
+	<h3 class="ui dividing header" style="color:#818181"> [
+		<a href="/update-show?id={{$s.Show}}" style="color:#9f9f9f"> [{{$s.Show}}] /
+		shot /
+		<span style="color:#ccc"> [{{$s.Shot}}]
+	]
+	<form method="post" class="ui form" enctype="multipart/form-data"> [
+		<input hidden type="text" name="id" value="{{$s.ID}}"/>
+		<div class="field"> [<label> [썸네일]
+			{{if hasThumbnail $s.ID}}<img width="288px" height="162px" src="{{$.Thumbnail}}"></img>{{end}}
+			<input type="file" name="thumbnail"/>
+		]
+		<div class="field"> [<label> [마감일]
+			<input type="date" name="due_date" value="{{stringFromDate $s.DueDate}}">
+		]
+		<div class="field"> [<label> [상태]
+			<select type="text" name="status"> [
+				{{range $ss := $.AllUnitStatus}}
+				<option value="{{$ss}}" {{if eq $ss $s.Status}}selected{{end}}> [{{$ss.UIString}}]
+				{{end}}
+			]
+		]
+		<div class="field"> [<label> [내용]
+			<input type="text" name="description" value="{{$s.Description}}"/>
+		]
+		<div class="field"> [<label> [편집 순서]
+			<input type="text" name="edit_order" value="{{$s.EditOrder}}"/>
+		]
+		<div class="field"> [<label> [CG 내용]
+			<input type="text" name="cg_description" value="{{$s.CGDescription}}"/>
+		]
+		<div class="field"> [<label> [시작 타임코드]
+			<input type="text" name="timecode_in" value="{{$s.TimecodeIn}}"/>
+		]
+		<div class="field"> [<label> [종료 타임코드]
+			<input type="text" name="timecode_out" value="{{$s.TimecodeOut}}"/>
+		]
+		<div class="field"> [<label> [길이]
+			<input type="text" name="duration" value="{{$s.Duration}}"/>
+		]
+		<div class="field"> [<label> [태그]
+			<input type="text" name="tags" value="{{fieldJoin $s.Tags}}"/>
+		]
+		<div class="field"> [<label> [필요한 애셋]
+			<input type="text" name="assets" value="{{fieldJoin $s.Assets}}"/>
+		]
+		<div class="field"> [<label> [태스크]
+			<input type="text" name="tasks" value="{{fieldJoin $s.Tasks}}"/>
+		]
+		<button class="ui button green" type="submit" value="Submit"> [수정]
+
+		<div style="height:2rem;"> []
+	]
+	{{end}}
+]
+{{template "footer.bml"}}
