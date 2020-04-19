@@ -113,7 +113,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser: env.User.ID,
 		User:         env.User,
 	}
-	return executeTemplate(w, "profile.html", recipe)
+	return executeTemplate(w, "profile.bml", recipe)
 }
 
 // updatePasswordHandler는 /update-password 페이지로 사용자가 패스워드 변경과 관련된 정보를 보내면
