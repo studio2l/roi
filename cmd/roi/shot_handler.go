@@ -288,5 +288,5 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		q += shot
 	}
 	// 여러 샷 수정 페이지 전인 shots 페이지로 돌아간다.
-	return executeTemplate(w, "history-go.html", -2)
+	return executeTemplate(w, "history-go.bml", -2)
 }

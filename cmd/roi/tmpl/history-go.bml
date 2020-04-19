@@ -1,8 +1,8 @@
 <!doctype html>
-<html>
-<body>
-</body>
-<script>
+<html> [
+<body> [
+]
+<script> [``
 window.onload = function() {
 	if (!{{.}}) {
 		document.body.innerHTML= "history.go(" + String({{.}}) + ") here is a bad decision"
@@ -10,6 +10,6 @@ window.onload = function() {
 	}
 	history.go({{.}})
 }
-</script>
-</html>
+``]
+]
 

@@ -263,5 +263,5 @@ func updateMultiAssetsPostHandler(w http.ResponseWriter, r *http.Request, env *E
 		q += asset
 	}
 	// 여러 애셋 수정 페이지 전인 assets 페이지로 돌아간다.
-	return executeTemplate(w, "history-go.html", -2)
+	return executeTemplate(w, "history-go.bml", -2)
 }
