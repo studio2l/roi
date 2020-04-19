@@ -1,0 +1,169 @@
+{{template "head.bml"}}
+{{template "nav.bml" $}}
+<div class="ui raised very padded text container grey inverted segment"> [
+	<h2 class="ui dividing header"> [사이트 설정]
+	<form method="post" class="ui form"> [
+		<div class="field"> [
+			<div style="display:flex;color:black"> [
+				<label> [VFX 수퍼바이저]
+				<div class="multi-input-add-button" onclick='appendTemplate("vfx_supervisors_g", "vfx_supervisors_t")'> [+]
+			]
+			<template id="vfx_supervisors_t"> [
+				<div class="autocomplete"><input class="suggest-user" type="text" name="vfx_supervisors" onkeydown="suggest(this)" value="" /> []
+			]
+			<div id="vfx_supervisors_g" class="multi-input"> [
+				{{range .Site.VFXSupervisors}}
+				<div class="autocomplete"><input class="suggest-user" type="text" name="vfx_supervisors" onkeydown="suggest(this)" value="{{.}}" /> []
+				{{end}}
+			]
+		]
+		<div class="field"> [
+			<div style="display:flex;color:black"> [
+				<label> [VFX 프로듀서]
+				<div class="multi-input-add-button" onclick='appendTemplate("vfx_producers_g", "vfx_producers_t")'> [+]
+			]
+			<template id="vfx_producers_t"> [
+				<div class="autocomplete"> [<input class="suggest-user" type="text" name="vfx_producers" onkeydown="suggest(this)" value="" />]
+			]
+			<div id="vfx_producers_g" class="multi-input"> [
+				{{range .Site.VFXProducers}}
+				<div class="autocomplete"> [<input class="suggest-user" type="text" name="vfx_producers" onkeydown="suggest(this)" value="{{.}}" />]
+				{{end}}
+			]
+		]
+		<div class="field"> [
+			<div style="display:flex;color:black"> [
+				<label> [CG 수퍼바이저]
+				<div class="multi-input-add-button" onclick='appendTemplate("cg_supervisors_g", "cg_supervisors_t")'> [+]
+			]
+			<template id="cg_supervisors_t"> [
+				<div class="autocomplete"> [<input class="suggest-user" type="text" name="cg_supervisors" onkeydown="suggest(this)" value="" />]
+			]
+			<div id="cg_supervisors_g" class="multi-input"> [
+				{{range .Site.CGSupervisors}}
+				<div class="autocomplete"> [<input class="suggest-user" type="text" name="cg_supervisors" onkeydown="suggest(this)" value="{{.}}" />]
+				{{end}}
+			]
+		]
+		<div class="field"> [
+			<div style="display:flex;color:black"> [
+				<label> [프로젝트 매니저]
+				<div class="multi-input-add-button" onclick='appendTemplate("project_managers_g", "project_managers_t")'> [+]
+			]
+			<template id="project_managers_t"> [
+				<div class="autocomplete"> [<input class="suggest-user" type="text" name="project_managers" onkeydown="suggest(this)" value="" />]
+			]
+			<div id="project_managers_g" class="multi-input"> [
+				{{range .Site.ProjectManagers}}
+				<div class="autocomplete"> [<input class="suggest-user" type="text" name="project_managers" onkeydown="suggest(this)" value="{{.}}"/>]
+				{{end}}
+			]
+		]
+		<div class="field"> [
+			<div style="display:flex;color:black"> [
+				<label> [샷 태스크]
+				<div class="multi-input-add-button" onclick='appendTemplate("shot_tasks_g", "shot_tasks_t")'> [+]
+			]
+			<template id="shot_tasks_t"> [
+				<input type="text" name="shot_tasks" value=""/>
+			]
+			<div id="shot_tasks_g" class="multi-input"> [
+				{{range .Site.ShotTasks}}
+				<input type="text" name="shot_tasks" value="{{.}}"/>
+				{{end}}
+			]
+		]
+		<div class="field"> [
+			<div style="display:flex;color:black"> [
+				<label> [기본 샷 태스크]
+				<div class="multi-input-add-button" onclick='appendTemplate("default_shot_tasks_g", "default_shot_tasks_t")'> [+]
+			]
+			<template id="default_shot_tasks_t"> [
+				<input type="text" name="default_shot_tasks" onkeydown="suggest(this)" value=""/>
+			]
+			<div id="default_shot_tasks_g" class="multi-input"> [
+				{{range .Site.DefaultShotTasks}}
+				<input type="text" name="default_shot_tasks" onkeydown="suggest(this)" value="{{.}}"/>
+				{{end}}
+			]
+		]
+		<div class="field"> [
+			<div style="display:flex;color:black"> [
+				<label> [애셋 태스크]
+				<div class="multi-input-add-button" onclick='appendTemplate("asset_tasks_g", "asset_tasks_t")'> [+]
+			]
+			<template id="asset_tasks_t"> [
+				<input type="text" name="asset_tasks" value=""/>
+			]
+			<div id="asset_tasks_g" class="multi-input"> [
+				{{range .Site.AssetTasks}}
+				<input type="text" name="asset_tasks" value="{{.}}"/>
+				{{end}}
+			]
+		]
+		<div class="field"> [
+			<div style="display:flex;color:black"> [
+				<label> [기본 애셋 태스크]
+				<div class="multi-input-add-button" onclick='appendTemplate("default_asset_tasks_g", "default_asset_tasks_t")'> [+]
+			]
+			<template id="default_asset_tasks_t"> [
+				<input type="text" name="default_asset_tasks" onkeydown="suggest(this)" value=""/>
+			]
+			<div id="default_asset_tasks_g" class="multi-input"> [
+				{{range .Site.DefaultAssetTasks}}
+				<input type="text" name="default_asset_tasks" onkeydown="suggest(this)" value="{{.}}"/>
+				{{end}}
+			]
+		]
+		<div class="field"> [
+			<div style="display:flex;color:black"> [
+				<label>[리드]
+				<div class="multi-input-add-button" onclick='appendTemplate("leads_g", "leads_t")'>[+]
+			]
+			<template id="leads_t"> [
+				<input type="text" name="leads" placeholder="task: user[, user ...]" value=""/>
+			]
+			<div id="leads_g" class="multi-input" style="grid-template-columns: 1fr 1fr"> [
+				{{range .Site.Leads}}
+				<input type="text" name="leads" placeholder="task: user[, user ...]" value="{{.}}"/>
+				{{end}}
+			]
+		]
+		<button class="ui button green" type="submit" value="Submit"> [수정]
+	]
+]
+<script> [``
+let userName = {
+	{{range $u := $.Users -}}
+	"{{$u.ID}}": {{$u.Name}},
+	{{end}}
+}
+
+let users = [
+	{{range $u := $.Users -}}
+	"{{$u.ID}}",
+	{{end}}
+]
+users.sort()
+
+// suggest는 input 태그에 사용자 아이디를 제안하는 함수를 바인딩한다.
+//
+// 현재 각 인풋의 onkeydown에 매핑되어 있지만 이는 더 적절한 바인딩
+// 위치를 찾지 못했기 때문이고 매번 키를 누를 때마다 새로 바인딩 하는
+// 것은 아니다.
+// 각 인풋의 첫 키 입력에만 바인딩을 진행한다.
+let auto = {}
+let idx = 0
+function suggest(inp) {
+	if (inp.id == "") {
+		inp.id = "auto" + String(idx)
+		idx++
+	}
+	if (auto[inp.id]) {
+		return
+	}
+	auto[inp.id] = true
+	autocomplete(inp, users, userName)
+}
+``]
+{{template "footer.bml"}}
