@@ -1,6 +1,6 @@
 {{define "review-task"}}
 
-{{template "head.html"}}
+{{template "head.bml"}}
 {{template "nav.html" $}}
 
 <style> [``
