@@ -1,0 +1,8 @@
+{{template "head.bml"}}
+{{template "nav.bml" $}}
+<div class="ui raised very padded text container grey inverted segment"> [
+{{range $u := $.Users}}
+	<div> [<a href="/user/{{$u.ID}}" style="color:white"> [{{$u.ID}}]]
+{{end}}
+]
+{{template "footer.bml"}}

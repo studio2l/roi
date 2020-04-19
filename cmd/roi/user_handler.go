@@ -247,5 +247,5 @@ func usersHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser: env.User.ID,
 		Users:        us,
 	}
-	return executeTemplate(w, "users.html", recipe)
+	return executeTemplate(w, "users.bml", recipe)
 }
