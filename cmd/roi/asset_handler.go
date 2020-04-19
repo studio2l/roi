@@ -182,7 +182,7 @@ func updateMultiAssetsHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 		IDs:           ids,
 		AllUnitStatus: roi.AllUnitStatus,
 	}
-	return executeTemplate(w, "update-multi-assets.html", recipe)
+	return executeTemplate(w, "update-multi-assets.bml", recipe)
 
 }
 
