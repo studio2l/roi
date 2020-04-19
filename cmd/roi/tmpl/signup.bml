@@ -1,0 +1,37 @@
+{{template "head.bml" }}
+<div style="margin-top:10%;"> []
+<div class="ui middle aligned center aligned grid"> [
+	<div class="column" style="width:350px;"> [
+		<h2 class="ui header"> [
+			<div class="content"> [Sign-Up]
+		]
+		<!--가입정보 입력폼-->
+		<form class="ui large form" method="post"> [
+			<div class="ui grey inverted segment"> [
+				<div class="field"> [<!--아이디 입력-->
+					<div class="ui left icon input"> [
+					<i class="user icon"> []<input id="signup_id" name="id" value="" type="text" placeholder="Id" required minlength="4" maxlength="10"> []
+					]
+				]
+				<div class="field"> [<!--비밀번호 입력-->
+					<div class="ui left icon input"> [
+					<i class="lock icon"> []<input id="signup_password" name="password" value="" type="password" placeholder="Password"  required minlength="8" maxlength="32"> []
+					]
+				]
+				<div class="field"> [<!--비밀번호 재입력-->
+					<div class="ui left icon input"> [
+					<i class="lock icon"> []<input id="signup_password_confirm" name="password_confirm" value="" type="password" placeholder="Confirm Password"  required minlength="8" maxlength="32"> []
+					]
+				]
+				<button class="ui fluid large green submit button" type="submit"> [가입]
+			]
+		]
+		<!--이미 가입되어 있는 경우 로그인페이지로 이동-->
+		<div class="ui horizontal inverted divider"> [
+			Or
+		]
+		<a href="/login"> [<button class="ui fluid large button">[로그인]]
+		<!--에러 안내 메세지 출력-->
+	]
+]
+{{template "footer.bml"}}

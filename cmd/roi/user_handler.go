@@ -77,7 +77,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return nil
 	}
-	return executeTemplate(w, "signup.html", nil)
+	return executeTemplate(w, "signup.bml", nil)
 }
 
 // profileHandler는 /profile 페이지로 사용자가 접속했을 때 사용자 프로필 페이지를 반환한다.
