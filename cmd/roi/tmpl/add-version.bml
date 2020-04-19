@@ -15,4 +15,4 @@
 		<div style="height:2rem;"> []
 	]
 ]
-{{template "footer.html"}}
+{{template "footer.bml"}}
