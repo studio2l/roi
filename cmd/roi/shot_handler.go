@@ -187,7 +187,7 @@ func updateMultiShotsHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		IDs:           ids,
 		AllUnitStatus: roi.AllUnitStatus,
 	}
-	return executeTemplate(w, "update-multi-shots.html", recipe)
+	return executeTemplate(w, "update-multi-shots.bml", recipe)
 
 }
 
