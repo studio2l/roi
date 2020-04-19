@@ -97,7 +97,7 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Show:          p,
 		AllShowStatus: roi.AllShowStatus,
 	}
-	return executeTemplate(w, "update-show.html", recipe)
+	return executeTemplate(w, "update-show.bml", recipe)
 }
 
 func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
