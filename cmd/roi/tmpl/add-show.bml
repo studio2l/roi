@@ -1,5 +1,5 @@
 {{template "head.bml"}}
-{{template "nav.html" $}}
+{{template "nav.bml" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
 	<h2 class="ui dividing header"> [쇼 추가]
 	<form method="post" class="ui form"> [

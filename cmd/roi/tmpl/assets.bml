@@ -1,5 +1,5 @@
 {{template "head.bml" }}
-{{template "nav.html" $}}
+{{template "nav.bml" $}}
 {{template "search-menu.html" $}}
 <style> [``
 .tasks {
