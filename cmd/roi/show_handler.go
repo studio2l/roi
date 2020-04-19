@@ -35,7 +35,7 @@ func addShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}{
 		LoggedInUser: env.User.ID,
 	}
-	return executeTemplate(w, "add-show.html", recipe)
+	return executeTemplate(w, "add-show.bml", recipe)
 }
 
 func addShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
