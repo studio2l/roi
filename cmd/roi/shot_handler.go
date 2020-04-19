@@ -54,7 +54,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser: env.User.ID,
 		Show:         sw,
 	}
-	return executeTemplate(w, "add-shot.html", recipe)
+	return executeTemplate(w, "add-shot.bml", recipe)
 }
 
 func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
