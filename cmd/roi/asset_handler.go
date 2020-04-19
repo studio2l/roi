@@ -54,7 +54,7 @@ func addAssetHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser: env.User.ID,
 		Show:         sw,
 	}
-	return executeTemplate(w, "add-asset.html", recipe)
+	return executeTemplate(w, "add-asset.bml", recipe)
 }
 
 func addAssetPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
