@@ -1,0 +1,39 @@
+{{template "head.bml" }}
+{{template "nav.bml" $}}
+<div style="padding:15px 10px 15px 10px;z-index:0;"> [
+<!--검색 결과-->
+{{range .Shows}}
+<div class="ui inverted segment"> [
+	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;"> [
+		<div class="ui" style="flex:1;margin-right:22px;display:flex;align-items:end;"> [
+				<div style="display:flex;flex-direction:column;"> [
+					<a href="/update-show?id={{.Show}}" style="font-size:1.3rem;color:white;"> [
+						<b> [{{.Show}}]
+					]
+					<div style="height:2px;border-radius:1px;background-color:var(--{{"blue"}});"> []
+				]
+				<div> [ / {{.Status}}]
+				<div style="width:1rem;display:inline-block;"> []
+				<div style="flex:1;"> []
+		]
+	]
+	<div style="font-size:14px;"> [
+		<div style="color:gray;margin:0px;"> [
+			<div style="display:inline-block;margin-right:1rem;"> [VFX 수퍼바이저: {{.VFXSupervisor}}]
+			<div style="display:inline-block;margin-right:1rem;"> [VFX 매니저: {{.VFXManager}}]
+			<div style="display:inline-block;margin-right:1rem;"> [CG 수퍼바이저: {{.CGSupervisor}}]
+			<br>
+			<div style="display:inline-block;margin-right:1rem;"> [클라이언트: {{.Client}}]
+			<div style="display:inline-block;margin-right:1rem;"> [감독: {{.Director}}]
+			<div style="display:inline-block;margin-right:1rem;"> [PD: {{.Producer}}]
+			<br>
+			<div style="display:inline-block;margin-right:1rem"> [작업시작: {{stringFromDate .StartDate}}]
+			<div style="display:inline-block;margin-right:1rem"> [작업종료: {{stringFromDate .VFXDueDate}}]
+			<div style="display:inline-block;margin-right:1rem"> [개봉일: {{stringFromDate .ReleaseDate}}]
+		]
+	]
+]
+{{end}}
+]
+<!--검색 결과 끝-->
+{{template "footer.bml"}}

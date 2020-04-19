@@ -21,7 +21,7 @@ func showsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser: env.User.ID,
 		Shows:        shows,
 	}
-	return executeTemplate(w, "shows.html", recipe)
+	return executeTemplate(w, "shows.bml", recipe)
 }
 
 // addShowHandler는 /add-show 페이지로 사용자가 접속했을때 페이지를 반환한다.
