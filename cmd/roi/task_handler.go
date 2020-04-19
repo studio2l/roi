@@ -121,7 +121,7 @@ func updateMultiTasksHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		Tasks:         tasks,
 		AllTaskStatus: roi.AllTaskStatus,
 	}
-	return executeTemplate(w, "update-multi-tasks.html", recipe)
+	return executeTemplate(w, "update-multi-tasks.bml", recipe)
 }
 
 func updateMultiTasksPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
