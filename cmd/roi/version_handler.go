@@ -93,7 +93,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) erro
 		IsWorkingVersion: t.WorkingVersion == v.Version,
 		IsPublishVersion: t.PublishVersion == v.Version,
 	}
-	return executeTemplate(w, "update-version.html", recipe)
+	return executeTemplate(w, "update-version.bml", recipe)
 }
 
 func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
