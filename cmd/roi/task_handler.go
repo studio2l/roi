@@ -42,7 +42,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Versions:      vers,
 		Users:         us,
 	}
-	return executeTemplate(w, "update-task.html", recipe)
+	return executeTemplate(w, "update-task.bml", recipe)
 }
 
 func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
