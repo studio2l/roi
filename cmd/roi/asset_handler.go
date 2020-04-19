@@ -118,7 +118,7 @@ func updateAssetHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 		AllTaskStatus: roi.AllTaskStatus,
 		Thumbnail:     "data/show/" + id + "/thumbnail.png",
 	}
-	return executeTemplate(w, "update-asset.html", recipe)
+	return executeTemplate(w, "update-asset.bml", recipe)
 }
 
 func updateAssetPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
