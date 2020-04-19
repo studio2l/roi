@@ -1,7 +1,7 @@
 {{template "head.html" }}
 {{template "nav.html" $}}
 {{template "search-menu.html" $}}
-<style>
+<style> [``
 .tasks {
 	flex: 1;
 	height: max-content;
@@ -25,80 +25,80 @@
 .selected-asset {
 	box-shadow: 0 0 0 1px #66FFBB !important;
 }
-</style>
-<div style="padding:15px 10px 15px 10px;z-index:0;">
+``]
+<div style="padding:15px 10px 15px 10px;z-index:0;"> [
 <!--검색 결과-->
 {{range $a := .Assets}}
-<div id="{{$a.ID}}" class="ui inverted segment asset">
-	<div class="asset-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;">
-		<div class="ui" style="width:288px;margin-right:22px;display:flex;align-items:end;">
-				<div style="display:flex;flex-direction:column;">
-					<a href="/update-asset?id={{$a.ID}}" style="font-size:1.3rem;color:white;border-bottom:solid 1px var(--{{.Status.UIColor}});">
-						<b>{{.Asset}}</b>
-					</a>
-				</div>
-				<div style="width:1rem;display:inline-block;"></div>
-				<div style="flex:1;"></div>
-		</div>
-		<div style="flex:1;font-size:14px;"> {{.CGDescription}}</div>
-	</div>
-	<div class="asset-main" style="display:flex;margin-bottom:6px;">
-		<div style="width:288px;margin-right:22px;">
+<div id="{{$a.ID}}" class="ui inverted segment asset"> [
+	<div class="asset-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;"> [
+		<div class="ui" style="width:288px;margin-right:22px;display:flex;align-items:end;"> [
+				<div style="display:flex;flex-direction:column;"> [
+					<a href="/update-asset?id={{$a.ID}}" style="font-size:1.3rem;color:white;border-bottom:solid 1px var(--{{.Status.UIColor}});"> [
+						<b> [{{.Asset}}]
+					]
+				]
+				<div style="width:1rem;display:inline-block;"> []
+				<div style="flex:1;"> []
+		]
+		<div style="flex:1;font-size:14px;"> [{{.CGDescription}}]
+	]
+	<div class="asset-main" style="display:flex;margin-bottom:6px;"> [
+		<div style="width:288px;margin-right:22px;"> [
 			{{if hasThumbnail $a.ID}}
 			<img style="width:288px;height:162px;" src="{{if hasThumbnail $a.ID}}/data/show/{{$a.ID}}/thumbnail.png{{end}}" onclick="selectAsset(this)" />
 			{{else}}
-			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;"  onclick="selectAsset(this)">{{.Description}}</div>
+			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;"  onclick="selectAsset(this)"> [{{.Description}}]
 			{{end}}
-		</div>
-		<div class="tasks">
+		]
+		<div class="tasks"> [
 			{{range $i, $t := .Tasks}}
 			{{with index (index $.Tasks $a.Asset) $t}}
-			<div class="task">
-				<div><a href="/update-task?id={{.ID}}" style="color:white;flex:1;">{{.Task}}</a></div>
-				<div>{{shortStringFromDate .DueDate}}</div>
-				<div><a href="/user/{{.Assignee}}" style="color:inherit">{{.Assignee}}</a></div>
-				<div>{{if .WorkingVersion}}<a href="/update-version?id={{.ID}}/{{.WorkingVersion}}" style="color:inherit">{{.WorkingVersion}} / 진행중{{end}}</div>
-				<div>{{if .PublishVersion}}<a href="/update-version?id={{.ID}}/{{.PublishVersion}}" style="color:inherit">{{.PublishVersion}} / 퍼블리시</a>{{end}}</div>
-			</div>
+			<div class="task"> [
+				<div> [<a href="/update-task?id={{.ID}}" style="color:white;flex:1;"> [{{.Task}}]]
+				<div> [{{shortStringFromDate .DueDate}}]
+				<div> [<a href="/user/{{.Assignee}}" style="color:inherit"> [{{.Assignee}}]]
+				<div> [{{if .WorkingVersion}}<a href="/update-version?id={{.ID}}/{{.WorkingVersion}}" style="color:inherit">{{.WorkingVersion}} / 진행중{{end}}]
+				<div> [{{if .PublishVersion}}<a href="/update-version?id={{.ID}}/{{.PublishVersion}}" style="color:inherit"> [{{.PublishVersion}} / 퍼블리시]{{end}}]
+			]
 			{{end}}
 			{{end}}
-		</div>
-	</div>
-	<div class="asset-footer" style="display:flex;">
-		<div style="width:288px;margin-right:22px;padding:1px;display:flex;justify-content:space-between">
-			<div style="display:flex;">
-				<div class="asset-status">{{.Status.UIString}}</div>
-			</div>
-			<div class="asset-due_date detail">{{if not .DueDate.IsZero}}{{stringFromDate .DueDate}}{{end}}</div>
-		</div>
-		<div class="asset-tags">
+		]
+	]
+	<div class="asset-footer" style="display:flex;"> [
+		<div style="width:288px;margin-right:22px;padding:1px;display:flex;justify-content:space-between"> [
+			<div style="display:flex;"> [
+				<div class="asset-status"> [{{.Status.UIString}}]
+			]
+			<div class="asset-due_date detail"> [{{if not .DueDate.IsZero}}{{stringFromDate .DueDate}}{{end}}]
+		]
+		<div class="asset-tags"> [
 			{{range $i, $v := .Tags -}}
-			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="?q=tag%3A{{.}}">{{.}}</a>
+			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="?q=tag%3A{{.}}"> [{{.}}]
 			{{- end}}
-		</div>
-	</div>
-</div>
+		]
+	]
+]
 {{end}}
 
 <!-- 애셋을 선택했을때 아래 바의 크기만큼 공간에 여유를 두어야 함 -->
-<div style="height:8rem"></div>
+<div style="height:8rem"> []
 
-</div>
+]
 
-<div id="bottom-bar" hidden style="position:fixed;bottom:0;width:100%;border-top:solid 1px #333;background-color:#444">
-	<div id="bottom-bar-menu" style="background-color:#333;display:flex;height:4.5rem;padding:1rem;">
-		<button style="margin-right:1rem;width:6rem;border-radius:2px" onclick="gotoUpdateMultiAssetsPage()">애셋 수정</button>
-		<button style="margin-right:1rem;width:8rem;border-radius:2px" onclick="gotoUpdateMultiTasksPage()">태스크 수정</button>
-		<div style="flex:1;justify-content:end;"></div>
-	</div>
-	<div style="display:flex;align-items:center;height:3.5rem;padding:0.5rem;border-top:solid 1px #222">
-		<div id="bottom-bar-notifier" style="color:white;margin-right:1rem"></div>
-		<a onclick="selectAllAssets()" style="cursor:pointer;margin-right:1rem">전체선택</a>
-		<a onclick="deselectAllAssets()" style="cursor:pointer">전체해제</a>
-	</div>
-</div>
+<div id="bottom-bar" hidden style="position:fixed;bottom:0;width:100%;border-top:solid 1px #333;background-color:#444"> [
+	<div id="bottom-bar-menu" style="background-color:#333;display:flex;height:4.5rem;padding:1rem;"> [
+		<button style="margin-right:1rem;width:6rem;border-radius:2px" onclick="gotoUpdateMultiAssetsPage()"> [애셋 수정]
+		<button style="margin-right:1rem;width:8rem;border-radius:2px" onclick="gotoUpdateMultiTasksPage()"> [태스크 수정]
+		<div style="flex:1;justify-content:end;"> []
+	]
+	<div style="display:flex;align-items:center;height:3.5rem;padding:0.5rem;border-top:solid 1px #222"> [
+		<div id="bottom-bar-notifier" style="color:white;margin-right:1rem"> []
+		<a onclick="selectAllAssets()" style="cursor:pointer;margin-right:1rem"> [전체선택]
+		<a onclick="deselectAllAssets()" style="cursor:pointer"> [전체해제]
+	]
+]
 <!--검색 결과 끝-->
-<script>
+<script> [``
 // showChanged는 다른 쇼 페이지로 이동한다.
 function showChanged() {
 	show = document.getElementById("show-select").value;
@@ -242,5 +242,5 @@ if (isChrome) {
 		reloadAssets()
 	}
 }
-</script>
+``]
 {{template "footer.html"}}
