@@ -36,7 +36,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return nil
 	}
-	return executeTemplate(w, "login.html", nil)
+	return executeTemplate(w, "login.bml", nil)
 }
 
 // logoutHandler는 /logout 페이지로 사용자가 접속했을때 사용자를 로그아웃 시킨다.
