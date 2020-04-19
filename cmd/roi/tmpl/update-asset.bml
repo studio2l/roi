@@ -1,0 +1,45 @@
+{{template "head.bml"}}
+{{template "nav.bml" $}}
+<div class="ui raised very padded text container grey inverted segment"> [
+	{{with $a := $.Asset}}
+	<h2 class="ui header"> [애셋 수정]
+	<h3 class="ui dividing header" style="color:#818181"> [
+		<a href="/update-show?id={{$a.Show}}" style="color:#9f9f9f"> [{{$a.Show}}] /
+		asset /
+		<span style="color:#ccc"> [{{$a.Asset}}]
+	]
+	<form method="post" class="ui form" enctype="multipart/form-data"> [
+		<input hidden type="text" name="id" value="{{$a.ID}}"/>
+		<div class="field"> [<label> [썸네일]
+			{{if hasThumbnail $a.ID}}<img width="288px" height="162px" src="{{$.Thumbnail}}"></img>{{end}}
+			<input type="file" name="thumbnail"/>
+		]
+		<div class="field"> [<label> [마감일]
+			<input type="date" name="due_date" value="{{stringFromDate $a.DueDate}}">
+		]
+		<div class="field"> [<label> [상태]
+			<select type="text" name="status"> [
+				{{range $as := $.AllUnitStatus}}
+				<option value="{{$as}}" {{if eq $as $a.Status}}selected{{end}}> [{{$as.UIString}}]
+				{{end}}
+			]
+		]
+		<div class="field"> [<label> [내용]
+			<input type="text" name="description" value="{{$a.Description}}"/>
+		]
+		<div class="field"> [<label> [CG 내용]
+			<input type="text" name="cg_description" value="{{$a.CGDescription}}"/>
+		]
+		<div class="field"> [<label> [태그]
+			<input type="text" name="tags" value="{{fieldJoin $a.Tags}}"/>
+		]
+		<div class="field"> [<label> [태스크]
+			<input type="text" name="tasks" value="{{fieldJoin $a.Tasks}}"/>
+		]
+		<button class="ui button green" type="submit" value="Submit"> [수정]
+
+		<div style="height:2rem;"> []
+	]
+	{{end}}
+]
+{{template "footer.bml"}}
