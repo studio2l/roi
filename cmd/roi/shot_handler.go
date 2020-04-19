@@ -118,7 +118,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		AllTaskStatus: roi.AllTaskStatus,
 		Thumbnail:     "data/show/" + id + "/thumbnail.png",
 	}
-	return executeTemplate(w, "update-shot.html", recipe)
+	return executeTemplate(w, "update-shot.bml", recipe)
 }
 
 func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
