@@ -243,4 +243,4 @@ if (isChrome) {
 	}
 }
 ``]
-{{template "footer.html"}}
+{{template "footer.bml"}}

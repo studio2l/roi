@@ -12,4 +12,4 @@
 		<button class="ui button green" type="submit" value="Submit"> [추가]
 	]
 ]
-{{template "footer.html"}}
+{{template "footer.bml"}}

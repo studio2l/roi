@@ -151,6 +151,6 @@ function onComment() {
 }
 ``]
 
-{{template "footer.html"}}
+{{template "footer.bml"}}
 
 {{end}}
