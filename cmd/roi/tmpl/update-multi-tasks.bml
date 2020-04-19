@@ -1,0 +1,54 @@
+{{template "head.bml"}}
+{{template "nav.bml" $}}
+<div class="ui raised very padded text container grey inverted segment"> [
+	<button onclick="history.back()"> [되돌아가기]
+	<h2 class="ui header"> [태스크 수정]
+	<h3 class="ui dividing header" style="color:#BBB"> [
+		<a href="/update-show?id={{$.Show}}" style="color:#9f9f9f"> [{{$.Show}}] /
+		{{len $.IDs}} 샷
+	]
+	<textarea readonly style="width:100%;height:6rem;padding:0.5rem"> [{{range $i, $id := $.IDs}}{{if ne $i 0}}, {{end}}{{$id}}{{end}}]
+	<div style="height:2rem"> []
+	<form method="post" class="ui form"> [
+		<!-- update-multi-tasks 요청에는 GET을 사용하지 않기 때문에 이 요청이 정말로 POST라는 것을 알림 -->
+		<input hidden type="text" name="post" value="1"/>
+		{{range $id := $.IDs}}
+		<input hidden type="text" name="id" value="{{$id}}"/>
+		{{end}}
+		<div class="field"> [<label> [태스크]
+			<select name="task" onchange="taskChanged(this)"> [
+			<option value=""> []
+			{{range $t := $.Tasks}}
+				<option value="{{$t}}"> [{{$t}}]
+			{{end}}
+			]
+		]
+		<div class="field"> [<label> [마감일]
+			<input disabled class="after-task-set" type="date" name="due_date" value="">
+		]
+		<div class="field"> [<label> [상태]
+			<select disabled class="after-task-set" type="text" name="status"> [
+				<option value="" selected> []
+				{{range $s := $.AllTaskStatus}}
+				<option value="{{$s}}"> [{{$s.UIString}}]
+				{{end}}
+			]
+		]
+		<div class="field"> [<label> [담당]
+			<input disabled class="after-task-set" type="text" name="assignee" value="" />
+		]
+		<button disabled class="ui button green after-task-set" type="submit" value="Submit"> [수정]
+		<div style="height:2rem;"> []
+	]
+]
+<script> [``
+// taskChanged는 특정 태스크가 선택 되었을때 인풋과 버튼의 잠금을 해제한다.
+// 이 페이지에서 사용자가 우선해야 하는 것이 태스크 선택이기 때문이다.
+function taskChanged(select) {
+	let disabled = (select.value == "")
+	for (let el of document.getElementsByClassName("after-task-set")) {
+		el.disabled = disabled
+	}
+}
+``]
+{{template "footer.bml"}}
