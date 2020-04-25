@@ -79,18 +79,6 @@ func (s *Shot) ID() string {
 	return s.Show + "/shot/" + s.Shot
 }
 
-// ReviewTargetFromShot은 Shot을 샷과 어셋의 공통된 주요 기능을 가진 Unit으로 변경한다.
-func ReviewTargetFromShot(s *Shot) *ReviewTarget {
-	return &ReviewTarget{
-		Show:     s.Show,
-		Category: "shot",
-		Level:    "unit",
-		Name:     s.Shot,
-		Status:   s.Status,
-		DueDate:  s.DueDate,
-	}
-}
-
 // SplitShotID는 받아들인 샷 아이디를 쇼, 샷으로 분리해서 반환한다.
 // 만일 샷 아이디가 유효하지 않다면 에러를 반환한다.
 func SplitShotID(id string) (string, string, error) {
@@ -310,33 +298,6 @@ func ShotsHavingDue(db *sql.DB, show string) ([]*Shot, error) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, NotFound("shot", "having-due-date")
-		}
-		return nil, err
-	}
-	return ss, nil
-}
-
-// ShotsNeedReview는 db에서 리뷰가 필요한 샷을 불러온다.
-func ShotsNeedReview(db *sql.DB, show string) ([]*Shot, error) {
-	ks, _, _, err := dbKIVs(&Shot{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND status=$2", keys), show, StatusNeedReview)
-	ss := make([]*Shot, 0)
-	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
-		s := &Shot{}
-		err := scan(rows, s)
-		if err != nil {
-			return err
-		}
-		ss = append(ss, s)
-		return nil
-	})
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("shot", "status-need-review")
 		}
 		return nil, err
 	}

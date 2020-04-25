@@ -25,10 +25,6 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if ctg == "" {
 		ctg = "shot"
 	}
-	level := r.FormValue("level")
-	if level == "" {
-		level = "unit"
-	}
 	target := r.FormValue("target")
 	if target == "" {
 		target = "having-due"
@@ -42,47 +38,45 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			// 첫번째 프로젝트를 가리킨다.
 			show = shows[0].Show
 		}
-		http.Redirect(w, r, "/review?show="+show+"&category="+ctg+"&level="+level+"&target="+target, http.StatusSeeOther)
+		http.Redirect(w, r, "/review?show="+show+"&category="+ctg+"&target="+target, http.StatusSeeOther)
 		return nil
 	}
-	rts := make([]*roi.ReviewTarget, 0)
+	ts := make([]*roi.Task, 0)
 	if target == "having-due" {
-		rts, err = roi.ReviewTargetsHavingDue(DB, show, ctg, level)
+		ts, err = roi.TasksHavingDue(DB, show, ctg)
 		if err != nil {
 			return err
 		}
 	} else if target == "need-review" {
-		rts, err = roi.ReviewTargetsNeedReview(DB, show, ctg, level)
+		ts, err = roi.TasksNeedReview(DB, show, ctg)
 		if err != nil {
 			return err
 		}
 	} else {
 		return roi.BadRequest(fmt.Sprintf("invalid review target: %s", target))
 	}
-	rtsd := make(map[string][]*roi.ReviewTarget)
-	for _, rt := range rts {
-		due := stringFromDate(rt.DueDate)
-		if rtsd[due] == nil {
-			rtsd[due] = make([]*roi.ReviewTarget, 0)
+	tsd := make(map[string][]*roi.Task)
+	for _, t := range ts {
+		due := stringFromDate(t.DueDate)
+		if tsd[due] == nil {
+			tsd[due] = make([]*roi.Task, 0)
 		}
-		rtsd[due] = append(rtsd[due], rt)
+		tsd[due] = append(tsd[due], t)
 	}
 	recipe := struct {
 		LoggedInUser string
 		Shows        []*roi.Show
 		Show         string
 		Category     string
-		Level        string
 		Target       string
-		ByDue        map[string][]*roi.ReviewTarget
+		ByDue        map[string][]*roi.Task
 	}{
 		LoggedInUser: env.User.ID,
 		Shows:        shows,
 		Show:         show,
 		Category:     ctg,
-		Level:        level,
 		Target:       target,
-		ByDue:        rtsd,
+		ByDue:        tsd,
 	}
 	return executeTemplate(w, "review.bml", recipe)
 }

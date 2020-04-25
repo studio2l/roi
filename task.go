@@ -50,18 +50,6 @@ func (t *Task) ID() string {
 	return t.Show + "/" + t.Category + "/" + t.Unit + "/" + t.Task
 }
 
-// ReviewTargetFromTask은 Task를 샷과 어셋의 공통된 주요 기능을 가진 Unit으로 변경한다.
-func ReviewTargetFromTask(t *Task) *ReviewTarget {
-	return &ReviewTarget{
-		Show:     t.Show,
-		Category: t.Category,
-		Level:    "task",
-		Name:     t.Unit + "/" + t.Task,
-		Status:   t.Status,
-		DueDate:  t.DueDate,
-	}
-}
-
 // UnitID는 부모 유닛의 아이디를 반환한다.
 // 유닛은 샷 또는 애셋이다.
 func (t *Task) UnitID() string {
