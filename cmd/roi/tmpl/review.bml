@@ -16,11 +16,6 @@
             <input type="hidden" id="category-input" name="category" type="text" value="{{$.Category}}">
 
             <div style="width:2rem"> []
-            <button style="width:5rem;border-radius:2px 0 0 2px;border-right:solid 1px grey;{{if eq $.Level "unit"}}background-color:#FFCC33{{end}}" onclick="selectLevel('unit')"> [유닛]
-            <button style="width:5rem;border-radius:0 2px 2px 0;{{if eq $.Level "task"}}background-color:#FFCC33{{end}}" onclick="selectLevel('task')"> [태스크]
-            <input type="hidden" id="level-input" name="level" type="text" value="{{$.Level}}">
-
-            <div style="width:2rem"> []
             <button style="width:5rem;border-radius:2px 0 0 2px;border-right:solid 1px grey;{{if eq $.Target "having-due"}}background-color:#FFCC33{{end}}" onclick="selectTarget('having-due')"> [마감]
             <button style="width:5rem;border-radius:0 2px 2px 0;{{if eq $.Target "need-review"}}background-color:#FFCC33{{end}}" onclick="selectTarget('need-review')"> [대기중]
             <input type="hidden" id="target-input" name="target" type="text" value="{{$.Target}}">
@@ -41,7 +36,7 @@
         <div class="ui divider"> []
         <div id="show-{{$.Show}}-targets-by-due" class="shots-per-due ui grey inverted segment"> [
         {{range $t := $targets}}
-            <a class="ui small label" href="/review-task?id={{$t.ID}}"> [{{$t.Name}}<div class="detail"> [{{$t.Status.UIString}}]]
+            <a class="ui small label" href="/review-task?id={{$t.ID}}"> [{{$t.Unit}} / {{$t.Task}}<div class="detail"> [{{$t.Status.UIString}}]]
         {{end}}
         ]
     ]

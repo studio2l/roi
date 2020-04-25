@@ -56,18 +56,6 @@ func (s *Asset) ID() string {
 	return s.Show + "/asset/" + s.Asset
 }
 
-// ReviewTargetFromAsset은 Asset을 샷과 어셋의 공통된 주요 기능을 가진 ReviewTarget으로 변경한다.
-func ReviewTargetFromAsset(a *Asset) *ReviewTarget {
-	return &ReviewTarget{
-		Show:     a.Show,
-		Category: "asset",
-		Level:    "unit",
-		Name:     a.Asset,
-		Status:   a.Status,
-		DueDate:  a.DueDate,
-	}
-}
-
 // SplitAssetID는 받아들인 애셋 아이디를 쇼, 애셋으로 분리해서 반환한다.
 // 만일 애셋 아이디가 유효하지 않다면 에러를 반환한다.
 func SplitAssetID(id string) (string, string, error) {
@@ -241,33 +229,6 @@ func AssetsHavingDue(db *sql.DB, show string) ([]*Asset, error) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, NotFound("assets", "having-due-date")
-		}
-		return nil, err
-	}
-	return as, nil
-}
-
-// AssetsNeedReview는 db에서 리뷰가 필요한 애셋을 불러온다.
-func AssetsNeedReview(db *sql.DB, show string) ([]*Asset, error) {
-	ks, _, _, err := dbKIVs(&Asset{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM assets WHERE show=$1 AND status=$2", keys), show, StatusNeedReview)
-	as := make([]*Asset, 0)
-	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
-		s := &Asset{}
-		err := scan(rows, s)
-		if err != nil {
-			return err
-		}
-		as = append(as, s)
-		return nil
-	})
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("assets", "status-need-review")
 		}
 		return nil, err
 	}
