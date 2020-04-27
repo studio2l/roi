@@ -175,8 +175,7 @@ func updateMultiTasksPostHandler(w http.ResponseWriter, r *http.Request, env *En
 
 func reviewTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
-		return nil
-		// return reviewTaskPostHandler(w, r, env)
+		return reviewTaskPostHandler(w, r, env)
 	}
 	err := mustFields(r, "id")
 	if err != nil {
@@ -201,16 +200,56 @@ func reviewTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			vs = vs[len(vs)-1:]
 		}
 	}
+	reviews := make(map[string][]*roi.Review)
+	for _, v := range vs {
+		rvs, err := roi.VersionReviews(DB, v.ID())
+		if err != nil {
+			return err
+		}
+		reviews[v.ID()] = rvs
+	}
 	recipe := struct {
 		LoggedInUser    string
 		Task            *roi.Task
 		Versions        []*roi.Version
+		Reviews         map[string][]*roi.Review
 		ShowAllVersions bool
 	}{
 		LoggedInUser:    env.User.ID,
 		Task:            t,
 		Versions:        vs,
+		Reviews:         reviews,
 		ShowAllVersions: showAllVersions,
 	}
 	return executeTemplate(w, "review-task", recipe)
+}
+
+func reviewTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	err := mustFields(r, "id", "version", "msg", "status")
+	if err != nil {
+		return err
+	}
+	id := r.FormValue("id")
+	show, ctg, unit, task, err := roi.SplitTaskID(id)
+	if err != nil {
+		return err
+	}
+	rv := &roi.Review{
+		Show:     show,
+		Category: ctg,
+		Unit:     unit,
+		Task:     task,
+		Version:  r.FormValue("version"),
+		// 할일: 실제 리뷰어를 전달받도록 할 것.
+		Reviewer:  env.User.ID,
+		Messenger: env.User.ID,
+		Msg:       r.FormValue("msg"),
+		Status:    roi.Status(r.FormValue("status")),
+	}
+	err = roi.AddReview(DB, rv)
+	if err != nil {
+		return err
+	}
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	return nil
 }

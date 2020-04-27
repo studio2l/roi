@@ -110,7 +110,7 @@
 					{{end}}
 				]
 				<div class="chapter version-outputs"> [
-					<div style="font-size:1.3rem;color:#ccc;margin-bottom:1rem"> [아웃풋 경로]
+					<div class="sub-title"> [아웃풋 경로]
 					{{with $outputs := $v.OutputFiles}}
 						{{range $output := $outputs}}
 							<div style="margin-bottom:0.3rem;color:#aaa"> [{{$output}}]
@@ -119,15 +119,36 @@
 						<div style="color:#777"> [등록된 파일이 없습니다.]
 					{{end}}
 				]
+				{{with $rs := (index $.Reviews $v.ID)}}
+					<div class="chapter version-reviews"> [
+						<div class="sub-title"> [리뷰]
+						{{range $i, $r := $rs}}
+							{{if ne $i 0}}
+							<div style="height:1rem"> []
+							{{end}}
+							<div style="color:#bbb;background-color:rgb(70, 70, 70);padding:0.5rem;border:solid 1px #252525"> [
+								<div style="display:flex;justify-content:space-between;color:#ccc;margin-bottom:0.5rem"> [
+									<div> [{{$r.Messenger}} {{$r.Status.UIString}}]
+									<div> [{{$r.Messenger}}이 {{stringFromTime $r.Created}} 에 생성]
+								]
+								<pre style="padding:0.3rem;min-height:4rem;background-color:white;color:#444;"> [{{$r.Msg}}]
+							]
+						{{end}}
+					]
+				{{end}}
 				{{if eq $i (sub (len $.Versions) 1)}}
-				<div class="chapter version-review"> [
-					<div class="sub-title"> [리뷰]
-					<textarea id="review-msg" style="width:100%;height:8rem" onkeyup="onComment()"> []
-					<div style="height:0.5rem;"> []
-					<div style="display:flex;justify-content:flex-end;"> [
-						<button disabled id="retake-button"> [리테이크]
-						<div style="width:0.5rem"> []
-						<button id="approve-button"> [승인]
+				<form method="post"> [
+					<input hidden name="id" value="{{$.Task.ID}}" />
+					<input hidden name="version" value="{{$v.Version}}" />
+					<div class="chapter version-review"> [
+						<div class="sub-title"> [리뷰]
+						<textarea id="review-msg" name="msg" style="width:100%;height:8rem" onkeyup="onComment()"> []
+						<div style="height:0.5rem;"> []
+						<div style="display:flex;justify-content:flex-end;"> [
+							<button disabled id="retake-button" name="status" value="retake"> [리테이크]
+							<div style="width:0.5rem"> []
+							<button id="approve-button" name="status" value="approved"> [승인]
+						]
 					]
 				]
 				{{end}}
