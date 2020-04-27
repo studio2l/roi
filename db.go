@@ -33,6 +33,7 @@ func initDB(url string) (*sql.DB, error) {
 		dbStmt(CreateTableIfNotExistsAssetsStmt),
 		dbStmt(CreateTableIfNotExistsTasksStmt),
 		dbStmt(CreateTableIfNotExistsVersionsStmt),
+		dbStmt(CreateTableIfNotExistsReviewsStmt),
 		dbStmt(CreateTableIfNotExistsUsersStmt),
 	}
 	err = dbExec(db, stmts)
