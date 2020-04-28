@@ -1,3 +1,4 @@
+{{define "search-menu"}}
 <div style="width:100%;background-color:rgb(48, 48, 48);padding:15px;"> [
     <div style="display:flex;"> [
         <form style="flex:1;display:flex;"> [
@@ -11,3 +12,4 @@
         ]
     ]
 ]
+{{end}}

@@ -1,3 +1,4 @@
+{{define "history-go"}}
 <!doctype html>
 <html> [
 <body> [
@@ -12,4 +13,4 @@ window.onload = function() {
 }
 ``]
 ]
-
+{{end}}

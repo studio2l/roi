@@ -1,7 +1,6 @@
 {{define "review-task"}}
-
-{{template "head.bml"}}
-{{template "nav.bml" $}}
+{{template "head"}}
+{{template "nav" $}}
 
 <style> [``
 .clipper {
@@ -172,6 +171,5 @@ function onComment() {
 }
 ``]
 
-{{template "footer.bml"}}
-
+{{template "footer"}}
 {{end}}

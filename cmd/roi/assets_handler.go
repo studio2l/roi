@@ -101,5 +101,5 @@ func assetsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		AllTaskStatus: roi.AllTaskStatus,
 		Query:         query,
 	}
-	return executeTemplate(w, "assets.bml", recipe)
+	return executeTemplate(w, "assets", recipe)
 }

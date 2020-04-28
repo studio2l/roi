@@ -1,5 +1,6 @@
-{{template "head.bml" }}
-{{template "nav.bml" $}}
+{{define "review"}}
+{{template "head" }}
+{{template "nav" $}}
 
 <div style="width:100%;background-color:rgb(48, 48, 48);padding:15px;"> [
     <div style="display:flex;"> [
@@ -69,4 +70,5 @@ function selectTarget(target) {
 }
 ``]
 
-{{template "footer.bml"}}
+{{template "footer"}}
+{{end}}

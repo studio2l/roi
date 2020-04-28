@@ -78,5 +78,5 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Target:       target,
 		ByDue:        tsd,
 	}
-	return executeTemplate(w, "review.bml", recipe)
+	return executeTemplate(w, "review", recipe)
 }

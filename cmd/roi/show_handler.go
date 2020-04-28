@@ -21,7 +21,7 @@ func showsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser: env.User.ID,
 		Shows:        shows,
 	}
-	return executeTemplate(w, "shows.bml", recipe)
+	return executeTemplate(w, "shows", recipe)
 }
 
 // addShowHandler는 /add-show 페이지로 사용자가 접속했을때 페이지를 반환한다.
@@ -35,7 +35,7 @@ func addShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}{
 		LoggedInUser: env.User.ID,
 	}
-	return executeTemplate(w, "add-show.bml", recipe)
+	return executeTemplate(w, "add-show", recipe)
 }
 
 func addShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
@@ -97,7 +97,7 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Show:          p,
 		AllShowStatus: roi.AllShowStatus,
 	}
-	return executeTemplate(w, "update-show.bml", recipe)
+	return executeTemplate(w, "update-show", recipe)
 }
 
 func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {

@@ -1,5 +1,6 @@
-{{template "head.bml"}}
-{{template "nav.bml" $}}
+{{define "update-asset"}}
+{{template "head"}}
+{{template "nav" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
 	{{with $a := $.Asset}}
 	<h2 class="ui header"> [애셋 수정]
@@ -42,4 +43,5 @@
 	]
 	{{end}}
 ]
-{{template "footer.bml"}}
+{{template "footer"}}
+{{end}}

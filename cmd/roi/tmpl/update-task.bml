@@ -1,5 +1,5 @@
-{{template "head.bml"}}
-{{template "nav.bml" $}}
+{{template "head"}}
+{{template "nav" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
 	{{with $t := $.Task}}
 	<h2 class="ui header"> [태스크 수정]
@@ -69,4 +69,4 @@ users.sort()
 
 autocomplete(document.getElementById("autocomplete-user"), users, userName)
 ``]
-{{template "footer.bml"}}
+{{template "footer"}}

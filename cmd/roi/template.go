@@ -47,7 +47,7 @@ func parseTemplate() {
 		"basename":            filepath.Base,
 	}
 	templates = template.New("").Funcs(fmap)
-	templates = template.Must(bml.ToHTMLTemplate(templates, "tmpl/*.bml"))
+	templates = template.Must(bml.ToHTMLTemplate(templates, "tmpl/*"))
 }
 
 // 아래는 템플릿 안에서 사용되는 함수들이다.
