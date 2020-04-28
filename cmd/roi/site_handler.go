@@ -27,7 +27,7 @@ func siteHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Site:         s,
 		Users:        us,
 	}
-	return executeTemplate(w, "site.bml", recipe)
+	return executeTemplate(w, "site", recipe)
 }
 
 func sitePostHander(w http.ResponseWriter, r *http.Request, env *Env) error {

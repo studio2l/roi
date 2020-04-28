@@ -54,7 +54,7 @@ func addAssetHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser: env.User.ID,
 		Show:         sw,
 	}
-	return executeTemplate(w, "add-asset.bml", recipe)
+	return executeTemplate(w, "add-asset", recipe)
 }
 
 func addAssetPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
@@ -118,7 +118,7 @@ func updateAssetHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 		AllTaskStatus: roi.AllTaskStatus,
 		Thumbnail:     "data/show/" + id + "/thumbnail.png",
 	}
-	return executeTemplate(w, "update-asset.bml", recipe)
+	return executeTemplate(w, "update-asset", recipe)
 }
 
 func updateAssetPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
@@ -182,7 +182,7 @@ func updateMultiAssetsHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 		IDs:           ids,
 		AllUnitStatus: roi.AllUnitStatus,
 	}
-	return executeTemplate(w, "update-multi-assets.bml", recipe)
+	return executeTemplate(w, "update-multi-assets", recipe)
 
 }
 
@@ -263,5 +263,5 @@ func updateMultiAssetsPostHandler(w http.ResponseWriter, r *http.Request, env *E
 		q += asset
 	}
 	// 여러 애셋 수정 페이지 전인 assets 페이지로 돌아간다.
-	return executeTemplate(w, "history-go.bml", -2)
+	return executeTemplate(w, "history-go", -2)
 }

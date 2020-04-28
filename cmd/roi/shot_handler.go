@@ -54,7 +54,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser: env.User.ID,
 		Show:         sw,
 	}
-	return executeTemplate(w, "add-shot.bml", recipe)
+	return executeTemplate(w, "add-shot", recipe)
 }
 
 func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
@@ -118,7 +118,7 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		AllTaskStatus: roi.AllTaskStatus,
 		Thumbnail:     "data/show/" + id + "/thumbnail.png",
 	}
-	return executeTemplate(w, "update-shot.bml", recipe)
+	return executeTemplate(w, "update-shot", recipe)
 }
 
 func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
@@ -187,7 +187,7 @@ func updateMultiShotsHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		IDs:           ids,
 		AllUnitStatus: roi.AllUnitStatus,
 	}
-	return executeTemplate(w, "update-multi-shots.bml", recipe)
+	return executeTemplate(w, "update-multi-shots", recipe)
 
 }
 
@@ -288,5 +288,5 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		q += shot
 	}
 	// 여러 샷 수정 페이지 전인 shots 페이지로 돌아간다.
-	return executeTemplate(w, "history-go.bml", -2)
+	return executeTemplate(w, "history-go", -2)
 }

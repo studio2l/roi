@@ -1,4 +1,5 @@
-{{template "head.bml" }}
+{{define "signup"}}
+{{template "head" }}
 <div style="margin-top:10%;"> []
 <div class="ui middle aligned center aligned grid"> [
 	<div class="column" style="width:350px;"> [
@@ -34,4 +35,5 @@
 		<!--에러 안내 메세지 출력-->
 	]
 ]
-{{template "footer.bml"}}
+{{template "footer"}}
+{{end}}

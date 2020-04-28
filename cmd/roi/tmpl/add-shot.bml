@@ -1,5 +1,6 @@
-{{template "head.bml"}}
-{{template "nav.bml" $}}
+{{define "add-shot"}}
+{{template "head"}}
+{{template "nav" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
 	<h2 class="ui dividing header"> [샷 추가]
 	<form method="post" class="ui form"> [
@@ -12,4 +13,5 @@
 		<button class="ui button green" type="submit" value="Submit"> [추가]
 	]
 ]
-{{template "footer.bml"}}
+{{template "footer"}}
+{{end}}

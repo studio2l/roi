@@ -34,7 +34,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			Task:     task,
 		},
 	}
-	return executeTemplate(w, "add-version.bml", recipe)
+	return executeTemplate(w, "add-version", recipe)
 }
 
 func addVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
@@ -93,7 +93,7 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) erro
 		IsWorkingVersion: t.WorkingVersion == v.Version,
 		IsPublishVersion: t.PublishVersion == v.Version,
 	}
-	return executeTemplate(w, "update-version.bml", recipe)
+	return executeTemplate(w, "update-version", recipe)
 }
 
 func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {

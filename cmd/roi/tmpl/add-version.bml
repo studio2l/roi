@@ -1,5 +1,6 @@
-{{template "head.bml"}}
-{{template "nav.bml" $}}
+{{define "add-version"}}
+{{template "head"}}
+{{template "nav" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
 	<h2 class="ui dividing header"> [
 		버전 생성
@@ -15,4 +16,5 @@
 		<div style="height:2rem;"> []
 	]
 ]
-{{template "footer.bml"}}
+{{template "footer"}}
+{{end}}

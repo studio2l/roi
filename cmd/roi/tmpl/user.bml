@@ -1,5 +1,6 @@
-{{template "head.bml"}}
-{{template "nav.bml" $}}
+{{define "user"}}
+{{template "head"}}
+{{template "nav" $}}
 <div style="padding:15px 10px 15px 10px;z-index:0;"> [
 
 <h2 class="ui dividing header"> [{{$.User}}]
@@ -154,4 +155,5 @@ function keyDownEvent(e) {
 document.addEventListener("keydown", keyDownEvent, false);
 
 ``]
-{{template "footer.bml"}}
+{{template "footer"}}
+{{end}}

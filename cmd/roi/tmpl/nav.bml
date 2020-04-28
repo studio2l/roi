@@ -1,3 +1,4 @@
+{{define "nav"}}
 <nav> [
 	<div class="ui inverted top fixed menu"> [
 		<a class="item" href="/"> [<h5 class="ui header inverted"> [ROI]]
@@ -48,3 +49,4 @@
 	<!-- 상단 메뉴만큼 다른 문서들이 아래로 배치되어야 함 -->
 	<div style="height:3rem"> []
 ]
+{{end}}

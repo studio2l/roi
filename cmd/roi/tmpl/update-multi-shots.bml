@@ -1,5 +1,6 @@
-{{template "head.bml"}}
-{{template "nav.bml" $}}
+{{define "update-multi-shots"}}
+{{template "head"}}
+{{template "nav" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
 	<button onclick="history.back()"> [되돌아가기]
 	<h2 class="ui header"> [샷 수정]
@@ -39,4 +40,5 @@
 		<div style="height:2rem;"> []
 	]
 ]
-{{template "footer.bml"}}
+{{template "footer"}}
+{{end}}

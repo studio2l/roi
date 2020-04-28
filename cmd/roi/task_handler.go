@@ -42,7 +42,7 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Versions:      vers,
 		Users:         us,
 	}
-	return executeTemplate(w, "update-task.bml", recipe)
+	return executeTemplate(w, "update-task", recipe)
 }
 
 func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
@@ -121,7 +121,7 @@ func updateMultiTasksHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		Tasks:         tasks,
 		AllTaskStatus: roi.AllTaskStatus,
 	}
-	return executeTemplate(w, "update-multi-tasks.bml", recipe)
+	return executeTemplate(w, "update-multi-tasks", recipe)
 }
 
 func updateMultiTasksPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
@@ -170,7 +170,7 @@ func updateMultiTasksPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		q += shot
 	}
 	// 여러 샷 수정 페이지 전인 shots 페이지로 돌아간다.
-	return executeTemplate(w, "history-go.bml", -2)
+	return executeTemplate(w, "history-go", -2)
 }
 
 func reviewTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {

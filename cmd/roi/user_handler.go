@@ -36,7 +36,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return nil
 	}
-	return executeTemplate(w, "login.bml", nil)
+	return executeTemplate(w, "login", nil)
 }
 
 // logoutHandler는 /logout 페이지로 사용자가 접속했을때 사용자를 로그아웃 시킨다.
@@ -77,7 +77,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return nil
 	}
-	return executeTemplate(w, "signup.bml", nil)
+	return executeTemplate(w, "signup", nil)
 }
 
 // profileHandler는 /profile 페이지로 사용자가 접속했을 때 사용자 프로필 페이지를 반환한다.
@@ -113,7 +113,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser: env.User.ID,
 		User:         env.User,
 	}
-	return executeTemplate(w, "profile.bml", recipe)
+	return executeTemplate(w, "profile", recipe)
 }
 
 // updatePasswordHandler는 /update-password 페이지로 사용자가 패스워드 변경과 관련된 정보를 보내면
@@ -232,7 +232,7 @@ func userHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		TasksOfDay:    tasksOfDay,
 		AllTaskStatus: roi.AllTaskStatus,
 	}
-	return executeTemplate(w, "user.bml", recipe)
+	return executeTemplate(w, "user", recipe)
 }
 
 func usersHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
@@ -247,5 +247,5 @@ func usersHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser: env.User.ID,
 		Users:        us,
 	}
-	return executeTemplate(w, "users.bml", recipe)
+	return executeTemplate(w, "users", recipe)
 }

@@ -1,5 +1,6 @@
-{{template "head.bml"}}
-{{template "nav.bml" $}}
+{{define "update-multi-tasks"}}
+{{template "head"}}
+{{template "nav" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
 	<button onclick="history.back()"> [되돌아가기]
 	<h2 class="ui header"> [태스크 수정]
@@ -51,4 +52,5 @@ function taskChanged(select) {
 	}
 }
 ``]
-{{template "footer.bml"}}
+{{template "footer"}}
+{{end}}

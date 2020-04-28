@@ -1,6 +1,7 @@
-{{template "head.bml" }}
-{{template "nav.bml" $}}
-{{template "search-menu.bml" $}}
+{{define "assets"}}
+{{template "head" }}
+{{template "nav" $}}
+{{template "search-menu" $}}
 <style> [``
 .tasks {
 	flex: 1;
@@ -243,4 +244,5 @@ if (isChrome) {
 	}
 }
 ``]
-{{template "footer.bml"}}
+{{template "footer"}}
+{{end}}

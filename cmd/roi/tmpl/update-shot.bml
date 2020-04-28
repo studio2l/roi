@@ -1,5 +1,6 @@
-{{template "head.bml"}}
-{{template "nav.bml" $}}
+{{define "update-shot"}}
+{{template "head"}}
+{{template "nav" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
 	{{with $s := $.Shot}}
 	<h2 class="ui header"> [샷 수정]
@@ -57,4 +58,5 @@
 	]
 	{{end}}
 ]
-{{template "footer.bml"}}
+{{template "footer"}}
+{{end}}

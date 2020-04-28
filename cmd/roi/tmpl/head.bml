@@ -1,3 +1,4 @@
+{{define "head"}}
 <!doctype html>
 <html>
 <head> [
@@ -10,3 +11,4 @@
     <script src="/static/Semantic-UI-CSS-2.4.1/semantic.min.js"> []
 ]
 <body style="background-color: rgb(70, 70, 70);">
+{{end}}

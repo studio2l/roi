@@ -1,5 +1,6 @@
-{{template "head.bml" }}
-{{template "nav.bml" $}}
+{{define "shows"}}
+{{template "head" }}
+{{template "nav" $}}
 <div style="padding:15px 10px 15px 10px;z-index:0;"> [
 <!--검색 결과-->
 {{range .Shows}}
@@ -36,4 +37,5 @@
 {{end}}
 ]
 <!--검색 결과 끝-->
-{{template "footer.bml"}}
+{{template "footer"}}
+{{end}}
