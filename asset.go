@@ -51,6 +51,10 @@ type Asset struct {
 	DueDate   time.Time `db:"due_date"`
 }
 
+var assetDBKey string = strings.Join(dbKeys(&Asset{}), ", ")
+var assetDBIdx string = strings.Join(dbIdxs(&Asset{}), ", ")
+var _ []interface{} = dbVals(&Asset{}) // 에러가 나지 않는지 프로그램 시작때 검사
+
 // ID는 Asset의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
 func (s *Asset) ID() string {
 	return s.Show + "/asset/" + s.Asset
@@ -150,14 +154,8 @@ func AddAsset(db *sql.DB, s *Asset) error {
 	if err != nil {
 		return err
 	}
-	ks, is, vs, err := dbKIVs(s)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("INSERT INTO assets (%s) VALUES (%s)", keys, idxs), vs...),
+		dbStmt(fmt.Sprintf("INSERT INTO assets (%s) VALUES (%s)", assetDBKey, assetDBIdx), dbVals(s)...),
 	}
 	// 하위 태스크 생성
 	for _, task := range s.Tasks {
@@ -189,13 +187,8 @@ func GetAsset(db *sql.DB, id string) (*Asset, error) {
 	if err != nil {
 		return nil, err
 	}
-	ks, _, _, err := dbKIVs(&Asset{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
 	s := &Asset{}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM assets WHERE show=$1 AND asset=$2 LIMIT 1", keys), show, asset)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM assets WHERE show=$1 AND asset=$2 LIMIT 1", assetDBKey), show, asset)
 	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, s)
 	})
@@ -210,12 +203,8 @@ func GetAsset(db *sql.DB, id string) (*Asset, error) {
 
 // SearchAssets는 db의 특정 프로젝트에서 검색 조건에 맞는 애셋 리스트를 반환한다.
 func SearchAssets(db *sql.DB, show string, assets []string, tag, status, task, assignee, task_status string, task_due_date time.Time) ([]*Asset, error) {
-	ks, _, _, err := dbKIVs(&Asset{})
-	if err != nil {
-		return nil, err
-	}
 	keys := ""
-	for i, k := range ks {
+	for i, k := range dbKeys(&Asset{}) {
 		if i != 0 {
 			keys += ", "
 		}
@@ -288,7 +277,7 @@ func SearchAssets(db *sql.DB, show string, assets []string, tag, status, task, a
 	st := dbStmt(stmt, vals...)
 	ss := make([]*Asset, 0)
 	hasAsset := make(map[string]bool)
-	err = dbQuery(db, st, func(rows *sql.Rows) error {
+	err := dbQuery(db, st, func(rows *sql.Rows) error {
 		// 태스크 검색을 해 JOIN이 되면 애셋이 중복으로 추가될 수 있다.
 		// DISTINCT를 이용해 문제를 해결하려고 했으나 DB가 꺼진다.
 		// 우선은 여기서 걸러낸다.
@@ -323,14 +312,8 @@ func UpdateAsset(db *sql.DB, id string, s *Asset) error {
 	if err != nil {
 		return err
 	}
-	ks, is, vs, err := dbKIVs(s)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE assets SET (%s) = (%s) WHERE show='%s' AND asset='%s'", keys, idxs, s.Show, s.Asset), vs...),
+		dbStmt(fmt.Sprintf("UPDATE assets SET (%s) = (%s) WHERE show='%s' AND asset='%s'", assetDBKey, assetDBIdx, s.Show, s.Asset), dbVals(s)...),
 	}
 	// 애셋에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
 	for _, task := range s.Tasks {

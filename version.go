@@ -46,6 +46,10 @@ type Version struct {
 	EndDate     time.Time `db:"end_date"`     // 버전 작업 마감 시간
 }
 
+var versionDBKey string = strings.Join(dbKeys(&Version{}), ", ")
+var versionDBIdx string = strings.Join(dbIdxs(&Version{}), ", ")
+var _ []interface{} = dbVals(&Version{})
+
 // ID는 Version의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
 func (v *Version) ID() string {
 	return v.Show + "/" + v.Category + "/" + v.Unit + "/" + v.Task + "/" + v.Version
@@ -143,14 +147,8 @@ func AddVersion(db *sql.DB, v *Version) error {
 	if err != nil {
 		return err
 	}
-	ks, is, vs, err := dbKIVs(v)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("INSERT INTO versions (%s) VALUES (%s)", keys, idxs), vs...),
+		dbStmt(fmt.Sprintf("INSERT INTO versions (%s) VALUES (%s)", versionDBKey, versionDBIdx), dbVals(v)...),
 		dbStmt("UPDATE tasks SET (working_version) = ($1) WHERE show=$2 AND category=$3 AND unit=$4 AND task=$5", v.Version, v.Show, v.Category, v.Unit, v.Task),
 	}
 	return dbExec(db, stmts)
@@ -163,14 +161,8 @@ func UpdateVersion(db *sql.DB, id string, v *Version) error {
 	if err != nil {
 		return err
 	}
-	ks, is, vs, err := dbKIVs(v)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND category='%s' AND unit='%s' AND task='%s' AND version='%s'", keys, idxs, v.Show, v.Category, v.Unit, v.Task, v.Version), vs...),
+		dbStmt(fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND category='%s' AND unit='%s' AND task='%s' AND version='%s'", versionDBKey, versionDBIdx, v.Show, v.Category, v.Unit, v.Task, v.Version), dbVals(v)...),
 	}
 	return dbExec(db, stmts)
 }
@@ -186,12 +178,7 @@ func GetVersion(db *sql.DB, id string) (*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	ks, _, _, err := dbKIVs(&Version{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4 AND version=$5 LIMIT 1", keys), show, ctg, unit, task, version)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4 AND version=$5 LIMIT 1", versionDBKey), show, ctg, unit, task, version)
 	v := &Version{}
 	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, v)
@@ -215,12 +202,7 @@ func TaskVersions(db *sql.DB, id string) ([]*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	ks, _, _, err := dbKIVs(&Version{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4", keys), show, ctg, unit, task)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4", versionDBKey), show, ctg, unit, task)
 	versions := make([]*Version, 0)
 	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		v := &Version{}
@@ -250,12 +232,7 @@ func ShotVersions(db *sql.DB, id string) ([]*Version, error) {
 	if err != nil {
 		return nil, err
 	}
-	ks, _, _, err := dbKIVs(&Version{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND category=$2 AND unit=$3", keys), show, "shot", shot)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND category=$2 AND unit=$3", versionDBKey), show, "shot", shot)
 	versions := make([]*Version, 0)
 	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		v := &Version{}

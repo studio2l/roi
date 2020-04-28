@@ -43,6 +43,10 @@ var CreateTableIfNotExistsSitesStmt = `CREATE TABLE IF NOT EXISTS sites (
 	leads STRING[] NOT NULL
 )`
 
+var siteDBKey string = strings.Join(dbKeys(&Site{}), ", ")
+var siteDBIdx string = strings.Join(dbIdxs(&Site{}), ", ")
+var _ []interface{} = dbVals(&Site{})
+
 // DefaultSite는 기본적으로 제공되는 사이트이다.
 var DefaultSite = &Site{
 	ShotTasks: []string{
@@ -111,14 +115,8 @@ func AddSite(db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	ks, is, vs, err := dbKIVs(DefaultSite)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("INSERT INTO sites (%s) VALUES (%s)", keys, idxs), vs...),
+		dbStmt(fmt.Sprintf("INSERT INTO sites (%s) VALUES (%s)", siteDBKey, siteDBIdx), dbVals(DefaultSite)...),
 	}
 	return dbExec(db, stmts)
 }
@@ -126,10 +124,6 @@ func AddSite(db *sql.DB) error {
 // UpdateSite는 DB의 사이트 정보를 업데이트한다.
 func UpdateSite(db *sql.DB, s *Site) error {
 	err := verifySite(db, s)
-	if err != nil {
-		return err
-	}
-	ks, is, vs, err := dbKIVs(s)
 	if err != nil {
 		return err
 	}
@@ -144,10 +138,8 @@ func UpdateSite(db *sql.DB, s *Site) error {
 			return fmt.Errorf("could not delete site shot task: %w", err)
 		}
 	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE sites SET (%s) = (%s)", keys, idxs), vs...),
+		dbStmt(fmt.Sprintf("UPDATE sites SET (%s) = (%s)", siteDBKey, siteDBIdx), dbVals(s)...),
 	}
 	return dbExec(db, stmts)
 }
@@ -155,10 +147,8 @@ func UpdateSite(db *sql.DB, s *Site) error {
 // SiteMustNotHavShotTask는 사이트 내의 샷에 해당 태스크가 하나라도 있으면 에러를 반환한다.
 func SiteMustNotHaveShotTask(db *sql.DB, task string) error {
 	s := &Shot{}
-	ks, err := dbKeys(s)
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shots WHERE $1::string = ANY(shots.tasks)", keys), task)
-	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shots WHERE $1::string = ANY(shots.tasks)", shotDBKey), task)
+	err := dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, s)
 	})
 	if err == nil {
@@ -173,14 +163,9 @@ func SiteMustNotHaveShotTask(db *sql.DB, task string) error {
 // GetSite는 db에서 사이트 정보를 가지고 온다.
 // 사이트 정보가 존재하지 않으면 nil과 NotFound 에러를 반환한다.
 func GetSite(db *sql.DB) (*Site, error) {
-	ks, _, _, err := dbKIVs(&Site{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM sites LIMIT 1", keys))
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM sites LIMIT 1", siteDBKey))
 	s := &Site{}
-	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+	err := dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, s)
 	})
 	if err != nil {

@@ -45,6 +45,10 @@ type Task struct {
 	WorkingVersion  string   `db:"working_version"`
 }
 
+var taskDBKey string = strings.Join(dbKeys(&Task{}), ", ")
+var taskDBIdx string = strings.Join(dbIdxs(&Task{}), ", ")
+var _ []interface{} = dbVals(&Task{})
+
 // ID는 Task의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
 func (t *Task) ID() string {
 	return t.Show + "/" + t.Category + "/" + t.Unit + "/" + t.Task
@@ -187,14 +191,8 @@ func AddTask(db *sql.DB, t *Task) error {
 	if !ok {
 		return fmt.Errorf("unit not found: %s", t.UnitID())
 	}
-	ks, is, vs, err := dbKIVs(t)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", keys, idxs), vs...),
+		dbStmt(fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", taskDBKey, taskDBIdx), dbVals(t)...),
 	}
 	return dbExec(db, stmts)
 }
@@ -202,14 +200,8 @@ func AddTask(db *sql.DB, t *Task) error {
 // addTaskStmts는 태스크를 추가하는 db 구문을 반환한다.
 // 부모가 있는지는 검사하지 않는다.
 func addTaskStmts(t *Task) ([]dbStatement, error) {
-	ks, is, vs, err := dbKIVs(t)
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", keys, idxs), vs...),
+		dbStmt(fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", taskDBKey, taskDBIdx), dbVals(t)...),
 	}
 	return stmts, nil
 }
@@ -228,14 +220,8 @@ func UpdateTask(db *sql.DB, id string, t *Task) error {
 	if oldt.Category != t.Category {
 		return fmt.Errorf("not allowed to change category of task")
 	}
-	ks, is, vs, err := dbKIVs(t)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND category='%s' AND unit='%s' AND task='%s'", keys, idxs, t.Show, t.Category, t.Unit, t.Task), vs...),
+		dbStmt(fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND category='%s' AND unit='%s' AND task='%s'", taskDBKey, taskDBIdx, t.Show, t.Category, t.Unit, t.Task), dbVals(t)...),
 	}
 	return dbExec(db, stmts)
 }
@@ -256,12 +242,7 @@ func GetTask(db *sql.DB, id string) (*Task, error) {
 	if !ok {
 		return nil, fmt.Errorf("unit not found: %s", unitID)
 	}
-	ks, _, _, err := dbKIVs(&Task{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND unit=$2 AND task=$3 LIMIT 1", keys), show, unit, task)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND unit=$2 AND task=$3 LIMIT 1", taskDBKey), show, unit, task)
 	t := &Task{}
 	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, t)
@@ -277,14 +258,9 @@ func GetTask(db *sql.DB, id string) (*Task, error) {
 
 // TasksHavingDue는 db에서 마감일이 정해진 태스크를 불러온다.
 func TasksHavingDue(db *sql.DB, show, ctg string) ([]*Task, error) {
-	ks, _, _, err := dbKIVs(&Task{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND due_date!=$3", keys), show, ctg, time.Time{})
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND due_date!=$3", taskDBKey), show, ctg, time.Time{})
 	ts := make([]*Task, 0)
-	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
+	err := dbQuery(db, stmt, func(rows *sql.Rows) error {
 		s := &Task{}
 		err := scan(rows, s)
 		if err != nil {
@@ -304,14 +280,9 @@ func TasksHavingDue(db *sql.DB, show, ctg string) ([]*Task, error) {
 
 // TasksNeedReview는 db에서 리뷰가 필요한 태스크를 불러온다.
 func TasksNeedReview(db *sql.DB, show, ctg string) ([]*Task, error) {
-	ks, _, _, err := dbKIVs(&Task{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND status=$3", keys), show, ctg, StatusNeedReview)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND status=$3", taskDBKey), show, ctg, StatusNeedReview)
 	ts := make([]*Task, 0)
-	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
+	err := dbQuery(db, stmt, func(rows *sql.Rows) error {
 		s := &Task{}
 		err := scan(rows, s)
 		if err != nil {
@@ -343,10 +314,6 @@ func ShotTasks(db *sql.DB, id string) ([]*Task, error) {
 		return nil, err
 	}
 	tasks := s.Tasks
-	ks, _, _, err := dbKIVs(&Task{})
-	if err != nil {
-		return nil, err
-	}
 	// DB에 있는 태스크 중 샷의 Tasks에 정의된 태스크만 보이고, 그 순서대로 정렬한다.
 	taskNotHidden := make(map[string]bool)
 	taskIdx := make(map[string]int)
@@ -354,8 +321,7 @@ func ShotTasks(db *sql.DB, id string) ([]*Task, error) {
 		taskNotHidden[task] = true
 		taskIdx[task] = i
 	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND unit=$3", keys), show, ctg, unit)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND unit=$3", taskDBKey), show, ctg, unit)
 	ts := make([]*Task, 0)
 	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		t := &Task{}
@@ -391,10 +357,6 @@ func AssetTasks(db *sql.DB, id string) ([]*Task, error) {
 		return nil, err
 	}
 	tasks := a.Tasks
-	ks, _, _, err := dbKIVs(&Task{})
-	if err != nil {
-		return nil, err
-	}
 	// DB에 있는 태스크 중 샷의 Tasks에 정의된 태스크만 보이고, 그 순서대로 정렬한다.
 	taskNotHidden := make(map[string]bool)
 	taskIdx := make(map[string]int)
@@ -402,8 +364,7 @@ func AssetTasks(db *sql.DB, id string) ([]*Task, error) {
 		taskNotHidden[task] = true
 		taskIdx[task] = i
 	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND unit=$3", keys), show, ctg, unit)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND unit=$3", taskDBKey), show, ctg, unit)
 	ts := make([]*Task, 0)
 	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		t := &Task{}
@@ -428,20 +389,16 @@ func AssetTasks(db *sql.DB, id string) ([]*Task, error) {
 // UserTasks는 해당 유저의 모든 태스크를 db에서 검색해 반환한다.
 func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 	// 샷의 tasks에 속하지 않은 태스크는 보이지 않는다.
-	ks, _, _, err := dbKIVs(&Task{})
-	if err != nil {
-		return nil, err
-	}
 	keys := ""
-	for i := range ks {
+	for i, k := range dbKeys(&Task{}) {
 		if i != 0 {
 			keys += ", "
 		}
-		keys += "tasks." + ks[i]
+		keys += "tasks." + k
 	}
 	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.show = shots.show AND tasks.unit = shots.shot)  WHERE tasks.category='%s' AND tasks.assignee='%s' AND tasks.task = ANY(shots.tasks)", keys, "shot", user))
 	tasks := make([]*Task, 0)
-	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
+	err := dbQuery(db, stmt, func(rows *sql.Rows) error {
 		t := &Task{}
 		err := scan(rows, t)
 		if err != nil {

@@ -59,6 +59,10 @@ type Show struct {
 	DefaultAssetTasks []string `db:"default_asset_tasks"`
 }
 
+var showDBKey string = strings.Join(dbKeys(&Show{}), ", ")
+var showDBIdx string = strings.Join(dbIdxs(&Show{}), ", ")
+var _ []interface{} = dbVals(&Show{})
+
 // ID는 Show의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
 func (s *Show) ID() string {
 	return s.Show
@@ -94,14 +98,8 @@ func AddShow(db *sql.DB, s *Show) error {
 	if err != nil {
 		return err
 	}
-	ks, is, vs, err := dbKIVs(s)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("INSERT INTO shows (%s) VALUES (%s)", keys, idxs), vs...),
+		dbStmt(fmt.Sprintf("INSERT INTO shows (%s) VALUES (%s)", showDBKey, showDBIdx), dbVals(s)...),
 	}
 	return dbExec(db, stmts)
 }
@@ -113,14 +111,8 @@ func UpdateShow(db *sql.DB, show string, s *Show) error {
 	if err != nil {
 		return err
 	}
-	ks, is, vs, err := dbKIVs(s)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
-	stmt := fmt.Sprintf("UPDATE shows SET (%s) = (%s) WHERE show='%s'", keys, idxs, show)
-	if _, err := db.Exec(stmt, vs...); err != nil {
+	stmt := fmt.Sprintf("UPDATE shows SET (%s) = (%s) WHERE show='%s'", showDBKey, showDBIdx, show)
+	if _, err := db.Exec(stmt, dbVals(s)...); err != nil {
 		return err
 	}
 	return nil
@@ -132,14 +124,9 @@ func GetShow(db *sql.DB, show string) (*Show, error) {
 	if show == "" {
 		return nil, BadRequest("show not specified")
 	}
-	ks, _, _, err := dbKIVs(&Show{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shows WHERE show=$1", keys), show)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shows WHERE show=$1", showDBKey), show)
 	s := &Show{}
-	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+	err := dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, s)
 	})
 	if err != nil {
@@ -154,14 +141,9 @@ func GetShow(db *sql.DB, show string) (*Show, error) {
 // AllShows는 db에서 모든 쇼 정보를 가져온다.
 // 검색 중 문제가 있으면 nil, error를 반환한다.
 func AllShows(db *sql.DB) ([]*Show, error) {
-	ks, _, _, err := dbKIVs(&Show{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
 	shows := make([]*Show, 0)
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shows", keys))
-	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shows", showDBKey))
+	err := dbQuery(db, stmt, func(rows *sql.Rows) error {
 		s := &Show{}
 		err := scan(rows, s)
 		if err != nil {

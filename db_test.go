@@ -23,47 +23,21 @@ func TestDBKVs(t *testing.T) {
 		D: []int{1, 2, 3},
 		E: nil,
 	}
-	ks, is, vs, err := dbKIVs(testVal)
-	if err != nil {
-		t.Fatal(err)
-	}
+	gotKeys := dbKeys(testVal)
 	wantKeys := []string{"a", "b", "c", "d", "e"}
-	if !reflect.DeepEqual(ks, wantKeys) {
-		t.Fatalf("keys: want %v, got %v", wantKeys, ks)
+	if !reflect.DeepEqual(gotKeys, wantKeys) {
+		t.Fatalf("keys: want %v, got %v", wantKeys, gotKeys)
 	}
-	wantIndices := []string{"$1", "$2", "$3", "$4", "$5"}
-	if !reflect.DeepEqual(is, wantIndices) {
-		t.Fatalf("keys: want %v, got %v", wantKeys, ks)
+	gotIdxs := dbIdxs(testVal)
+	wantIdxs := []string{"$1", "$2", "$3", "$4", "$5"}
+	if !reflect.DeepEqual(gotIdxs, wantIdxs) {
+		t.Fatalf("idxs: want %v, got %v", wantIdxs, gotIdxs)
 	}
-	// 마지막이 pq.Array([]string(nil))이 아닌 이유는 dbKVs함수가 nil 슬라이스를 만들지 않기 때문이다.
+	gotVals := dbVals(testVal)
 	wantVals := []interface{}{"a", 1, true, pq.Array([]int{1, 2, 3}), pq.Array([]string{})}
-	if !reflect.DeepEqual(vs, wantVals) {
-		t.Fatalf("vals: want %v, got %v", wantVals, vs)
-	}
-}
-
-func TestDBIndices(t *testing.T) {
-	cases := []struct {
-		keys []string
-		want []string
-	}{
-		{
-			keys: []string{},
-			want: []string{},
-		},
-		{
-			keys: []string{"a"},
-			want: []string{"$1"},
-		},
-		{
-			keys: []string{"a", "b", "c"},
-			want: []string{"$1", "$2", "$3"},
-		},
-	}
-	for _, c := range cases {
-		got := dbIndices(c.keys)
-		if !reflect.DeepEqual(got, c.want) {
-			t.Fatalf("TestDBIndices: got %v, want %v", got, c.want)
-		}
+	// wantVals의 마지막 항목이 pq.Array([]string(nil))이 아닌 이유는
+	// dbKVs함수가 nil 슬라이스를 만들지 않기 때문이다.
+	if !reflect.DeepEqual(gotVals, wantVals) {
+		t.Fatalf("vals: want %v, got %v", wantVals, gotVals)
 	}
 }
