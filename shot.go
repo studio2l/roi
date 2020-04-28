@@ -277,33 +277,6 @@ func GetShot(db *sql.DB, id string) (*Shot, error) {
 	return s, err
 }
 
-// ShotsHavingDue는 db에서 마감일이 정해진 샷을 불러온다.
-func ShotsHavingDue(db *sql.DB, show string) ([]*Shot, error) {
-	ks, _, _, err := dbKIVs(&Shot{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND due_date!=$2", keys), show, time.Time{})
-	ss := make([]*Shot, 0)
-	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
-		s := &Shot{}
-		err := scan(rows, s)
-		if err != nil {
-			return err
-		}
-		ss = append(ss, s)
-		return nil
-	})
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("shot", "having-due-date")
-		}
-		return nil, err
-	}
-	return ss, nil
-}
-
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
 func SearchShots(db *sql.DB, show string, shots []string, tag, status, task, assignee, task_status string, task_due_date time.Time) ([]*Shot, error) {
 	ks, _, _, err := dbKIVs(&Shot{})
