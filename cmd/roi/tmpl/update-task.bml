@@ -1,3 +1,4 @@
+{{define "update-task"}}
 {{template "head"}}
 {{template "nav" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
@@ -70,3 +71,4 @@ users.sort()
 autocomplete(document.getElementById("autocomplete-user"), users, userName)
 ``]
 {{template "footer"}}
+{{end}}
