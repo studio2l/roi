@@ -38,6 +38,10 @@ type Review struct {
 	Status    Status `db:"status"`    // 이 상태로 변경되었음
 }
 
+var reviewDBKey string = strings.Join(dbKeys(&Review{}), ", ")
+var reviewDBIdx string = strings.Join(dbIdxs(&Review{}), ", ")
+var _ []interface{} = dbVals(&Review{})
+
 // verifyReview는 받아들인 리뷰가 유효하지 않다면 에러를 반환한다.
 // 필요하다면 db의 정보와 비교하거나 유효성 확보를 위해 정보를 수정한다.
 func verifyReview(db *sql.DB, r *Review) error {
@@ -94,14 +98,8 @@ func AddReview(db *sql.DB, r *Review) error {
 	if err != nil {
 		return err
 	}
-	ks, is, vs, err := dbKIVs(r)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("INSERT INTO reviews (%s) VALUES (%s)", keys, idxs), vs...),
+		dbStmt(fmt.Sprintf("INSERT INTO reviews (%s) VALUES (%s)", reviewDBKey, reviewDBIdx), dbVals(r)...),
 	}
 	return dbExec(db, stmts)
 }
@@ -116,12 +114,7 @@ func VersionReviews(db *sql.DB, id string) ([]*Review, error) {
 	if err != nil {
 		return nil, err
 	}
-	ks, _, _, err := dbKIVs(&Review{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM reviews WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4 AND version=$5", keys), show, ctg, unit, task, ver)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM reviews WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4 AND version=$5", reviewDBKey), show, ctg, unit, task, ver)
 	reviews := make([]*Review, 0)
 	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		r := &Review{}

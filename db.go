@@ -105,73 +105,46 @@ func dbExec(db *sql.DB, stmts []dbStatement) error {
 	return tx.Commit()
 }
 
-// dbKIVs는 임의의 타입인 v에 대해서 그 db키, 인덱스, 값 리스트를 반환한다.
-// 참고: dbKIVs는 nil 슬라이스를 빈 슬라이스로 변경한다.
-func dbKIVs(v interface{}) ([]string, []string, []interface{}, error) {
-	keys, err := dbKeys(v)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	idxs := dbIndices(keys)
-	vals, err := dbValues(v)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	return keys, idxs, vals, nil
-}
-
 // dbKeys는 임의의 타입인 v에 대해서 그 db 키 슬라이스를 반환한다.
-func dbKeys(v interface{}) (keys []string, err error) {
+func dbKeys(v interface{}) []string {
 	var typ reflect.Type
 	var field reflect.StructField
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("dbKeys: %v: %s.%s", r, typ.Name(), field.Name)
-		}
-	}()
 	rv := reflect.ValueOf(v)
 	if rv.Kind() == reflect.Ptr {
 		// 포인터에서 스트럭트로
 		rv = rv.Elem()
 	}
 	if rv.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("only accept struct")
+		panic("only accept struct")
 	}
 	typ = rv.Type()
 	n := typ.NumField()
-	keys = make([]string, n)
+	keys := make([]string, n)
 	for i := 0; i < n; i++ {
 		field = typ.Field(i)
 		key := field.Tag.Get("db")
 		if key == "" {
-			panic(fmt.Errorf("no db tag value in struct"))
+			panic("no db tag value in struct")
 		}
 		keys[i] = key
 	}
-	return keys, nil
+	return keys
 }
 
-// dbValues는 임의의 타입인 v에 대해서 그 값 슬라이스를 반환한다.
+// dbVals는 임의의 타입인 v에 대해서 그 값 슬라이스를 반환한다.
 // 참고: dbValues는 nil 슬라이스를 빈 슬라이스로 변경한다.
-func dbValues(v interface{}) (vals []interface{}, err error) {
-	var typ reflect.Type
+func dbVals(v interface{}) []interface{} {
 	var field reflect.Value
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("dbValues: %v: %s.%s", r, typ.Name(), field.Type().Name())
-		}
-	}()
 	rv := reflect.ValueOf(v)
 	if rv.Kind() == reflect.Ptr {
 		// 포인터에서 스트럭트로
 		rv = rv.Elem()
 	}
 	if rv.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("only accept struct")
+		panic("only accept struct")
 	}
-	typ = rv.Type()
 	n := rv.NumField()
-	vals = make([]interface{}, n)
+	vals := make([]interface{}, n)
 	for i := 0; i < n; i++ {
 		field = rv.Field(i)
 		fv := field.Interface()
@@ -186,29 +159,22 @@ func dbValues(v interface{}) (vals []interface{}, err error) {
 		}
 		vals[i] = fv
 	}
-	return vals, nil
+	return vals
 }
 
-// dbValues는 임의의 타입인 v에 대해서 그 멤버들의 포인터 슬라이스를 반환한다.
-func dbAddrs(v interface{}) (addrs []interface{}, err error) {
-	var typ reflect.Type
+// dbAddrs는 임의의 타입인 v에 대해서 그 멤버들의 포인터 슬라이스를 반환한다.
+func dbAddrs(v interface{}) []interface{} {
 	var field reflect.Value
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("dbAddrs: %v: %s.%s", r, typ.Name(), field.Type().Name())
-		}
-	}()
 	rv := reflect.ValueOf(v)
 	if rv.Kind() == reflect.Ptr {
 		// 포인터에서 스트럭트로
 		rv = rv.Elem()
 	}
 	if rv.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("only accept struct")
+		panic("only accept struct")
 	}
-	typ = rv.Type()
 	n := rv.NumField()
-	addrs = make([]interface{}, n)
+	addrs := make([]interface{}, n)
 	for i := 0; i < n; i++ {
 		field = rv.Field(i)
 		fv := field.Addr().Interface()
@@ -217,16 +183,14 @@ func dbAddrs(v interface{}) (addrs []interface{}, err error) {
 		}
 		addrs[i] = fv
 	}
-	return addrs, nil
+	return addrs
 }
 
-// dbIndices는 받아들인 문자열 슬라이스와 같은 길이의
-// DB 인덱스 슬라이스를 생성한다. 인덱스는 1부터 시작한다.
-//
-// 예)
-// 	dbIndices([]string{"a", "b", "c"}) => []string{"$1", "$2", "$3"}
-//
-func dbIndices(keys []string) []string {
+// dbIdxs는 임의의 타입인 v에 대해서 그 인덱스 슬라이스를 반환한다.
+// 참고: 이 함수가 효율적이진 않지만 프로그램 시작시에 항목당 한번만
+// 실행되기 때문에 문제가 되진 않는다.
+func dbIdxs(v interface{}) []string {
+	keys := dbKeys(v)
 	idxs := make([]string, len(keys))
 	for i := range keys {
 		idxs[i] = "$" + strconv.Itoa(i+1)
@@ -242,9 +206,6 @@ type scanner interface {
 // scan은 scanner에서 다음 열을 검색해 그 정보를 스트럭트인 v의 각 필드에 넣어준다.
 // 만일 v가 스트럭트가 아니거나 스캔중 문제가 생겼다면 에러를 반환한다.
 func scan(s scanner, v interface{}) error {
-	addrs, err := dbAddrs(v)
-	if err != nil {
-		return err
-	}
+	addrs := dbAddrs(v)
 	return s.Scan(addrs...)
 }

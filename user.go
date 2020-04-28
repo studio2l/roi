@@ -26,6 +26,10 @@ type user struct {
 	CurrentShow string `db:"current_show"`
 }
 
+var userdbkey string = strings.Join(dbKeys(&user{}), ", ")
+var userdbidx string = strings.Join(dbIdxs(&user{}), ", ")
+var _ []interface{} = dbVals(&user{})
+
 // User는 일반적인 사용자 정보이다.
 type User struct {
 	ID          string `db:"id"`
@@ -37,6 +41,10 @@ type User struct {
 	PhoneNumber string `db:"phone_number"`
 	EntryDate   string `db:"entry_date"`
 }
+
+var userDBKey string = strings.Join(dbKeys(&User{}), ", ")
+var userDBIdx string = strings.Join(dbIdxs(&User{}), ", ")
+var _ []interface{} = dbVals(&User{})
 
 var CreateTableIfNotExistsUsersStmt = `CREATE TABLE IF NOT EXISTS users (
 	id STRING UNIQUE NOT NULL CHECK (length(id) > 0) CHECK (id NOT LIKE '% %'),
@@ -70,28 +78,18 @@ func AddUser(db *sql.DB, id, pw string) error {
 		return err
 	}
 	hashed_password := string(hashed)
-	ks, is, vs, err := dbKIVs(&user{ID: id, HashedPassword: hashed_password})
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	// 사용자 생성
+	u := &user{ID: id, HashedPassword: hashed_password}
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("INSERT INTO users (%s) VALUES (%s)", keys, idxs), vs...),
+		dbStmt(fmt.Sprintf("INSERT INTO users (%s) VALUES (%s)", userdbkey, userdbidx), dbVals(u)...),
 	}
 	return dbExec(db, stmts)
 }
 
 func Users(db *sql.DB) ([]*User, error) {
-	ks, _, _, err := dbKIVs(&User{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM users", keys))
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM users", userDBKey))
 	us := make([]*User, 0)
-	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
+	err := dbQuery(db, stmt, func(rows *sql.Rows) error {
 		u := &User{}
 		err := scan(rows, u)
 		if err != nil {
@@ -109,14 +107,9 @@ func Users(db *sql.DB) ([]*User, error) {
 // GetUser는 db에서 사용자를 검색한다.
 // 해당 유저를 찾지 못하면 nil과 NotFound 에러를 반환한다.
 func GetUser(db *sql.DB, id string) (*User, error) {
-	ks, _, _, err := dbKIVs(&User{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", keys, id))
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", userDBKey, id))
 	u := &User{}
-	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+	err := dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, u)
 	})
 	if err != nil {
@@ -158,14 +151,8 @@ func UpdateUser(db *sql.DB, id string, u *User) error {
 	if id == "" {
 		return errors.New("empty id")
 	}
-	ks, is, vs, err := dbKIVs(u)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keys, idxs, id), vs...),
+		dbStmt(fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", userDBKey, userDBIdx, id), dbVals(u)...),
 	}
 	return dbExec(db, stmts)
 }
@@ -174,19 +161,18 @@ type UserConfig struct {
 	CurrentShow string `db:"current_show"`
 }
 
+var userConfigDBKey string = strings.Join(dbKeys(&UserConfig{}), ", ")
+var userConfigDBIdx string = strings.Join(dbIdxs(&UserConfig{}), ", ")
+var _ []interface{} = dbVals(&UserConfig{})
+
 // UpdateUserConfig는 유저의 설정 값들을 받아온다.
 func GetUserConfig(db *sql.DB, id string) (*UserConfig, error) {
 	if id == "" {
 		return nil, errors.New("need id")
 	}
-	ks, _, _, err := dbKIVs(&UserConfig{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", keys, id))
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM users WHERE id='%s'", userConfigDBKey, id))
 	u := &UserConfig{}
-	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
+	err := dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, u)
 	})
 	if err != nil {
@@ -206,14 +192,8 @@ func UpdateUserConfig(db *sql.DB, id string, u *UserConfig) error {
 	if u == nil {
 		return BadRequest("user config shold not nil")
 	}
-	ks, is, vs, err := dbKIVs(u)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", keys, idxs, id), vs...),
+		dbStmt(fmt.Sprintf("UPDATE users SET (%s) = (%s) WHERE id='%s'", userConfigDBKey, userConfigDBIdx, id), dbVals(u)...),
 	}
 	return dbExec(db, stmts)
 }

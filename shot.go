@@ -74,6 +74,10 @@ type Shot struct {
 	DueDate   time.Time `db:"due_date"`
 }
 
+var shotDBKey string = strings.Join(dbKeys(&Shot{}), ", ")
+var shotDBIdx string = strings.Join(dbIdxs(&Shot{}), ", ")
+var _ []interface{} = dbVals(&Shot{})
+
 // ID는 Shot의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
 func (s *Shot) ID() string {
 	return s.Show + "/shot/" + s.Shot
@@ -215,14 +219,8 @@ func AddShot(db *sql.DB, s *Shot) error {
 	if err != nil {
 		return err
 	}
-	ks, is, vs, err := dbKIVs(s)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("INSERT INTO shots (%s) VALUES (%s)", keys, idxs), vs...),
+		dbStmt(fmt.Sprintf("INSERT INTO shots (%s) VALUES (%s)", shotDBKey, shotDBIdx), dbVals(s)...),
 	}
 	// 하위 태스크 생성
 	for _, task := range s.Tasks {
@@ -258,13 +256,8 @@ func GetShot(db *sql.DB, id string) (*Shot, error) {
 	if err != nil {
 		return nil, err
 	}
-	ks, _, _, err := dbKIVs(&Shot{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
 	s := &Shot{}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND shot=$2 LIMIT 1", keys), show, shot)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shots WHERE show=$1 AND shot=$2 LIMIT 1", shotDBKey), show, shot)
 	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, s)
 	})
@@ -279,12 +272,8 @@ func GetShot(db *sql.DB, id string) (*Shot, error) {
 
 // SearchShots는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
 func SearchShots(db *sql.DB, show string, shots []string, tag, status, task, assignee, task_status string, task_due_date time.Time) ([]*Shot, error) {
-	ks, _, _, err := dbKIVs(&Shot{})
-	if err != nil {
-		return nil, err
-	}
 	keys := ""
-	for i, k := range ks {
+	for i, k := range dbKeys(&Shot{}) {
 		if i != 0 {
 			keys += ", "
 		}
@@ -363,7 +352,7 @@ func SearchShots(db *sql.DB, show string, shots []string, tag, status, task, ass
 	st := dbStmt(stmt, vals...)
 	ss := make([]*Shot, 0)
 	hasShot := make(map[string]bool)
-	err = dbQuery(db, st, func(rows *sql.Rows) error {
+	err := dbQuery(db, st, func(rows *sql.Rows) error {
 		// 태스크 검색을 해 JOIN이 되면 샷이 중복으로 추가될 수 있다.
 		// DISTINCT를 이용해 문제를 해결하려고 했으나 DB가 꺼진다.
 		// 우선은 여기서 걸러낸다.
@@ -400,14 +389,8 @@ func UpdateShot(db *sql.DB, id string, s *Shot) error {
 	}
 	s.Name = ShotBase(s.Shot)
 	s.Prefix = ShotPrefix(s.Shot)
-	ks, is, vs, err := dbKIVs(s)
-	if err != nil {
-		return err
-	}
-	keys := strings.Join(ks, ", ")
-	idxs := strings.Join(is, ", ")
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", keys, idxs, s.Show, s.Shot), vs...),
+		dbStmt(fmt.Sprintf("UPDATE shots SET (%s) = (%s) WHERE show='%s' AND shot='%s'", shotDBKey, shotDBIdx, s.Show, s.Shot), dbVals(s)...),
 	}
 	// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
 	for _, task := range s.Tasks {
