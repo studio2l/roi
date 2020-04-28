@@ -208,33 +208,6 @@ func GetAsset(db *sql.DB, id string) (*Asset, error) {
 	return s, err
 }
 
-// AssetsHavingDue는 db에서 마감일이 정해진 애셋을 불러온다.
-func AssetsHavingDue(db *sql.DB, show string) ([]*Asset, error) {
-	ks, _, _, err := dbKIVs(&Asset{})
-	if err != nil {
-		return nil, err
-	}
-	keys := strings.Join(ks, ", ")
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM assets WHERE show=$1 AND due_date!=$2", keys), show, time.Time{})
-	as := make([]*Asset, 0)
-	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
-		s := &Asset{}
-		err := scan(rows, s)
-		if err != nil {
-			return err
-		}
-		as = append(as, s)
-		return nil
-	})
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("assets", "having-due-date")
-		}
-		return nil, err
-	}
-	return as, nil
-}
-
 // SearchAssets는 db의 특정 프로젝트에서 검색 조건에 맞는 애셋 리스트를 반환한다.
 func SearchAssets(db *sql.DB, show string, assets []string, tag, status, task, assignee, task_status string, task_due_date time.Time) ([]*Asset, error) {
 	ks, _, _, err := dbKIVs(&Asset{})
