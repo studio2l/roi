@@ -3,11 +3,8 @@ package roi
 import "fmt"
 
 var AllTaskStatus = []Status{
-	StatusInProgress,
 	StatusHold,
-	StatusNeedReview,
-	StatusRetake,
-	StatusApproved,
+	StatusInProgress,
 	StatusDone,
 }
 
