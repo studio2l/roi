@@ -39,6 +39,7 @@ func parseTemplate() {
 		"shortStringFromDate": shortStringFromDate,
 		"isSunday":            isSunday,
 		"dayColorInTimeline":  dayColorInTimeline,
+		"inc":                 func(i int) int { return i + 1 },
 		"mod":                 func(i, m int) int { return i % m },
 		"sub":                 func(a, b int) int { return a - b },
 		"fieldJoin":           fieldJoin,
