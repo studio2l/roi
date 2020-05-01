@@ -78,7 +78,7 @@ func verifyReview(db *sql.DB, r *Review) error {
 	// 리뷰가 태스크의 상태를 변경한다면 그 상태에 대한 문자열,
 	// 변경하지 않는다면 빈 문자열이다.
 	if r.Status != "" {
-		err = verifyTaskStatus(r.Status)
+		err = verifyReviewStatus(r.Status)
 		if err != nil {
 			return err
 		}
