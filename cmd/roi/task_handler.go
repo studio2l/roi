@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -234,21 +235,42 @@ func reviewTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	if err != nil {
 		return err
 	}
+	ver := r.FormValue("version")
+	status := roi.Status(r.FormValue("status"))
 	rv := &roi.Review{
 		Show:     show,
 		Category: ctg,
 		Unit:     unit,
 		Task:     task,
-		Version:  r.FormValue("version"),
+		Version:  ver,
 		// 할일: 실제 리뷰어를 전달받도록 할 것.
 		Reviewer:  env.User.ID,
 		Messenger: env.User.ID,
 		Msg:       r.FormValue("msg"),
-		Status:    roi.Status(r.FormValue("status")),
+		Status:    status,
 	}
 	err = roi.AddReview(DB, rv)
 	if err != nil {
 		return err
+	}
+	t, err := roi.GetTask(DB, id)
+	if err != nil {
+		return err
+	}
+	if status != "" {
+		switch status {
+		case roi.StatusApproved:
+			t.ReviewVersion = ""
+			t.ApprovedVersion = ver
+		case roi.StatusRetake:
+			t.ReviewVersion = ""
+		default:
+			return roi.BadRequest(fmt.Sprintf("invalid review status: %s", status))
+		}
+		err = roi.UpdateTask(DB, id, t)
+		if err != nil {
+			return err
+		}
 	}
 	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 	return nil
