@@ -13,15 +13,27 @@
 }
 .task {
 	display: grid;
-	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+	grid-template-columns: 1fr 1fr 4fr 1fr;
 	padding: 0.4rem 1.1rem;
 	border-top: solid 1px rgba(255,255,255,0.1);
+}
+.task div {
+	align-self: flex-end;
 }
 .task:nth-child(even) {
 	background-color: rgba(255,255,255,0.05);
 }
 .task:nth-child(1) {
 	border-top: 0;
+}
+.version-divider {
+	margin: 0 1rem 0 1rem;
+	color: rgba(255,255,255,0.2);
+}
+.version {
+	width: 6rem;
+	display: flex;
+	justify-content: center;
 }
 .selected-asset {
 	box-shadow: 0 0 0 1px #66FFBB !important;
@@ -55,11 +67,28 @@
 			{{range $i, $t := .Tasks}}
 			{{with index (index $.Tasks $a.Asset) $t}}
 			<div class="task"> [
-				<div> [<a href="/update-task?id={{.ID}}" style="color:white;flex:1;"> [{{.Task}}]]
-				<div> [{{shortStringFromDate .DueDate}}]
-				<div> [<a href="/user/{{.Assignee}}" style="color:inherit"> [{{.Assignee}}]]
-				<div> [{{if .WorkingVersion}}<a href="/update-version?id={{.ID}}/{{.WorkingVersion}}" style="color:inherit"> [{{.WorkingVersion}} / 진행중]{{end}}]
-				<div> [{{if .PublishVersion}}<a href="/update-version?id={{.ID}}/{{.PublishVersion}}" style="color:inherit"> [{{.PublishVersion}} / 퍼블리시]{{end}}]
+				<div> [<a href="/update-task?id={{.ID}}" style="font-size:1.05rem;color:white;flex:1;">[{{.Task}}]]
+				<div> [<a href="/user/{{.Assignee}}" style="color:inherit">[{{.Assignee}}]]
+				<div style="display:flex"> [
+					{{$i := 0}}
+					{{if .PublishVersion}}
+						{{if $i}}<span class="version-divider"> [/]{{end}} {{$i = inc $i}}
+						<div class="version"> [<a href="/update-version?id={{.ID}}/{{.PublishVersion}}" style="color:inherit"> [{{.PublishVersion}} 퍼블리시]]
+					{{end}}
+					{{if .ApprovedVersion}}
+						{{if $i}}<span class="version-divider"> [/]{{end}} {{$i = inc $i}}
+						<div class="version"> [<a href="/update-version?id={{.ID}}/{{.ApprovedVersion}}" style="color:inherit"> [{{.ApprovedVersion}} 승인됨]]
+					{{end}}
+					{{if .ReviewVersion}}
+						{{if $i}}<span class="version-divider"> [/]{{end}} {{$i = inc $i}}
+						<div class="version"> [<a href="/update-version?id={{.ID}}/{{.ReviewVersion}}" style="color:inherit"> [{{.ReviewVersion}} 리뷰대기]]
+					{{end}}
+					{{if .WorkingVersion}}
+						{{if $i}}<span class="version-divider"> [/]{{end}} {{$i = inc $i}}
+						<div class="version"> [<a href="/update-version?id={{.ID}}/{{.WorkingVersion}}" style="color:inherit"> [{{.WorkingVersion}} 진행중]]
+					{{end}}
+				]
+				<div style="justify-self:flex-end"> [{{shortStringFromDate .DueDate}}]
 			]
 			{{end}}
 			{{end}}
