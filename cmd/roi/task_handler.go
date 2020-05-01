@@ -71,7 +71,7 @@ func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	t.DueDate = tforms["due_date"]
 	t.PublishVersion = r.FormValue("publish_version")
 	t.ApprovedVersion = r.FormValue("approved_version")
-	t.ReviewVersions = fieldSplit(r.FormValue("review_versions"))
+	t.ReviewVersion = r.FormValue("review_version")
 	t.WorkingVersion = r.FormValue("working_version")
 
 	err = roi.UpdateTask(DB, id, t)

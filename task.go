@@ -22,7 +22,7 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	assignee STRING NOT NULL,
 	publish_version STRING NOT NULL,
 	approved_version STRING NOT NULL,
-	review_versions STRING[] NOT NULL,
+	review_version STRING NOT NULL,
 	working_version STRING NOT NULL,
 	UNIQUE(show, category, unit, task),
 	CONSTRAINT tasks_pk PRIMARY KEY (show, category, unit, task)
@@ -39,10 +39,10 @@ type Task struct {
 	DueDate  time.Time `db:"due_date"`
 	Assignee string    `db:"assignee"`
 
-	PublishVersion  string   `db:"publish_version"`
-	ApprovedVersion string   `db:"approved_version"`
-	ReviewVersions  []string `db:"review_versions"`
-	WorkingVersion  string   `db:"working_version"`
+	PublishVersion  string `db:"publish_version"`
+	ApprovedVersion string `db:"approved_version"`
+	ReviewVersion   string `db:"review_version"`
+	WorkingVersion  string `db:"working_version"`
 }
 
 var taskDBKey string = strings.Join(dbKeys(&Task{}), ", ")
@@ -142,22 +142,13 @@ func verifyTask(db *sql.DB, t *Task) error {
 			return fmt.Errorf("approved version: %w", err)
 		}
 	}
-	hasVersion := make(map[string]bool)
-	for _, v := range t.ReviewVersions {
-		v = strings.TrimSpace(v)
-		if v != "" && !hasVersion[v] {
-			hasVersion[v] = true
-			_, err = GetVersion(db, t.ID()+"/"+v)
-			if err != nil {
-				return fmt.Errorf("review version: %w", err)
-			}
+	t.ReviewVersion = strings.TrimSpace(t.ReviewVersion)
+	if t.ReviewVersion != "" {
+		_, err = GetVersion(db, t.ID()+"/"+t.ReviewVersion)
+		if err != nil {
+			return fmt.Errorf("review version: %w", err)
 		}
 	}
-	t.ReviewVersions = make([]string, 0, len(hasVersion))
-	for v := range hasVersion {
-		t.ReviewVersions = append(t.ReviewVersions, v)
-	}
-	sort.Strings(t.ReviewVersions)
 	t.WorkingVersion = strings.TrimSpace(t.WorkingVersion)
 	if t.WorkingVersion != "" {
 		_, err = GetVersion(db, t.ID()+"/"+t.WorkingVersion)
@@ -171,7 +162,7 @@ func verifyTask(db *sql.DB, t *Task) error {
 	if t.Status == StatusApproved && t.ApprovedVersion == "" {
 		return BadRequest(fmt.Sprintf("cannot set task status to TaskApproved: no approved version"))
 	}
-	if t.Status == StatusNeedReview && len(t.ReviewVersions) == 0 {
+	if t.Status == StatusNeedReview && t.ReviewVersion == "" {
 		return BadRequest(fmt.Sprintf("cannot set task status to TaskNeedReview: no review versions"))
 	}
 	return nil

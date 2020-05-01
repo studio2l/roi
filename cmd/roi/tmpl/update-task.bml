@@ -34,7 +34,7 @@
 			<input type="text" name="approved_version" value="{{$t.ApprovedVersion}}">
 		]
 		<div class="field"> [<label> [리뷰가 필요한 버전]
-			<input type="text" name="review_versions" placeholder="version, version" value="{{fieldJoin $t.ReviewVersions}}">
+			<input type="text" name="review_version" value="{{$t.ReviewVersion}}">
 		]
 		<div class="field"> [<label> [진행중인 버전]
 			<input type="text" name="working_version" value="{{$t.WorkingVersion}}">
