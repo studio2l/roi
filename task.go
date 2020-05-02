@@ -247,31 +247,9 @@ func GetTask(db *sql.DB, id string) (*Task, error) {
 	return t, err
 }
 
-// TasksHavingDue는 db에서 마감일이 정해진 태스크를 불러온다.
-func TasksHavingDue(db *sql.DB, show, ctg string) ([]*Task, error) {
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND due_date!=$3", taskDBKey), show, ctg, time.Time{})
-	ts := make([]*Task, 0)
-	err := dbQuery(db, stmt, func(rows *sql.Rows) error {
-		s := &Task{}
-		err := scan(rows, s)
-		if err != nil {
-			return err
-		}
-		ts = append(ts, s)
-		return nil
-	})
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("task", "having-due-date")
-		}
-		return nil, err
-	}
-	return ts, nil
-}
-
-// TasksNeedReview는 db에서 리뷰가 필요한 태스크를 불러온다.
+// TasksNeedReview는 db에서 리뷰 대기중이거나 마감일이 있는 태스크를 불러온다.
 func TasksNeedReview(db *sql.DB, show, ctg string) ([]*Task, error) {
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND review_version!=''", taskDBKey), show, ctg)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND (due_date!=$3 OR review_version!='')", taskDBKey), show, ctg, time.Time{})
 	ts := make([]*Task, 0)
 	err := dbQuery(db, stmt, func(rows *sql.Rows) error {
 		s := &Task{}
@@ -284,10 +262,13 @@ func TasksNeedReview(db *sql.DB, show, ctg string) ([]*Task, error) {
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("task", "status-need-review")
+			return nil, NotFound("task", "need-review")
 		}
 		return nil, err
 	}
+	sort.Slice(ts, func(i, j int) bool {
+		return ts[i].DueDate.Before(ts[j].DueDate)
+	})
 	return ts, nil
 }
 

@@ -15,11 +15,6 @@
             <button style="width:5rem;border-radius:2px 0 0 2px;border-right:solid 1px grey;{{if eq $.Category "shot"}}background-color:#FFCC33{{end}}" onclick="selectCategory('shot')"> [샷]
             <button style="width:5rem;border-radius:0 2px 2px 0;{{if eq $.Category "asset"}}background-color:#FFCC33{{end}}" onclick="selectCategory('asset')"> [애셋]
             <input type="hidden" id="category-input" name="category" type="text" value="{{$.Category}}">
-
-            <div style="width:2rem"> []
-            <button style="width:5rem;border-radius:2px 0 0 2px;border-right:solid 1px grey;{{if eq $.Target "having-due"}}background-color:#FFCC33{{end}}" onclick="selectTarget('having-due')"> [마감]
-            <button style="width:5rem;border-radius:0 2px 2px 0;{{if eq $.Target "need-review"}}background-color:#FFCC33{{end}}" onclick="selectTarget('need-review')"> [대기중]
-            <input type="hidden" id="target-input" name="target" type="text" value="{{$.Target}}">
         ]
     ]
 ]
@@ -29,9 +24,13 @@
     <div class="ui inverted segment"> [
         <div class="ui grid"> [
             <div class="ui four wide column"> [
-                <a href="/shots?show={{$.Show}}&q=due-date:{{$d}}"> [
-                    <div style="color:#CCC;" class="ui large header"> [{{$d}}]
+                {{if $d.IsZero}}
+                <div style="color:#CCC;" class="ui large header"> [리뷰대기]
+                {{else}}
+                <a href="/shots?show={{$.Show}}&q=due-date:{{stringFromDate $d}}"> [
+                    <div style="color:#CCC;" class="ui large header"> [{{stringFromDate $d}}]
                 ]
+                {{end}}
             ]
         ]
         <div class="ui divider"> []
