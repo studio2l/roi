@@ -2,10 +2,12 @@ package roi
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	_ "image/jpeg"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/lib/pq"
 )
@@ -208,4 +210,47 @@ type scanner interface {
 func scan(s scanner, v interface{}) error {
 	addrs := dbAddrs(v)
 	return s.Scan(addrs...)
+}
+
+// DBStringMap은 db에 저장될 때 문자열로 변경되는 맵이다. 키와 값이 모두 문자열이다.
+//
+// Value와 Scan 메소드의 리시버가 하나는 값, 하나는 포인터로 다른 것이 이상해 보이겠지만
+// 이렇게 해야지만 정상 작동하였다.
+type DBStringMap map[string]string
+
+// Value는 db에 저장될 값이다.
+func (m DBStringMap) Value() (driver.Value, error) {
+	val := ""
+	i := 0
+	for k, v := range m {
+		if i != 0 {
+			val += "\n"
+		}
+		val += k + ": " + v
+		i++
+	}
+	return val, nil
+}
+
+// Scan은 db의 문자열 값을 맵으로 가져온다.
+func (m *DBStringMap) Scan(src interface{}) error {
+	val, ok := src.(string)
+	if !ok {
+		return fmt.Errorf("DBStringMap: src should be string")
+	}
+	*m = make(DBStringMap, 0)
+	for _, l := range strings.Split(val, "\n") {
+		l = strings.TrimSpace(l)
+		if l == "" {
+			continue
+		}
+		kv := strings.SplitN(l, ": ", 2)
+		if len(kv) != 2 {
+			return fmt.Errorf("DBStringMap: line need a colon to split key and value: got %s", l)
+		}
+		k := kv[0]
+		v := kv[1]
+		(*m)[k] = v
+	}
+	return nil
 }

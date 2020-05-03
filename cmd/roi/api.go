@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/studio2l/roi"
 )
@@ -118,17 +119,6 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		editOrder = int(f)
 	}
-	duration := 0
-	v = r.PostFormValue("duration")
-	if v != "" {
-		// 위 내용 참조
-		f, err := strconv.ParseFloat(v, 32)
-		if err != nil {
-			apiBadRequest(w, fmt.Errorf("could not convert duration to int: %s", v))
-			return
-		}
-		duration = int(f)
-	}
 	tasks := fieldSplit(r.FormValue("tasks"))
 	if len(tasks) == 0 {
 		p, err := roi.GetShow(DB, show)
@@ -138,6 +128,19 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		tasks = p.DefaultShotTasks
 	}
+	attrs := make(roi.DBStringMap)
+	for _, ln := range strings.Split(r.FormValue("attrs"), "\n") {
+		kv := strings.SplitN(ln, ":", 2)
+		if len(kv) != 2 {
+			continue
+		}
+		k := strings.TrimSpace(kv[0])
+		v := strings.TrimSpace(kv[1])
+		if k == "" || v == "" {
+			continue
+		}
+		attrs[k] = v
+	}
 	s := &roi.Shot{
 		Show:          show,
 		Shot:          shot,
@@ -145,11 +148,9 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		EditOrder:     editOrder,
 		Description:   r.PostFormValue("description"),
 		CGDescription: r.PostFormValue("cg_description"),
-		TimecodeIn:    r.PostFormValue("timecode_in"),
-		TimecodeOut:   r.PostFormValue("timecode_out"),
-		Duration:      duration,
 		Tags:          fieldSplit(r.PostFormValue("tags")),
 		Tasks:         tasks,
+		Attrs:         attrs,
 	}
 	err = roi.AddShot(DB, s)
 	if err != nil {

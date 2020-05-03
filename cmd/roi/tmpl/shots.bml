@@ -62,10 +62,6 @@
 			{{else}}
 			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;"  onclick="selectShot(this)"> [{{.Description}}]
 			{{end}}
-			<div style="display:flex;justify-content:space-between;font-size:11px;color:gray;margin:0px;"> [
-				<div> [{{.TimecodeIn}} - {{.TimecodeOut}}]
-				<div> [<div style="display:inline-block;"> [{{.Duration}}] f]
-			]
 		]
 		<div class="tasks"> [
 			{{range $i, $t := .Tasks}}
