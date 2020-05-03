@@ -13,13 +13,15 @@ var testShotA = &Shot{
 	EditOrder:     10,
 	Description:   "방에 우두커니 혼자 않아 있는 로이.",
 	CGDescription: "조명판 들고 있는 사람이 촬영되었으니 지워주세요.",
-	TimecodeIn:    "00:00:00:01",
-	TimecodeOut:   "00:00:05:12",
-	Duration:      132,
 	Tags:          []string{"로이", "리무브"},
 	Assets:        []string{},
 	// 사이트에 이 샷 태스크가 존재해야만 에러가 나지 않는다.
 	Tasks: []string{"fx"},
+	Attrs: DBStringMap{
+		"timecode_in":  "00:00:00:01",
+		"timecode_out": "00:00:05:12",
+		"duration":     "132",
+	},
 }
 
 var testShotB = &Shot{
@@ -29,13 +31,16 @@ var testShotB = &Shot{
 	EditOrder:     20,
 	Description:   "고개를 돌려 창문 밖을 바라본다.",
 	CGDescription: "전반적인 느낌을 어둡게 바꿔주세요.",
-	TimecodeIn:    "00:00:05:12",
-	TimecodeOut:   "00:00:06:03",
-	Duration:      15,
 	Tags:          []string{"로이", "창문"},
 	Assets:        []string{},
 	Tasks:         []string{"lit"},
+	Attrs: DBStringMap{
+		"timecode_in":  "00:00:05:12",
+		"timecode_out": "00:00:06:03",
+		"duration":     "15",
+	},
 }
+
 var testShotC = &Shot{
 	Shot:          "CG_0030",
 	Show:          testShow.Show,
@@ -43,12 +48,14 @@ var testShotC = &Shot{
 	EditOrder:     30,
 	Description:   "쓸쓸해 보이는 가로등",
 	CGDescription: "가로등이 너무 깨끗하니 레트로 한 느낌을 살려주세요.",
-	TimecodeIn:    "00:00:06:03",
-	TimecodeOut:   "00:00:08:15",
-	Duration:      36,
 	Tags:          []string{"가로등", "창문"},
 	Assets:        []string{},
 	Tasks:         []string{"comp"},
+	Attrs: DBStringMap{
+		"timecode_in":  "00:00:06:03",
+		"timecode_out": "00:00:08:15",
+		"duration":     "36",
+	},
 }
 
 var testShots = []*Shot{testShotA, testShotB, testShotC}

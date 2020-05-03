@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// CreateTableIfNotExistShowsStmt는 DB에 shots 테이블을 생성하는 sql 구문이다.
+// CreateTableIfNotExistShotsStmt는 DB에 shots 테이블을 생성하는 sql 구문이다.
 // 테이블은 타입보다 많은 정보를 담고 있을수도 있다.
 var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
@@ -21,15 +21,13 @@ var CreateTableIfNotExistsShotsStmt = `CREATE TABLE IF NOT EXISTS shots (
 	edit_order INT NOT NULL,
 	description STRING NOT NULL,
 	cg_description STRING NOT NULL,
-	timecode_in STRING NOT NULL,
-	timecode_out STRING NOT NULL,
-	duration INT NOT NULL,
 	tags STRING[] NOT NULL,
 	assets STRING[] NOT NULL,
 	tasks STRING[] NOT NULL,
 	start_date TIMESTAMPTZ NOT NULL,
 	end_date TIMESTAMPTZ NOT NULL,
 	due_date TIMESTAMPTZ NOT NULL,
+	attrs STRING NOT NULL,
 	UNIQUE(show, shot),
 	CONSTRAINT shots_pk PRIMARY KEY (show, shot)
 )`
@@ -49,9 +47,6 @@ type Shot struct {
 	EditOrder     int      `db:"edit_order"`
 	Description   string   `db:"description"`
 	CGDescription string   `db:"cg_description"`
-	TimecodeIn    string   `db:"timecode_in"`
-	TimecodeOut   string   `db:"timecode_out"`
-	Duration      int      `db:"duration"`
 	Tags          []string `db:"tags"`
 
 	// Assets는 샷이 필요로 하는 애셋 이름 리스트이다.
@@ -72,6 +67,9 @@ type Shot struct {
 	StartDate time.Time `db:"start_date"`
 	EndDate   time.Time `db:"end_date"`
 	DueDate   time.Time `db:"due_date"`
+
+	// Attrs는 커스텀 속성으로 db에는 여러줄의 문자열로 저장된다. 각 줄은 키: 값의 쌍이다.
+	Attrs DBStringMap `db:"attrs"`
 }
 
 var shotDBKey string = strings.Join(dbKeys(&Shot{}), ", ")

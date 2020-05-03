@@ -140,13 +140,24 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	s.EditOrder = atoi(r.FormValue("edit_order"))
 	s.Description = r.FormValue("description")
 	s.CGDescription = r.FormValue("cg_description")
-	s.TimecodeIn = r.FormValue("timecode_in")
-	s.TimecodeOut = r.FormValue("timecode_out")
-	s.Duration = atoi(r.FormValue("duration"))
 	s.Tags = fieldSplit(r.FormValue("tags"))
 	s.Assets = fieldSplit(r.FormValue("assets"))
 	s.Tasks = tasks
 	s.DueDate = tforms["due_date"]
+	s.Attrs = make(roi.DBStringMap)
+
+	for _, ln := range strings.Split(r.FormValue("attrs"), "\n") {
+		kv := strings.SplitN(ln, ":", 2)
+		if len(kv) != 2 {
+			continue
+		}
+		k := strings.TrimSpace(kv[0])
+		v := strings.TrimSpace(kv[1])
+		if k == "" || v == "" {
+			continue
+		}
+		s.Attrs[k] = v
+	}
 
 	err = roi.UpdateShot(DB, id, s)
 	if err != nil {

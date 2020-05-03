@@ -34,15 +34,6 @@
 		<div class="field"> [<label> [CG 내용]
 			<input type="text" name="cg_description" value="{{$s.CGDescription}}"/>
 		]
-		<div class="field"> [<label> [시작 타임코드]
-			<input type="text" name="timecode_in" value="{{$s.TimecodeIn}}"/>
-		]
-		<div class="field"> [<label> [종료 타임코드]
-			<input type="text" name="timecode_out" value="{{$s.TimecodeOut}}"/>
-		]
-		<div class="field"> [<label> [길이]
-			<input type="text" name="duration" value="{{$s.Duration}}"/>
-		]
 		<div class="field"> [<label> [태그]
 			<input type="text" name="tags" value="{{fieldJoin $s.Tags}}"/>
 		]
@@ -51,6 +42,13 @@
 		]
 		<div class="field"> [<label> [태스크]
 			<input type="text" name="tasks" value="{{fieldJoin $s.Tasks}}"/>
+		]
+		<div class="field"> [<label>커스텀 속성
+			<textarea name="attrs" placeholder="여러줄의 키: 값 쌍으로 표현해주세요."> [
+			{{- range $k, $v := $s.Attrs -}}
+{{$k}}: {{$v}}
+{{end -}}
+			]
 		]
 		<button class="ui button green" type="submit" value="Submit"> [수정]
 
