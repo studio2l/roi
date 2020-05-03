@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 )
@@ -30,6 +31,7 @@ var CreateTableIfNotExistsShowsStmt = `CREATE TABLE IF NOT EXISTS shows (
 	view_lut STRING NOT NULL,
 	default_shot_tasks STRING[] NOT NULL,
 	default_asset_tasks STRING[] NOT NULL,
+	tags STRING[] NOT NULL,
 	CONSTRAINT shows_pk PRIMARY KEY (show)
 )`
 
@@ -57,6 +59,8 @@ type Show struct {
 	ViewLUT           string   `db:"view_lut"`
 	DefaultShotTasks  []string `db:"default_shot_tasks"`
 	DefaultAssetTasks []string `db:"default_asset_tasks"`
+
+	Tags []string `db:"tags"`
 }
 
 var showDBKey string = strings.Join(dbKeys(&Show{}), ", ")
@@ -89,6 +93,9 @@ func verifyShow(db *sql.DB, s *Show) error {
 	if err != nil {
 		return err
 	}
+	sort.Slice(s.Tags, func(i, j int) bool {
+		return strings.Compare(s.Tags[i], s.Tags[j]) <= 0
+	})
 	return nil
 }
 
