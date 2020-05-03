@@ -203,6 +203,41 @@ func verifyShot(db *sql.DB, s *Shot) error {
 			return err
 		}
 	}
+	sort.Slice(s.Tags, func(i, j int) bool {
+		return strings.Compare(s.Tags[i], s.Tags[j]) <= 0
+	})
+	if len(s.Tags) != 0 {
+		// 샷의 태그가 쇼에 이미 생성되어 있는 태그가 아니라면 쇼에 추가한다.
+		//
+		// 할일: 이 함수에서 쇼를 고치는 것이 맞는 방식이란 생각이 들지는 않는다.
+		// 나중에 각각의 속성을 독립적으로 수정할 수 있게 하게 되면 여기서 이동 시킨다.
+		sh, err := GetShow(db, s.Show)
+		if err != nil {
+			return err
+		}
+		showTag := make(map[string]bool)
+		for _, t := range sh.Tags {
+			showTag[t] = true
+		}
+		updateShowTag := false
+		for _, t := range s.Tags {
+			if !showTag[t] {
+				showTag[t] = true
+				updateShowTag = true
+			}
+		}
+		if updateShowTag {
+			tags := make([]string, 0, len(showTag))
+			for t := range showTag {
+				tags = append(tags, t)
+			}
+			sh.Tags = tags
+			err := UpdateShow(db, sh.ID(), sh)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 

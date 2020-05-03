@@ -25,6 +25,7 @@ var testShow = &Show{
 	ViewLUT:           "some/place/aces.lut",
 	DefaultShotTasks:  []string{},
 	DefaultAssetTasks: []string{},
+	Tags:              []string{},
 }
 
 func TestShow(t *testing.T) {

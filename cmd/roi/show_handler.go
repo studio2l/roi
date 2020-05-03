@@ -137,6 +137,7 @@ func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	s.ViewLUT = r.FormValue("view_lut")
 	s.DefaultShotTasks = fieldSplit(r.FormValue("default_shot_tasks"))
 	s.DefaultAssetTasks = fieldSplit(r.FormValue("default_asset_tasks"))
+	s.Tags = fieldSplit(r.FormValue("tags"))
 
 	err = roi.UpdateShow(DB, id, s)
 	if err != nil {
