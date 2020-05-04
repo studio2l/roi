@@ -56,7 +56,7 @@ func verifyReview(db *sql.DB, r *Review) error {
 	if err != nil {
 		return err
 	}
-	err = verifyUnitName(r.Category, r.Unit)
+	err = verifyUnitName(r.Unit)
 	if err != nil {
 		return err
 	}

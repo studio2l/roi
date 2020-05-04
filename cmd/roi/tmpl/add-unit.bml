@@ -1,14 +1,14 @@
-{{define "add-asset"}}
+{{define "add-unit"}}
 {{template "head"}}
 {{template "nav" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
-	<h2 class="ui dividing header"> [애셋 추가]
+	<h2 class="ui dividing header"> [{{$.Category}} 추가]
 	<form method="post" class="ui form"> [
 		<div class="field"> [<label> [쇼]
 			<input readonly type="text" name="id" value="{{.Show.Show}}"/>
 		]
-		<div class="field"> [<label> [애셋]
-			<input type="text" name="asset" value=""/>
+		<div class="field"> [<label> [유닛]
+			<input type="text" name="unit" value=""/>
 		]
 		<button class="ui button green" type="submit" value="Submit"> [추가]
 	]

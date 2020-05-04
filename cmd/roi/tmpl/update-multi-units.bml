@@ -1,4 +1,4 @@
-{{define "update-multi-shots"}}
+{{define "update-multi-units"}}
 {{template "head"}}
 {{template "nav" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
@@ -11,7 +11,7 @@
 	<textarea readonly style="width:100%;height:6rem;padding:0.5rem"> [{{range $i, $id := $.IDs}}{{if ne $i 0}}, {{end}}{{$id}}{{end}}]
 	<div style="height:2rem"> []
 	<form method="post" class="ui form"> [
-		<!-- update-multi-shots 요청에는 GET을 사용하지 않기 때문에 이 요청이 정말로 POST라는 것을 알림 -->
+		<!-- update-multi-units 요청에는 GET을 사용하지 않기 때문에 이 요청이 정말로 POST라는 것을 알림 -->
 		<input hidden type="text" name="post" value="1"/>
 		{{range $id := $.IDs}}
 		<input hidden type="text" name="id" value="{{$id}}"/>

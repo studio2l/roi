@@ -55,7 +55,7 @@ func (v *Version) ID() string {
 	return v.Show + "/" + v.Category + "/" + v.Unit + "/" + v.Task + "/" + v.Version
 }
 
-// ShotID는 부모 유닛의 아이디를 반환한다.
+// UnitID는 부모 유닛의 아이디를 반환한다.
 func (v *Version) UnitID() string {
 	return v.Show + "/" + v.Category + "/" + v.Unit
 }
@@ -108,7 +108,7 @@ func verifyVersionID(id string) error {
 	if err != nil {
 		return err
 	}
-	err = verifyUnitName(ctg, unit)
+	err = verifyUnitName(unit)
 	if err != nil {
 		return err
 	}
@@ -222,17 +222,17 @@ func TaskVersions(db *sql.DB, id string) ([]*Version, error) {
 	return versions, nil
 }
 
-// ShotVersions는 db에서 특정 샷의 버전 전체를 검색해 반환한다.
-func ShotVersions(db *sql.DB, id string) ([]*Version, error) {
-	show, shot, err := SplitShotID(id)
+// UnitVersions는 db에서 특정 샷의 버전 전체를 검색해 반환한다.
+func UnitVersions(db *sql.DB, id string) ([]*Version, error) {
+	show, ctg, shot, err := SplitUnitID(id)
 	if err != nil {
 		return nil, err
 	}
-	_, err = GetShot(db, id)
+	_, err = GetUnit(db, id)
 	if err != nil {
 		return nil, err
 	}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND category=$2 AND unit=$3", versionDBKey), show, "shot", shot)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM versions WHERE show=$1 AND category=$2 AND unit=$3", versionDBKey), show, ctg, shot)
 	versions := make([]*Version, 0)
 	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		v := &Version{}

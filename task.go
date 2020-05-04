@@ -31,9 +31,9 @@ var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 type Task struct {
 	// 관련 아이디
 	Show     string `db:"show"`
-	Category string `db:"category"` // 현재는 "shot" 만 존재
-	Unit     string `db:"unit"`     // 샷 또는 애셋 유닛
-	Task     string `db:"task"`     // 파트 또는 파트_요소로 구성된다. 예) fx, fx_fire
+	Category string `db:"category"`
+	Unit     string `db:"unit"` // 샷 또는 애셋 유닛
+	Task     string `db:"task"` // 파트 또는 파트_요소로 구성된다. 예) fx, fx_fire
 
 	Status   Status    `db:"status"`
 	DueDate  time.Time `db:"due_date"`
@@ -103,7 +103,7 @@ func verifyTaskID(id string) error {
 	if err != nil {
 		return err
 	}
-	err = verifyUnitName(ctg, unit)
+	err = verifyUnitName(unit)
 	if err != nil {
 		return err
 	}
@@ -175,12 +175,9 @@ func AddTask(db *sql.DB, t *Task) error {
 		return err
 	}
 	// 부모가 있는지 검사
-	ok, err := CheckUnitExist(db, t.UnitID())
+	_, err = GetUnit(db, t.UnitID())
 	if err != nil {
 		return err
-	}
-	if !ok {
-		return fmt.Errorf("unit not found: %s", t.UnitID())
 	}
 	stmts := []dbStatement{
 		dbStmt(fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", taskDBKey, taskDBIdx), dbVals(t)...),
@@ -226,12 +223,9 @@ func GetTask(db *sql.DB, id string) (*Task, error) {
 	}
 	// 부모가 있는지 검사
 	unitID := show + "/" + ctg + "/" + unit
-	ok, err := CheckUnitExist(db, unitID)
+	_, err = GetUnit(db, unitID)
 	if err != nil {
 		return nil, err
-	}
-	if !ok {
-		return nil, fmt.Errorf("unit not found: %s", unitID)
 	}
 	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND unit=$2 AND task=$3 LIMIT 1", taskDBKey), show, unit, task)
 	t := &Task{}
@@ -272,63 +266,17 @@ func TasksNeedReview(db *sql.DB, show, ctg string) ([]*Task, error) {
 	return ts, nil
 }
 
-// ShotTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
-func ShotTasks(db *sql.DB, id string) ([]*Task, error) {
+// UnitTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
+func UnitTasks(db *sql.DB, id string) ([]*Task, error) {
 	show, ctg, unit, err := SplitUnitID(id)
 	if err != nil {
 		return nil, err
 	}
-	if ctg != "shot" {
-		return nil, fmt.Errorf("invalid shot id: %s", id)
-	}
-	s, err := GetShot(db, id)
+	s, err := GetUnit(db, id)
 	if err != nil {
 		return nil, err
 	}
 	tasks := s.Tasks
-	// DB에 있는 태스크 중 샷의 Tasks에 정의된 태스크만 보이고, 그 순서대로 정렬한다.
-	taskNotHidden := make(map[string]bool)
-	taskIdx := make(map[string]int)
-	for i, task := range tasks {
-		taskNotHidden[task] = true
-		taskIdx[task] = i
-	}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND unit=$3", taskDBKey), show, ctg, unit)
-	ts := make([]*Task, 0)
-	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
-		t := &Task{}
-		err := scan(rows, t)
-		if err != nil {
-			return err
-		}
-		if taskNotHidden[t.Task] {
-			ts = append(ts, t)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	sort.Slice(ts, func(i, j int) bool {
-		return taskIdx[ts[i].Task] < taskIdx[ts[j].Task]
-	})
-	return ts, nil
-}
-
-// AssetTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
-func AssetTasks(db *sql.DB, id string) ([]*Task, error) {
-	show, ctg, unit, err := SplitUnitID(id)
-	if err != nil {
-		return nil, err
-	}
-	if ctg != "asset" {
-		return nil, fmt.Errorf("invalid asset id: %s", id)
-	}
-	a, err := GetAsset(db, id)
-	if err != nil {
-		return nil, err
-	}
-	tasks := a.Tasks
 	// DB에 있는 태스크 중 샷의 Tasks에 정의된 태스크만 보이고, 그 순서대로 정렬한다.
 	taskNotHidden := make(map[string]bool)
 	taskIdx := make(map[string]int)
@@ -368,7 +316,7 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 		}
 		keys += "tasks." + k
 	}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks JOIN shots ON (tasks.show = shots.show AND tasks.unit = shots.shot)  WHERE tasks.category='%s' AND tasks.assignee='%s' AND tasks.task = ANY(shots.tasks)", keys, "shot", user))
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks JOIN units ON (tasks.show=units.show AND tasks.category=units.category AND tasks.unit=units.unit)  WHERE tasks.assignee='%s' AND tasks.task = ANY(units.tasks)", keys, user))
 	tasks := make([]*Task, 0)
 	err := dbQuery(db, stmt, func(rows *sql.Rows) error {
 		t := &Task{}

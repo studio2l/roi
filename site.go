@@ -144,10 +144,10 @@ func UpdateSite(db *sql.DB, s *Site) error {
 	return dbExec(db, stmts)
 }
 
-// SiteMustNotHavShotTask는 사이트 내의 샷에 해당 태스크가 하나라도 있으면 에러를 반환한다.
+// SiteMustNotHaveShotTask는 사이트 내의 샷에 해당 태스크가 하나라도 있으면 에러를 반환한다.
 func SiteMustNotHaveShotTask(db *sql.DB, task string) error {
-	s := &Shot{}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shots WHERE $1::string = ANY(shots.tasks)", shotDBKey), task)
+	s := &Unit{}
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shots WHERE $1::string = ANY(units.tasks)", unitDBKey), task)
 	err := dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, s)
 	})

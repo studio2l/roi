@@ -1,4 +1,4 @@
-{{define "shots"}}
+{{define "units"}}
 {{template "head" }}
 {{template "nav" $}}
 {{template "search-menu" $}}
@@ -35,19 +35,19 @@
 	display: flex;
 	justify-content: center;
 }
-.selected-shot {
+.selected-unit {
 	box-shadow: 0 0 0 1px yellow !important;
 }
 ``]
 <div style="padding:15px 10px 15px 10px;z-index:0;"> [
 <!--검색 결과-->
-{{range $s := .Shots}}
-<div id="{{$s.ID}}" class="ui inverted segment shot"> [
-	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;"> [
+{{range $s := .Units}}
+<div id="{{$s.ID}}" class="ui inverted segment unit"> [
+	<div class="unit-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;"> [
 		<div class="ui" style="width:288px;margin-right:22px;display:flex;align-items:end;"> [
 				<div style="display:flex;flex-direction:column;"> [
-					<a href="/update-shot?id={{$s.ID}}" style="font-size:1.3rem;color:white;border-bottom:solid 1px var(--{{.Status.UIColor}});"> [
-						<b> [{{.Shot}}]
+					<a href="/update-unit?id={{$s.ID}}" style="font-size:1.3rem;color:white;border-bottom:solid 1px var(--{{.Status.UIColor}});"> [
+						<b> [{{.Unit}}]
 					]
 				]
 				<div style="width:1rem;display:inline-block;"> []
@@ -55,17 +55,17 @@
 		]
 		<div style="flex:1;font-size:14px;"> [ {{.CGDescription}}]
 	]
-	<div class="shot-main" style="display:flex;margin-bottom:6px;"> [
+	<div class="unit-main" style="display:flex;margin-bottom:6px;"> [
 		<div style="width:288px;margin-right:22px;"> [
 			{{if hasThumbnail $s.ID}}
-			<img style="width:288px;height:162px;" src="{{if hasThumbnail $s.ID}}/data/show/{{$s.ID}}/thumbnail.png{{end}}" onclick="selectShot(this)" />
+			<img style="width:288px;height:162px;" src="{{if hasThumbnail $s.ID}}/data/show/{{$s.ID}}/thumbnail.png{{end}}" onclick="selectUnit(this)" />
 			{{else}}
-			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;"  onclick="selectShot(this)"> [{{.Description}}]
+			<div style="box-sizing:border-box;width:288px;height:162px;color:#444444;background-color:#BBBBBB;font-size:12px;padding:4px;"  onclick="selectUnit(this)"> [{{.Description}}]
 			{{end}}
 		]
 		<div class="tasks"> [
 			{{range $i, $t := .Tasks}}
-			{{with index (index $.Tasks $s.Shot) $t}}
+			{{with index (index $.Tasks $s.Unit) $t}}
 			<div class="task"> [
 				<div> [<a href="/update-task?id={{.ID}}" style="font-size:1.05rem;color:white;flex:1;">[{{.Task}}]]
 				<div> [<a href="/user/{{.Assignee}}" style="color:inherit">[{{.Assignee}}]]
@@ -94,19 +94,19 @@
 			{{end}}
 		]
 	]
-	<div class="shot-footer" style="display:flex;"> [
+	<div class="unit-footer" style="display:flex;"> [
 		<div style="width:288px;margin-right:22px;padding:1px;display:flex;justify-content:space-between"> [
 			<div style="display:flex;"> [
-				<div class="shot-status"> [{{.Status.UIString}}]
+				<div class="unit-status"> [{{.Status.UIString}}]
 			]
-			<div class="shot-due_date detail"> [{{if not .DueDate.IsZero}}{{stringFromDate .DueDate}}{{end}}]
+			<div class="unit-due_date detail"> [{{if not .DueDate.IsZero}}{{stringFromDate .DueDate}}{{end}}]
 		]
-		<div class="shot-links"> [
+		<div class="unit-links"> [
 			{{if ne (len .Assets) 0 -}}
-			<a class="ui mini label" style="background-color:#977;color:white;" href="/assets?show={{$s.Show}}&q={{spaceJoin .Assets}}"> [애셋 ({{fieldJoin .Assets}})]
+			<a class="ui mini label" style="background-color:#977;color:white;" href="/units?show={{$s.Show}}&category=asset&q={{spaceJoin .Assets}}"> [애셋 ({{fieldJoin .Assets}})]
 			{{- end -}}
 			{{- range $i, $v := .Tags -}}
-			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="?q=tag%3A{{$v}}">{{$v}}</a>
+			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="/units?category={{$.Category}}&q=tag%3A{{$v}}">{{$v}}</a>
 			{{- end}}
 		]
 	]
@@ -120,14 +120,14 @@
 
 <div id="bottom-bar" hidden style="position:fixed;bottom:0;width:100%;border-top:solid 1px #333;background-color:#444"> [
 	<div id="bottom-bar-menu" style="background-color:#333;display:flex;height:4.5rem;padding:1rem;"> [
-		<button style="margin-right:1rem;width:6rem;border-radius:2px" onclick="gotoUpdateMultiShotsPage()"> [샷 수정]
+		<button style="margin-right:1rem;width:6rem;border-radius:2px" onclick="gotoUpdateMultiUnitsPage()"> [샷 수정]
 		<button style="margin-right:1rem;width:8rem;border-radius:2px" onclick="gotoUpdateMultiTasksPage()"> [태스크 수정]
 		<div style="flex:1;justify-content:end;"> []
 	]
 	<div style="display:flex;align-items:center;height:3.5rem;padding:0.5rem;border-top:solid 1px #222"> [
 		<div id="bottom-bar-notifier" style="color:white;margin-right:1rem"> []
-		<a onclick="selectAllShots()" style="cursor:pointer;margin-right:1rem"> [전체선택]
-		<a onclick="deselectAllShots()" style="cursor:pointer"> [전체해제]
+		<a onclick="selectAllUnits()" style="cursor:pointer;margin-right:1rem"> [전체선택]
+		<a onclick="deselectAllUnits()" style="cursor:pointer"> [전체해제]
 	]
 ]
 <!--검색 결과 끝-->
@@ -135,70 +135,70 @@
 // showChanged는 다른 쇼 페이지로 이동한다.
 function showChanged() {
 	show = document.getElementById("show-select").value;
-	document.location.href = "?show=" + show;
+	document.location.href = "/units?show="+show+"&category={{$.Category}}";
 };
 
-// selectedshots에 선택된 샷이 담긴다.
-let selectedShots = {}
+// selectedUnits에 선택된 샷이 담긴다.
+let selectedUnits = {}
 
-// selectShot은 샷 이미지를 클릭했을때 해당 샷을 선택한다.
-function selectShot(img) {
-	let shot = img.closest(".shot").id
-	if (selectedShots[shot]) {
-		delete selectedShots[shot]
+// selectUnit은 샷 이미지를 클릭했을때 해당 샷을 선택한다.
+function selectUnit(img) {
+	let unit = img.closest(".unit").id
+	if (selectedUnits[unit]) {
+		delete selectedUnits[unit]
 	} else {
-		selectedShots[shot] = true
+		selectedUnits[unit] = true
 	}
 	redrawBottomBar()
 }
 
-// selectAllShots는 모든 샷을 선택한다.
-function selectAllShots() {
-	selectedShots = {}
-	for (let el of document.getElementsByClassName("shot")) {
-		selectedShots[el.id] = true
+// selectAllUnits는 모든 샷을 선택한다.
+function selectAllUnits() {
+	selectedUnits = {}
+	for (let el of document.getElementsByClassName("unit")) {
+		selectedUnits[el.id] = true
 	}
 	redrawBottomBar()
 }
 
-// deselectAllShots는 모든 샷의 선택을 해제한다.
-function deselectAllShots() {
-	selectedShots = {}
+// deselectAllUnits는 모든 샷의 선택을 해제한다.
+function deselectAllUnits() {
+	selectedUnits = {}
 	redrawBottomBar()
 }
 
 // redrawBottomBar는 하나 이상의 샷이 선택되었을때 이를 알려주고
 // 한번에 수정할 수 있게 해주는 하단 바를 그린다.
 function redrawBottomBar() {
-	for (let el of document.getElementsByClassName("shot")) {
-		el.classList.remove("selected-shot")
+	for (let el of document.getElementsByClassName("unit")) {
+		el.classList.remove("selected-unit")
 	}
-	for (let shot in selectedShots) {
-		let el = document.getElementById(shot)
-		el.classList.add("selected-shot")
+	for (let unit in selectedUnits) {
+		let el = document.getElementById(unit)
+		el.classList.add("selected-unit")
 	}
 	let bar = document.getElementById("bottom-bar")
-	if (Object.keys(selectedShots).length == 0) {
+	if (Object.keys(selectedUnits).length == 0) {
 		bar.hidden = true
 	} else {
 		bar.hidden = false
 	}
 	let notifier = document.getElementById("bottom-bar-notifier")
-	notifier.innerHTML = String(Object.keys(selectedShots).length) + "개의 샷이 선택되었습니다."
+	notifier.innerHTML = String(Object.keys(selectedUnits).length) + "개의 샷이 선택되었습니다."
 }
 
-// gotoUpdateMultiShotsPage는 선택된 샷들을 한번에 수정할 수 있도록 해주는 페이지로 이동한다.
-function gotoUpdateMultiShotsPage() {
+// gotoUpdateMultiUnitsPage는 선택된 샷들을 한번에 수정할 수 있도록 해주는 페이지로 이동한다.
+function gotoUpdateMultiUnitsPage() {
 	// 나중에 히스토리의 뒤로가기 기능을 이용해 이 페이지로 되돌아올 경우
 	// 선택된 샷들의 정보는 변경되었을 가능성이 크므로 다시 불러와야 한다.
 	sessionStorage.comeback = "1"
-	sessionStorage.selectedShots = JSON.stringify(selectedShots)
+	sessionStorage.selectedUnits = JSON.stringify(selectedUnits)
 
 	let form = document.createElement("form")
-	form.action = "/update-multi-shots"
+	form.action = "/update-multi-units"
 	// 주의: GET의 최대 데이터 전송 크기 제한때문에 현재 POST로 전송한다.
 	form.method = "POST"
-	for (let s of Object.keys(selectedShots)) {
+	for (let s of Object.keys(selectedUnits)) {
 		let input = document.createElement("input")
 		input.hidden = true
 		input.type = "text"
@@ -215,13 +215,13 @@ function gotoUpdateMultiTasksPage() {
 	// 나중에 히스토리의 뒤로가기 기능을 이용해 이 페이지로 되돌아올 경우
 	// 선택된 샷들의 정보는 변경되었을 가능성이 크므로 다시 불러와야 한다.
 	sessionStorage.comeback = "1"
-	sessionStorage.selectedShots = JSON.stringify(selectedShots)
+	sessionStorage.selectedUnits = JSON.stringify(selectedUnits)
 
 	let form = document.createElement("form")
 	form.action = "/update-multi-tasks"
 	// 주의: GET의 최대 데이터 전송 크기 제한때문에 현재 POST로 전송한다.
 	form.method = "POST"
-	for (let s of Object.keys(selectedShots)) {
+	for (let s of Object.keys(selectedUnits)) {
 		let input = document.createElement("input")
 		input.hidden = true
 		input.type = "text"
@@ -233,17 +233,17 @@ function gotoUpdateMultiTasksPage() {
 	form.submit()
 }
 
-// reloadShots는 이 페이지에서 다른 페이지로 갔다가 히스토리를 이용하여 되돌아 왔을때
+// reloadUnits는 이 페이지에서 다른 페이지로 갔다가 히스토리를 이용하여 되돌아 왔을때
 // 선택되었던 샷을 되살리고 그 정보를 다시 부른다.
 //
 // 정보를 되살리는데는 다음 세션 정보를 사용한다.
 //
 // sessionStorage.comeback - 히스토리 상에서 되돌아 왔음을 의미
 // sessionStorage.reload - 데이터를 갱신하되 아래 정보를 되살림
-// sessionStorage.selectedShots - 사용자가 선택한 샷들
+// sessionStorage.selectedUnits - 사용자가 선택한 샷들
 // sessionStorage.scrollTop - 스크롤 위치
 //
-function reloadShots() {
+function reloadUnits() {
 	if (sessionStorage.comeback) {
 		sessionStorage.removeItem("comeback")
 		sessionStorage.reload = "1"
@@ -251,7 +251,7 @@ function reloadShots() {
 		window.location = window.location // 페이지 리로드
 	} else if (sessionStorage.reload) {
 		document.getElementsByTagName("html")[0].scrollTop = sessionStorage.scrollTop
-		selectedShots = JSON.parse(sessionStorage.selectedShots)
+		selectedUnits = JSON.parse(sessionStorage.selectedUnits)
 		redrawBottomBar()
 		sessionStorage.clear()
 	}
@@ -262,13 +262,13 @@ function reloadShots() {
 let isFirefox = navigator.userAgent.indexOf("Firefox")
 if (isFirefox) {
 	window.onfocus = function(event) {
-		reloadShots()
+		reloadUnits()
 	}
 }
 let isChrome = navigator.userAgent.indexOf("Chrome")
 if (isChrome) {
 	window.onload = function(event) {
-		reloadShots()
+		reloadUnits()
 	}
 }
 ``]

@@ -27,7 +27,7 @@
                 {{if $d.IsZero}}
                 <div style="color:#CCC;" class="ui large header"> [리뷰대기]
                 {{else}}
-                <a href="/shots?show={{$.Show}}&q=due-date:{{stringFromDate $d}}"> [
+                <a href="/units?show={{$.Show}}&q=due:{{stringFromDate $d}}"> [
                     <div style="color:#CCC;" class="ui large header"> [{{stringFromDate $d}}]
                 ]
                 {{end}}

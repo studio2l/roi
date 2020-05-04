@@ -5,8 +5,8 @@
 
 		<a class="item" href="/site" title="사이트 정보 수정 페이지"> [Site]
 		<a class="item" href="/shows" title="프로젝트들의 정보를 확인하는 페이지입니다."> [Shows]
-		<a class="item" href="/shots" title="샷을 검색하는 페이지입니다."> [Shots]
-		<a class="item" href="/assets" title="애셋을 검색하는 페이지입니다."> [Assets]
+		<a class="item" href="/units?category=shot" title="샷을 검색하는 페이지입니다."> [Shots]
+		<a class="item" href="/units?category=asset" title="애셋을 검색하는 페이지입니다."> [Assets]
 		<a class="item" href="/review" title="리뷰 페이지"> [Review]
 		<a class="item" href="/users"> [Users]
 		<div class="right menu"> [
@@ -19,8 +19,8 @@
 				<i class="plus circle icon"> []
 				<div class="menu"> [
 					<a class="item" href="/add-show"> [Show]
-					<a class="item" href="/add-shot"> [Shot]
-					<a class="item" href="/add-asset"> [Asset]
+					<a class="item" href="/add-unit?category=shot"> [Shot]
+					<a class="item" href="/add-unit?category=asset"> [Asset]
 				]
 			]
 			<div id="user-menu" class="ui dropdown item" title="개인계정과 설정을 위한 페이지입니다."> [
