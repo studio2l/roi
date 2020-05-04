@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -8,8 +9,8 @@ import (
 	"github.com/studio2l/roi"
 )
 
-// assetsHandler는 /assets/ 페이지로 사용자가 접속했을때 페이지를 반환한다.
-func assetsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+// unitsHandler는 /units/ 페이지로 사용자가 접속했을때 페이지를 반환한다.
+func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	shows, err := roi.AllShows(DB)
 	if err != nil {
 		return err
@@ -22,6 +23,10 @@ func assetsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	show := r.FormValue("show")
+	ctg := r.FormValue("category")
+	if ctg != "" && ctg != "shot" && ctg != "asset" {
+		return fmt.Errorf("invalid category: %s", ctg)
+	}
 	query := r.FormValue("q")
 	if show == "" {
 		// 요청이 프로젝트를 가리키지 않을 경우 사용자가
@@ -32,7 +37,7 @@ func assetsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			// 첫번째 프로젝트를 가리킨다.
 			show = shows[0].Show
 		}
-		http.Redirect(w, r, "/assets?show="+show+"&q="+query, http.StatusSeeOther)
+		http.Redirect(w, r, "/units?show="+show+"&category="+ctg+"&q="+query, http.StatusSeeOther)
 		return nil
 	}
 	_, err = roi.GetShow(DB, show)
@@ -45,12 +50,12 @@ func assetsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 
-	assets := make([]string, 0)
+	shots := make([]string, 0)
 	f := make(map[string]string)
 	for _, v := range strings.Fields(query) {
 		kv := strings.Split(v, ":")
 		if len(kv) == 1 {
-			assets = append(assets, v)
+			shots = append(shots, v)
 		} else {
 			f[kv[0]] = kv[1]
 		}
@@ -60,13 +65,13 @@ func assetsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		t, _ := timeFromString(s)
 		return t
 	}
-	ss, err := roi.SearchAssets(DB, show, assets, f["tag"], f["status"], f["task"], f["assignee"], f["task-status"], toTime(f["task-due"]))
+	ss, err := roi.SearchUnits(DB, show, ctg, shots, f["tag"], f["status"], f["task"], f["assignee"], f["task-status"], toTime(f["due"]))
 	if err != nil {
 		return err
 	}
 	tasks := make(map[string]map[string]*roi.Task)
 	for _, s := range ss {
-		ts, err := roi.AssetTasks(DB, s.ID())
+		ts, err := roi.UnitTasks(DB, s.ID())
 		if err != nil {
 			return err
 		}
@@ -74,7 +79,7 @@ func assetsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		for _, t := range ts {
 			tm[t.Task] = t
 		}
-		tasks[s.Asset] = tm
+		tasks[s.Unit] = tm
 	}
 	site, err := roi.GetSite(DB)
 	if err != nil {
@@ -83,9 +88,10 @@ func assetsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	recipe := struct {
 		LoggedInUser  string
 		Site          *roi.Site
+		Category      string
 		Shows         []*roi.Show
 		Show          string
-		Assets        []*roi.Asset
+		Units         []*roi.Unit
 		AllUnitStatus []roi.Status
 		Tasks         map[string]map[string]*roi.Task
 		AllTaskStatus []roi.Status
@@ -93,13 +99,14 @@ func assetsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}{
 		LoggedInUser:  env.User.ID,
 		Site:          site,
+		Category:      ctg,
 		Shows:         shows,
 		Show:          show,
-		Assets:        ss,
+		Units:         ss,
 		AllUnitStatus: roi.AllUnitStatus,
 		Tasks:         tasks,
 		AllTaskStatus: roi.AllTaskStatus,
 		Query:         query,
 	}
-	return executeTemplate(w, "assets", recipe)
+	return executeTemplate(w, "units", recipe)
 }

@@ -76,9 +76,9 @@ func addShowApiHandler(w http.ResponseWriter, r *http.Request) {
 	apiOK(w, fmt.Sprintf("successfully add a show: '%s'", show))
 }
 
-// addShotApiHander는 사용자가 api를 통해 샷을 생성할수 있도록 한다.
+// addUnitApiHander는 사용자가 api를 통해 샷을 생성할수 있도록 한다.
 // 결과는 roi.APIResponse의 json 형식으로 반환된다.
-func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
+func addUnitApiHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	id := r.PostFormValue("id")
@@ -86,17 +86,17 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("'id' not specified"))
 		return
 	}
-	show, shot, err := roi.SplitShotID(id)
+	show, ctg, unit, err := roi.SplitUnitID(id)
 	if err != nil {
-		apiBadRequest(w, fmt.Errorf("invalid shot id: %v", id))
+		apiBadRequest(w, fmt.Errorf("invalid unit id: %v", id))
 		return
 	}
-	_, err = roi.GetShot(DB, id)
+	_, err = roi.GetUnit(DB, id)
 	if err == nil {
-		apiBadRequest(w, fmt.Errorf("shot already exist: %v", id))
+		apiBadRequest(w, fmt.Errorf("unit already exist: %v", id))
 		return
 	} else if !errors.As(err, &roi.NotFoundError{}) {
-		log.Printf("could not check shot '%s' exist: %v", id, err)
+		log.Printf("could not check unit '%s' exist: %v", id, err)
 		apiInternalServerError(w)
 		return
 	}
@@ -126,7 +126,15 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 			handleError(w, err)
 			return
 		}
-		tasks = p.DefaultShotTasks
+		switch ctg {
+		case "shot":
+			tasks = p.DefaultShotTasks
+		case "asset":
+			tasks = p.DefaultAssetTasks
+		default:
+			handleError(w, fmt.Errorf("invalid unit category: %s", ctg))
+			return
+		}
 	}
 	attrs := make(roi.DBStringMap)
 	for _, ln := range strings.Split(r.FormValue("attrs"), "\n") {
@@ -141,9 +149,10 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		attrs[k] = v
 	}
-	s := &roi.Shot{
+	s := &roi.Unit{
 		Show:          show,
-		Shot:          shot,
+		Category:      ctg,
+		Unit:          unit,
 		Status:        roi.Status(status),
 		EditOrder:     editOrder,
 		Description:   r.PostFormValue("description"),
@@ -152,19 +161,19 @@ func addShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		Tasks:         tasks,
 		Attrs:         attrs,
 	}
-	err = roi.AddShot(DB, s)
+	err = roi.AddUnit(DB, s)
 	if err != nil {
-		log.Printf("could not add shot: %v", err)
+		log.Printf("could not add unit: %v", err)
 		apiInternalServerError(w)
 		return
 	}
-	apiOK(w, fmt.Sprintf("successfully add a shot: '%s'", shot))
+	apiOK(w, fmt.Sprintf("successfully add a unit: '%s'", unit))
 }
 
-// getShotApiHander는 사용자가 api를 통해 샷 정보를 받을수 있도록 한다.
+// getUnitApiHander는 사용자가 api를 통해 샷 정보를 받을수 있도록 한다.
 // id 필드가 여럿 있다면 그 순서대로 샷 정보를 반환한다.
 // 결과는 roi.APIResponse의 json 형식으로 반환된다.
-func getShotApiHandler(w http.ResponseWriter, r *http.Request) {
+func getUnitApiHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := mustFields(r, "id")
 	if err != nil {
@@ -172,9 +181,9 @@ func getShotApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ids := r.Form["id"]
-	ss := make(map[string]*roi.Shot)
+	ss := make(map[string]*roi.Unit)
 	for _, id := range ids {
-		s, err := roi.GetShot(DB, id)
+		s, err := roi.GetUnit(DB, id)
 		if err != nil {
 			apiBadRequest(w, err)
 			return
@@ -184,11 +193,11 @@ func getShotApiHandler(w http.ResponseWriter, r *http.Request) {
 	apiOK(w, ss)
 }
 
-// getShotTasksApiHander는 사용자가 api를 통해 샷을 생성할수 있도록 한다.
+// getUnitTasksApiHander는 사용자가 api를 통해 샷을 생성할수 있도록 한다.
 // id 필드가 여럿 있다면 그 순서대로 샷의 태스크 정보를 반환한다.
 // 샷 별로 그룹을 하지는 않는다.
 // 결과는 roi.APIResponse의 json 형식으로 반환된다.
-func getShotTasksApiHandler(w http.ResponseWriter, r *http.Request) {
+func getUnitTasksApiHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := mustFields(r, "id")
 	if err != nil {
@@ -198,7 +207,7 @@ func getShotTasksApiHandler(w http.ResponseWriter, r *http.Request) {
 	ids := r.Form["id"]
 	allTs := make(map[string][]*roi.Task)
 	for _, id := range ids {
-		ts, err := roi.ShotTasks(DB, id)
+		ts, err := roi.UnitTasks(DB, id)
 		if err != nil {
 			apiBadRequest(w, err)
 			return

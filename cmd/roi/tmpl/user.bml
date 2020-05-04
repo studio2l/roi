@@ -36,13 +36,13 @@
 <div class="ui inverted segment"> [
 	<div class="ui grid"> [
 		<div class="ui four wide column"> [
-			<a href="/shots?show={{$show}}&q=assignee:{{$.User}}"> [
+			<a href="/units?show={{$show}}&q=assignee:{{$.User}}"> [
 				<div class="ui blue large header"> [{{$show}}]
 			]
 		]
 		<div class="ui twelve wide column right aligned"> [
 			{{range $status := $.AllTaskStatus}}
-			<a href="/shots?show={{$show}}&q=assignee:{{$.User}} task-status:{{$status}}"> [
+			<a href="/units?show={{$show}}&q=assignee:{{$.User}} task-status:{{$status}}"> [
 				<div class="ui grey small image label"> [{{$status.UIString}}<div id="show-{{$show}}-status-{{$status}}" class="detail"> [0]]
 			]
 			{{end}}

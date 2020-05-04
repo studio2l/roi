@@ -8,16 +8,21 @@ import (
 	"github.com/studio2l/roi"
 )
 
-func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+func addUnitHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
-		return addShotPostHandler(w, r, env)
+		return addUnitPostHandler(w, r, env)
 	}
 	w.Header().Set("Cache-control", "no-cache")
 	cfg, err := roi.GetUserConfig(DB, env.User.ID)
 	if err != nil {
 		return err
 	}
+	// 할일: id를 show로 변경할 것
 	id := r.FormValue("id")
+	ctg := r.FormValue("category")
+	if ctg != "shot" && ctg != "asset" {
+		ctg = "shot"
+	}
 	if id == "" {
 		// 요청이 프로젝트를 가리키지 않을 경우 사용자가
 		// 보고 있던 프로젝트를 선택한다.
@@ -34,7 +39,7 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			}
 			id = shows[0].Show
 		}
-		http.Redirect(w, r, "/add-shot?id="+id, http.StatusSeeOther)
+		http.Redirect(w, r, "/add-unit?id="+id+"&category="+ctg, http.StatusSeeOther)
 		return nil
 	}
 	sw, err := roi.GetShow(DB, id)
@@ -50,31 +55,45 @@ func addShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	recipe := struct {
 		LoggedInUser string
 		Show         *roi.Show
+		Category     string
 	}{
 		LoggedInUser: env.User.ID,
 		Show:         sw,
+		Category:     ctg,
 	}
-	return executeTemplate(w, "add-shot", recipe)
+	return executeTemplate(w, "add-unit", recipe)
 }
 
-func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	err := mustFields(r, "id", "shot")
+func addUnitPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+	err := mustFields(r, "id", "category", "unit")
 	if err != nil {
 		return err
 	}
+	// 할일: id를 show로 변경할 것
 	id := r.FormValue("id")
-	shot := r.FormValue("shot")
+	ctg := r.FormValue("category")
+	unit := r.FormValue("unit")
 	sh, err := roi.GetShow(DB, id)
 	if err != nil {
 		return err
 	}
-	s := &roi.Shot{
-		Show:   id,
-		Shot:   shot,
-		Status: roi.StatusInProgress,
-		Tasks:  sh.DefaultShotTasks,
+	var tasks []string
+	switch ctg {
+	case "shot":
+		tasks = sh.DefaultShotTasks
+	case "asset":
+		tasks = sh.DefaultAssetTasks
+	default:
+		return fmt.Errorf("invalid category: %s", ctg)
 	}
-	err = roi.AddShot(DB, s)
+	s := &roi.Unit{
+		Show:     id,
+		Category: ctg,
+		Unit:     unit,
+		Status:   roi.StatusInProgress,
+		Tasks:    tasks,
+	}
+	err = roi.AddUnit(DB, s)
 	if err != nil {
 		return err
 	}
@@ -82,20 +101,20 @@ func addShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	return nil
 }
 
-func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+func updateUnitHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.Method == "POST" {
-		return updateShotPostHandler(w, r, env)
+		return updateUnitPostHandler(w, r, env)
 	}
 	err := mustFields(r, "id")
 	if err != nil {
 		return err
 	}
 	id := r.FormValue("id")
-	s, err := roi.GetShot(DB, id)
+	s, err := roi.GetUnit(DB, id)
 	if err != nil {
 		return err
 	}
-	ts, err := roi.ShotTasks(DB, id)
+	ts, err := roi.UnitTasks(DB, id)
 	if err != nil {
 		return err
 	}
@@ -105,23 +124,23 @@ func updateShotHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}
 	recipe := struct {
 		LoggedInUser  string
-		Shot          *roi.Shot
+		Unit          *roi.Unit
 		AllUnitStatus []roi.Status
 		Tasks         map[string]*roi.Task
 		AllTaskStatus []roi.Status
 		Thumbnail     string
 	}{
 		LoggedInUser:  env.User.ID,
-		Shot:          s,
+		Unit:          s,
 		AllUnitStatus: roi.AllUnitStatus,
 		Tasks:         tm,
 		AllTaskStatus: roi.AllTaskStatus,
 		Thumbnail:     "data/show/" + id + "/thumbnail.png",
 	}
-	return executeTemplate(w, "update-shot", recipe)
+	return executeTemplate(w, "update-unit", recipe)
 }
 
-func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+func updateUnitPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	err := mustFields(r, "id")
 	if err != nil {
 		return err
@@ -132,7 +151,7 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	if err != nil {
 		return err
 	}
-	s, err := roi.GetShot(DB, id)
+	s, err := roi.GetUnit(DB, id)
 	if err != nil {
 		return err
 	}
@@ -159,7 +178,7 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		s.Attrs[k] = v
 	}
 
-	err = roi.UpdateShot(DB, id, s)
+	err = roi.UpdateUnit(DB, id, s)
 	if err != nil {
 		return err
 	}
@@ -171,11 +190,11 @@ func updateShotPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	return nil
 }
 
-func updateMultiShotsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+func updateMultiUnitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if r.FormValue("post") != "" {
 		// 많은 샷 선택시 URL이 너무 길어져 잘릴 염려 때문에 GET을 사용하지 않아,
 		// POST와 GET을 구분할 다른 방법이 필요했다. 더 나은 방법을 생각해 볼 것.
-		return updateMultiShotsPostHandler(w, r, env)
+		return updateMultiUnitsPostHandler(w, r, env)
 	}
 	err := mustFields(r, "id")
 	if err != nil {
@@ -183,7 +202,7 @@ func updateMultiShotsHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 	}
 	ids := r.Form["id"]
 	id := ids[0]
-	show, _, err := roi.SplitShotID(id)
+	show, _, _, err := roi.SplitUnitID(id)
 	if err != nil {
 		return err
 	}
@@ -198,11 +217,11 @@ func updateMultiShotsHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		IDs:           ids,
 		AllUnitStatus: roi.AllUnitStatus,
 	}
-	return executeTemplate(w, "update-multi-shots", recipe)
+	return executeTemplate(w, "update-multi-units", recipe)
 
 }
 
-func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
+func updateMultiUnitsPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	err := mustFields(r, "id")
 	if err != nil {
 		return err
@@ -248,7 +267,7 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		workingTasks = append(workingTasks, task)
 	}
 	for _, id := range ids {
-		s, err := roi.GetShot(DB, id)
+		s, err := roi.GetUnit(DB, id)
 		if err != nil {
 			return err
 		}
@@ -285,7 +304,7 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 				s.Tasks = removeIfExist(s.Tasks, task)
 			}
 		}
-		err = roi.UpdateShot(DB, id, s)
+		err = roi.UpdateUnit(DB, id, s)
 		if err != nil {
 			return err
 		}
@@ -295,9 +314,9 @@ func updateMultiShotsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		if i != 0 {
 			q += " "
 		}
-		shot := strings.Split(id, "/")[1]
-		q += shot
+		unit := strings.Split(id, "/")[1]
+		q += unit
 	}
-	// 여러 샷 수정 페이지 전인 shots 페이지로 돌아간다.
+	// 여러 샷 수정 페이지 전인 units 페이지로 돌아간다.
 	return executeTemplate(w, "history-go", -2)
 }

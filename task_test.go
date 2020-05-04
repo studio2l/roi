@@ -5,10 +5,10 @@ import (
 )
 
 var testTaskA = &Task{
-	Show:     testShotA.Show,
+	Show:     testUnitA.Show,
 	Category: "shot",
-	Unit:     testShotA.Shot,
-	Task:     "fx", // testShotA에 정의되어 있어야만 테스트가 통과한다.
+	Unit:     testUnitA.Unit,
+	Task:     "fx", // testUnitA에 정의되어 있어야만 테스트가 통과한다.
 	Status:   StatusInProgress,
 	Assignee: "kybin",
 }
@@ -38,17 +38,17 @@ func TestTask(t *testing.T) {
 			t.Fatalf("could not delete project: %s", err)
 		}
 	}()
-	err = AddShot(db, testShotA)
+	err = AddUnit(db, testUnitA)
 	if err != nil {
 		t.Fatalf("could not add shot: %s", err)
 	}
 	defer func() {
-		err = DeleteShot(db, testShotA.ID())
+		err = DeleteUnit(db, testUnitA.ID())
 		if err != nil {
 			t.Fatalf("could not delete shot: %s", err)
 		}
 	}()
-	// testShotA가 생성되면서 testTaskA도 함께 생성된다.
+	// testUnitA가 생성되면서 testTaskA도 함께 생성된다.
 	defer func() {
 		err = DeleteTask(db, testTaskA.ID())
 		if err != nil {
@@ -59,7 +59,7 @@ func TestTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not update task: %s", err)
 	}
-	tasks, err := ShotTasks(db, testShotA.ID())
+	tasks, err := UnitTasks(db, testUnitA.ID())
 	if err != nil {
 		t.Fatalf("could not get shot tasks: %s", err)
 	}

@@ -9,7 +9,7 @@ import (
 var testVersionA = &Version{
 	Show:     testShow.Show,
 	Category: "shot",
-	Unit:     testShotA.Shot,
+	Unit:     testUnitA.Unit,
 	Task:     testTaskA.Task,
 	Version:  "v001",
 
@@ -51,17 +51,17 @@ func TestVersion(t *testing.T) {
 			t.Fatalf("could not delete project: %v", err)
 		}
 	}()
-	err = AddShot(db, testShotA)
+	err = AddUnit(db, testUnitA)
 	if err != nil {
 		t.Fatalf("could not add shot: %v", err)
 	}
 	defer func() {
-		err = DeleteShot(db, testShotA.ID())
+		err = DeleteUnit(db, testUnitA.ID())
 		if err != nil {
 			t.Fatalf("could not delete shot: %v", err)
 		}
 	}()
-	// testShotA가 생성되면서 testTaskA도 함께 생성된다.
+	// testUnitA가 생성되면서 testTaskA도 함께 생성된다.
 	defer func() {
 		err = DeleteTask(db, testTaskA.ID())
 		if err != nil {
@@ -89,7 +89,7 @@ func TestVersion(t *testing.T) {
 	if !reflect.DeepEqual(got, testVersionA) {
 		t.Fatalf("added version is not expected: got %v, want %v", got, testVersionA)
 	}
-	shotVersions, err := ShotVersions(db, testShotA.ID())
+	shotVersions, err := UnitVersions(db, testUnitA.ID())
 	if err != nil {
 		t.Fatalf("could not get versions of shot: %v", err)
 	}

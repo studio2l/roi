@@ -6,9 +6,10 @@ import (
 	"time"
 )
 
-var testShotA = &Shot{
+var testUnitA = &Unit{
 	Show:          testShow.Show,
-	Shot:          "CG_0010",
+	Category:      "shot",
+	Unit:          "CG_0010",
 	Status:        StatusInProgress,
 	EditOrder:     10,
 	Description:   "방에 우두커니 혼자 않아 있는 로이.",
@@ -24,8 +25,9 @@ var testShotA = &Shot{
 	},
 }
 
-var testShotB = &Shot{
-	Shot:          "CG_0020",
+var testUnitB = &Unit{
+	Unit:          "CG_0020",
+	Category:      "shot",
 	Show:          testShow.Show,
 	Status:        StatusHold,
 	EditOrder:     20,
@@ -41,8 +43,9 @@ var testShotB = &Shot{
 	},
 }
 
-var testShotC = &Shot{
-	Shot:          "CG_0030",
+var testUnitC = &Unit{
+	Unit:          "CG_0030",
+	Category:      "shot",
 	Show:          testShow.Show,
 	Status:        StatusHold,
 	EditOrder:     30,
@@ -58,10 +61,10 @@ var testShotC = &Shot{
 	},
 }
 
-var testShots = []*Shot{testShotA, testShotB, testShotC}
+var testUnits = []*Unit{testUnitA, testUnitB, testUnitC}
 
-func TestShot(t *testing.T) {
-	want := testShots
+func TestUnit(t *testing.T) {
+	want := testUnits
 
 	db, err := testDB()
 	if err != nil {
@@ -89,26 +92,26 @@ func TestShot(t *testing.T) {
 	}()
 
 	for _, s := range want {
-		err = AddShot(db, s)
+		err = AddUnit(db, s)
 		if err != nil {
-			t.Fatalf("could not add shot to shots table: %s", err)
+			t.Fatalf("could not add unit to units table: %s", err)
 		}
-		got, err := GetShot(db, s.ID())
+		got, err := GetUnit(db, s.ID())
 		if err != nil {
-			t.Fatalf("could not get shot from shots table: %s", err)
+			t.Fatalf("could not get unit from units table: %s", err)
 		}
-		err = verifyShotName(got.Shot)
+		err = verifyUnitName(got.Unit)
 		if err != nil {
-			t.Fatalf("find shot with invalid id from shots table: %s", err)
+			t.Fatalf("find unit with invalid id from units table: %s", err)
 		}
 		if !reflect.DeepEqual(got, s) {
 			t.Fatalf("got: %v, want: %v", got, s)
 		}
 	}
 
-	got, err := SearchShots(db, testShow.Show, []string{}, "", "", "", "", "", time.Time{})
+	got, err := SearchUnits(db, testShow.Show, "shot", []string{}, "", "", "", "", "", time.Time{})
 	if err != nil {
-		t.Fatalf("could not search shots from shots table: %s", err)
+		t.Fatalf("could not search units from units table: %s", err)
 	}
 	if !reflect.DeepEqual(got, want) {
 		// 애셋을 테스트 중에 두 슬라이스의 순서가 다를 수 있다는 것을 발견하였다.
@@ -117,31 +120,31 @@ func TestShot(t *testing.T) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
 
-	got, err = SearchShots(db, testShow.Show, []string{"CG_0010"}, "", "", "", "", "", time.Time{})
+	got, err = SearchUnits(db, testShow.Show, "shot", []string{"CG_0010"}, "", "", "", "", "", time.Time{})
 	if err != nil {
-		t.Fatalf("could not search shots from shots table: %s", err)
+		t.Fatalf("could not search units from units table: %s", err)
 	}
-	want = []*Shot{testShotA}
+	want = []*Unit{testUnitA}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
-	got, err = SearchShots(db, testShow.Show, []string{}, "로이", "", "", "", "", time.Time{})
+	got, err = SearchUnits(db, testShow.Show, "shot", []string{}, "로이", "", "", "", "", time.Time{})
 	if err != nil {
-		t.Fatalf("could not search shots from shots table: %s", err)
+		t.Fatalf("could not search units from units table: %s", err)
 	}
-	want = []*Shot{testShotA, testShotB}
+	want = []*Unit{testUnitA, testUnitB}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
 
 	for _, s := range want {
-		err = UpdateShot(db, s.ID(), s)
+		err = UpdateUnit(db, s.ID(), s)
 		if err != nil {
-			t.Fatalf("could not update shot: %s", err)
+			t.Fatalf("could not update unit: %s", err)
 		}
-		err = DeleteShot(db, s.ID())
+		err = DeleteUnit(db, s.ID())
 		if err != nil {
-			t.Fatalf("could not delete shot from shots table: %s", err)
+			t.Fatalf("could not delete unit from units table: %s", err)
 		}
 	}
 }

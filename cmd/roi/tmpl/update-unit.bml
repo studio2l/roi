@@ -1,51 +1,51 @@
-{{define "update-shot"}}
+{{define "update-unit"}}
 {{template "head"}}
 {{template "nav" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
-	{{with $s := $.Shot}}
+	{{with $u := $.Unit}}
 	<h2 class="ui header"> [샷 수정]
 	<h3 class="ui dividing header" style="color:#818181"> [
-		<a href="/update-show?id={{$s.Show}}" style="color:#9f9f9f"> [{{$s.Show}}] /
+		<a href="/update-show?id={{$u.Show}}" style="color:#9f9f9f"> [{{$u.Show}}] /
 		shot /
-		<span style="color:#ccc"> [{{$s.Shot}}]
+		<span style="color:#ccc"> [{{$u.Unit}}]
 	]
 	<form method="post" class="ui form" enctype="multipart/form-data"> [
-		<input hidden type="text" name="id" value="{{$s.ID}}"/>
+		<input hidden type="text" name="id" value="{{$u.ID}}"/>
 		<div class="field"> [<label> [썸네일]
-			{{if hasThumbnail $s.ID}}<img width="288px" height="162px" src="{{$.Thumbnail}}"></img>{{end}}
+			{{if hasThumbnail $u.ID}}<img width="288px" height="162px" src="{{$.Thumbnail}}"></img>{{end}}
 			<input type="file" name="thumbnail"/>
 		]
 		<div class="field"> [<label> [마감일]
-			<input type="date" name="due_date" value="{{stringFromDate $s.DueDate}}">
+			<input type="date" name="due_date" value="{{stringFromDate $u.DueDate}}">
 		]
 		<div class="field"> [<label> [상태]
 			<select type="text" name="status"> [
-				{{range $ss := $.AllUnitStatus}}
-				<option value="{{$ss}}" {{if eq $ss $s.Status}}selected{{end}}> [{{$ss.UIString}}]
+				{{range $us := $.AllUnitStatus}}
+				<option value="{{$us}}" {{if eq $us $u.Status}}selected{{end}}> [{{$us.UIString}}]
 				{{end}}
 			]
 		]
 		<div class="field"> [<label> [내용]
-			<input type="text" name="description" value="{{$s.Description}}"/>
+			<input type="text" name="description" value="{{$u.Description}}"/>
 		]
 		<div class="field"> [<label> [편집 순서]
-			<input type="text" name="edit_order" value="{{$s.EditOrder}}"/>
+			<input type="text" name="edit_order" value="{{$u.EditOrder}}"/>
 		]
 		<div class="field"> [<label> [CG 내용]
-			<input type="text" name="cg_description" value="{{$s.CGDescription}}"/>
+			<input type="text" name="cg_description" value="{{$u.CGDescription}}"/>
 		]
 		<div class="field"> [<label> [태그]
-			<input type="text" name="tags" value="{{fieldJoin $s.Tags}}"/>
+			<input type="text" name="tags" value="{{fieldJoin $u.Tags}}"/>
 		]
 		<div class="field"> [<label> [필요한 애셋]
-			<input type="text" name="assets" value="{{fieldJoin $s.Assets}}"/>
+			<input type="text" name="assets" value="{{fieldJoin $u.Assets}}"/>
 		]
 		<div class="field"> [<label> [태스크]
-			<input type="text" name="tasks" value="{{fieldJoin $s.Tasks}}"/>
+			<input type="text" name="tasks" value="{{fieldJoin $u.Tasks}}"/>
 		]
 		<div class="field"> [<label>커스텀 속성
 			<textarea name="attrs" placeholder="여러줄의 키: 값 쌍으로 표현해주세요."> [
-			{{- range $k, $v := $s.Attrs -}}
+			{{- range $k, $v := $u.Attrs -}}
 {{$k}}: {{$v}}
 {{end -}}
 			]
