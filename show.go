@@ -19,12 +19,11 @@ var CreateTableIfNotExistsShowsStmt = `CREATE TABLE IF NOT EXISTS shows (
 	vfx_manager STRING NOT NULL,
 	cg_supervisor STRING NOT NULL,
 	vfx_due_date TIMESTAMPTZ NOT NULL,
-	output_size STRING NOT NULL,
-	view_lut STRING NOT NULL,
 	default_shot_tasks STRING[] NOT NULL,
 	default_asset_tasks STRING[] NOT NULL,
 	tags STRING[] NOT NULL,
 	notes STRING NOT NULL,
+	attrs STRING NOT NULL,
 	CONSTRAINT shows_pk PRIMARY KEY (show)
 )`
 
@@ -39,12 +38,13 @@ type Show struct {
 	CGSupervisor  string `db:"cg_supervisor"`
 
 	VFXDueDate        time.Time `db:"vfx_due_date"`
-	OutputSize        string    `db:"output_size"`
-	ViewLUT           string    `db:"view_lut"`
 	DefaultShotTasks  []string  `db:"default_shot_tasks"`
 	DefaultAssetTasks []string  `db:"default_asset_tasks"`
 	Tags              []string  `db:"tags"`
 	Notes             string    `db:"notes"`
+
+	// Attrs는 커스텀 속성으로 db에는 여러줄의 문자열로 저장된다. 각 줄은 키: 값의 쌍이다.
+	Attrs DBStringMap `db:"attrs"`
 }
 
 var showDBKey string = strings.Join(dbKeys(&Show{}), ", ")

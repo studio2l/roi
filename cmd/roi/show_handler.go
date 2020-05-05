@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/studio2l/roi"
 )
@@ -121,12 +122,24 @@ func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	s.VFXManager = r.FormValue("vfx_manager")
 	s.CGSupervisor = r.FormValue("cg_supervisor")
 	s.VFXDueDate = timeForms["vfx_due_date"]
-	s.OutputSize = r.FormValue("output_size")
-	s.ViewLUT = r.FormValue("view_lut")
 	s.DefaultShotTasks = fieldSplit(r.FormValue("default_shot_tasks"))
 	s.DefaultAssetTasks = fieldSplit(r.FormValue("default_asset_tasks"))
 	s.Tags = fieldSplit(r.FormValue("tags"))
 	s.Notes = r.FormValue("notes")
+	s.Attrs = make(roi.DBStringMap)
+
+	for _, ln := range strings.Split(r.FormValue("attrs"), "\n") {
+		kv := strings.SplitN(ln, ":", 2)
+		if len(kv) != 2 {
+			continue
+		}
+		k := strings.TrimSpace(kv[0])
+		v := strings.TrimSpace(kv[1])
+		if k == "" || v == "" {
+			continue
+		}
+		s.Attrs[k] = v
+	}
 
 	err = roi.UpdateShow(DB, id, s)
 	if err != nil {

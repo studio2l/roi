@@ -29,12 +29,6 @@
 		<div class="field"> [<label> [VFX 종료일]
 			<input type="date" name="vfx_due_date" value="{{stringFromDate .Show.VFXDueDate}}"/>
 		]
-		<div class="field"> [<label> [아웃풋 사이즈]
-			<input type="text" name="output_size" value="{{.Show.OutputSize}}"/>
-		]
-		<div class="field"> [<label> [View Lut 경로]
-			<input type="text" name="view_lut" value="{{.Show.ViewLUT}}"/>
-		]
 		<div class="field"> [<label> [기본 샷 태스크]
 			<input type="text" name="default_shot_tasks" value="{{fieldJoin .Show.DefaultShotTasks}}"/>
 		]
@@ -46,6 +40,13 @@
 		]
 		<div class="field"> [<label> [노트]
 			<textarea name="notes" placeholder="그 외 정보를 입력하세요"> [{{.Show.Notes}}]
+		]
+		<div class="field"> [<label>커스텀 속성
+			<textarea name="attrs" placeholder="여러줄의 키: 값 쌍으로 표현해주세요."> [
+			{{- range $k, $v := .Show.Attrs -}}
+{{$k}}: {{$v}}
+{{end -}}
+			]
 		]
 		<button class="ui button green" type="submit" value="Submit"> [수정]
 	]

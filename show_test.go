@@ -13,8 +13,6 @@ var testShow = &Show{
 	VFXManager:        "조경식",
 	CGSupervisor:      "김용빈",
 	VFXDueDate:        time.Date(2018, 9, 31, 0, 0, 0, 0, time.Local).UTC(),
-	OutputSize:        "1920x1080",
-	ViewLUT:           "some/place/aces.lut",
 	DefaultShotTasks:  []string{},
 	DefaultAssetTasks: []string{},
 	Tags:              []string{},
@@ -23,6 +21,10 @@ var testShow = &Show{
 감독: 윤지은
 PD: 김한웅
 `,
+	Attrs: DBStringMap{
+		"output_size": "1920x1080",
+		"view_lut":    "some/palce/aces.lut",
+	},
 }
 
 func TestShow(t *testing.T) {
