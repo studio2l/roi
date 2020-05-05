@@ -14,24 +14,17 @@ import (
 // 테이블은 타입보다 많은 정보를 담고 있을수도 있다.
 var CreateTableIfNotExistsShowsStmt = `CREATE TABLE IF NOT EXISTS shows (
 	show STRING NOT NULL UNIQUE CHECK (LENGTH(show) > 0) CHECK (show NOT LIKE '% %'),
-	name STRING NOT NULL,
 	status STRING NOT NULL,
-	client STRING NOT NULL,
-	director STRING NOT NULL,
-	producer STRING NOT NULL,
 	vfx_supervisor STRING NOT NULL,
 	vfx_manager STRING NOT NULL,
 	cg_supervisor STRING NOT NULL,
-	crank_in TIMESTAMPTZ NOT NULL,
-	crank_up TIMESTAMPTZ NOT NULL,
-	start_date TIMESTAMPTZ NOT NULL,
-	release_date TIMESTAMPTZ NOT NULL,
 	vfx_due_date TIMESTAMPTZ NOT NULL,
 	output_size STRING NOT NULL,
 	view_lut STRING NOT NULL,
 	default_shot_tasks STRING[] NOT NULL,
 	default_asset_tasks STRING[] NOT NULL,
 	tags STRING[] NOT NULL,
+	notes STRING NOT NULL,
 	CONSTRAINT shows_pk PRIMARY KEY (show)
 )`
 
@@ -39,28 +32,19 @@ type Show struct {
 	// 쇼 아이디. 로이 내에서 고유해야 한다.
 	Show string `db:"show"`
 
-	Name   string `db:"name"`
 	Status string `db:"status"`
 
-	Client        string `db:"client"`
-	Director      string `db:"director"`
-	Producer      string `db:"producer"`
 	VFXSupervisor string `db:"vfx_supervisor"`
 	VFXManager    string `db:"vfx_manager"`
 	CGSupervisor  string `db:"cg_supervisor"`
 
-	CrankIn     time.Time `db:"crank_in"`
-	CrankUp     time.Time `db:"crank_up"`
-	StartDate   time.Time `db:"start_date"`
-	ReleaseDate time.Time `db:"release_date"`
-	VFXDueDate  time.Time `db:"vfx_due_date"`
-
-	OutputSize        string   `db:"output_size"`
-	ViewLUT           string   `db:"view_lut"`
-	DefaultShotTasks  []string `db:"default_shot_tasks"`
-	DefaultAssetTasks []string `db:"default_asset_tasks"`
-
-	Tags []string `db:"tags"`
+	VFXDueDate        time.Time `db:"vfx_due_date"`
+	OutputSize        string    `db:"output_size"`
+	ViewLUT           string    `db:"view_lut"`
+	DefaultShotTasks  []string  `db:"default_shot_tasks"`
+	DefaultAssetTasks []string  `db:"default_asset_tasks"`
+	Tags              []string  `db:"tags"`
+	Notes             string    `db:"notes"`
 }
 
 var showDBKey string = strings.Join(dbKeys(&Show{}), ", ")
