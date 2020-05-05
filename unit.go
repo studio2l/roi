@@ -259,7 +259,7 @@ func AddUnit(db *sql.DB, s *Unit) error {
 		if err != nil {
 			return err
 		}
-		st, err := addTaskStmts(t)
+		st, err := addTaskStmts(db, t)
 		if err != nil {
 			return err
 		}
@@ -426,13 +426,13 @@ func UpdateUnit(db *sql.DB, id string, s *Unit) error {
 			} else {
 				t := &Task{
 					Show:     s.Show,
-					Category: "unit",
+					Category: s.Category,
 					Unit:     s.Unit,
 					Task:     task,
 					Status:   StatusInProgress,
 					DueDate:  time.Time{},
 				}
-				st, err := addTaskStmts(t)
+				st, err := addTaskStmts(db, t)
 				if err != nil {
 					return err
 				}
