@@ -3,7 +3,7 @@
 {{template "nav" $}}
 <div class="ui raised very padded text container grey inverted segment"> [
 	{{with $s := $.Show}}
-	<h2 class="ui header"> [프로젝트 설정]
+	<h2 class="ui header"> [쇼 설정]
 	<h3 class="ui dividing header"> [
 		<span style="color:#ccc"> [{{$s.Show}}]
 	]
@@ -17,31 +17,6 @@
 				{{end}}
 			]
 		]
-		<div class="field"> [<label> [영문이름]
-			<input type="text" name="name" value="{{.Show.Name}}"/>
-		]
-		<!--type 설정-->
-		<div class="field"> [<label> [타입]
-			<select id="show-type" class="ui dropdown"> [
-				<!--목록을 시스템 설정에서 가져옵니다.-->
-				<option value=""> [Select Show Type]
-				<option value="Feature Film"> [Feature Film]
-				<option value="Animation"> [Animation]
-				<option value="Commercial"> [Commercial]
-				<option value="MusicVideo"> [MusicVideo]
-				<option value="A-type"> [A-type]
-				<option value="B-type"> [B-type]
-			  ]
-		]
-		<div class="field"> [<label> [클라이언트]
-			<input type="text" name="client" value="{{.Show.Client}}"/>
-		]
-		<div class="field"> [<label> [감독]
-			<input type="text" name="director" value="{{.Show.Director}}"/>
-		]
-		<div class="field"> [<label> [PD]
-			<input type="text" name="producer" value="{{.Show.Producer}}"/>
-		]
 		<div class="field"> [<label> [VFX 수퍼바이저]
 			<input type="text" name="vfx_supervisor" value="{{.Show.VFXSupervisor}}"/>
 		]
@@ -50,18 +25,6 @@
 		]
 		<div class="field"> [<label> [CG 수퍼바이저]
 			<input type="text" name="cg_supervisor" value="{{.Show.CGSupervisor}}"/>
-		]
-		<div class="field"> [<label> [크랭크 인]
-			<input type="date" name="crank_in" value="{{stringFromDate .Show.CrankIn}}"/>
-		]
-		<div class="field"> [<label> [크랭크 업]
-			<input type="date" name="crank_up" value="{{stringFromDate .Show.CrankUp}}"/>
-		]
-		<div class="field"> [<label> [시작일]
-			<input type="date" name="start_date" value="{{stringFromDate .Show.StartDate}}"/>
-		]
-		<div class="field"> [<label> [종료일]
-			<input type="date" name="release_date" value="{{stringFromDate .Show.ReleaseDate}}"/>
 		]
 		<div class="field"> [<label> [VFX 종료일]
 			<input type="date" name="vfx_due_date" value="{{stringFromDate .Show.VFXDueDate}}"/>
@@ -80,6 +43,9 @@
 		]
 		<div class="field"> [<label> [태그]
 			<input type="text" name="tags" value="{{fieldJoin .Show.Tags}}"/>
+		]
+		<div class="field"> [<label> [노트]
+			<textarea name="notes" placeholder="그 외 정보를 입력하세요"> [{{.Show.Notes}}]
 		]
 		<button class="ui button green" type="submit" value="Submit"> [수정]
 	]

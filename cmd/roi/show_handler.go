@@ -107,10 +107,6 @@ func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	}
 	id := r.FormValue("id")
 	timeForms, err := parseTimeForms(r.Form,
-		"start_date",
-		"release_date",
-		"crank_in",
-		"crank_up",
 		"vfx_due_date",
 	)
 	if err != nil {
@@ -120,24 +116,17 @@ func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	if err != nil {
 		return err
 	}
-	s.Name = r.FormValue("name")
 	s.Status = r.FormValue("status")
-	s.Client = r.FormValue("client")
-	s.Director = r.FormValue("director")
-	s.Producer = r.FormValue("producer")
 	s.VFXSupervisor = r.FormValue("vfx_supervisor")
 	s.VFXManager = r.FormValue("vfx_manager")
 	s.CGSupervisor = r.FormValue("cg_supervisor")
-	s.StartDate = timeForms["start_date"]
-	s.ReleaseDate = timeForms["release_date"]
-	s.CrankIn = timeForms["crank_in"]
-	s.CrankUp = timeForms["crank_up"]
 	s.VFXDueDate = timeForms["vfx_due_date"]
 	s.OutputSize = r.FormValue("output_size")
 	s.ViewLUT = r.FormValue("view_lut")
 	s.DefaultShotTasks = fieldSplit(r.FormValue("default_shot_tasks"))
 	s.DefaultAssetTasks = fieldSplit(r.FormValue("default_asset_tasks"))
 	s.Tags = fieldSplit(r.FormValue("tags"))
+	s.Notes = r.FormValue("notes")
 
 	err = roi.UpdateShow(DB, id, s)
 	if err != nil {

@@ -8,24 +8,21 @@ import (
 
 var testShow = &Show{
 	Show:              "TEST",
-	Name:              "테스트 프로젝트",
 	Status:            "waiting",
-	Client:            "레이지 픽처스",
-	Director:          "윤지은",
-	Producer:          "김한웅",
 	VFXSupervisor:     "김성환",
 	VFXManager:        "조경식",
 	CGSupervisor:      "김용빈",
-	CrankIn:           time.Date(2018, 12, 31, 7, 30, 0, 0, time.Local).UTC(),
-	CrankUp:           time.Date(2019, 8, 31, 19, 0, 0, 0, time.Local).UTC(),
-	StartDate:         time.Date(2018, 12, 29, 0, 0, 0, 0, time.Local).UTC(),
-	ReleaseDate:       time.Date(2018, 10, 1, 0, 0, 0, 0, time.Local).UTC(),
 	VFXDueDate:        time.Date(2018, 9, 31, 0, 0, 0, 0, time.Local).UTC(),
 	OutputSize:        "1920x1080",
 	ViewLUT:           "some/place/aces.lut",
 	DefaultShotTasks:  []string{},
 	DefaultAssetTasks: []string{},
 	Tags:              []string{},
+	Notes: `테스트 쇼
+클라이언트: 레이지픽처스
+감독: 윤지은
+PD: 김한웅
+`,
 }
 
 func TestShow(t *testing.T) {
