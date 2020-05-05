@@ -128,6 +128,10 @@ func verifyTask(db *sql.DB, t *Task) error {
 	if err != nil {
 		return err
 	}
+	ctg := t.Category
+	if ctg != "shot" && ctg != "asset" {
+		return fmt.Errorf("invalid category: %s", ctg)
+	}
 	t.PublishVersion = strings.TrimSpace(t.PublishVersion)
 	if t.PublishVersion != "" {
 		_, err = GetVersion(db, t.ID()+"/"+t.PublishVersion)
@@ -187,7 +191,11 @@ func AddTask(db *sql.DB, t *Task) error {
 
 // addTaskStmts는 태스크를 추가하는 db 구문을 반환한다.
 // 부모가 있는지는 검사하지 않는다.
-func addTaskStmts(t *Task) ([]dbStatement, error) {
+func addTaskStmts(db *sql.DB, t *Task) ([]dbStatement, error) {
+	err := verifyTask(db, t)
+	if err != nil {
+		return nil, err
+	}
 	stmts := []dbStatement{
 		dbStmt(fmt.Sprintf("INSERT INTO tasks (%s) VALUES (%s)", taskDBKey, taskDBIdx), dbVals(t)...),
 	}
