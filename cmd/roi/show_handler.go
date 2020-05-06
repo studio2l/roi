@@ -108,7 +108,7 @@ func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	}
 	id := r.FormValue("id")
 	timeForms, err := parseTimeForms(r.Form,
-		"vfx_due_date",
+		"due_date",
 	)
 	if err != nil {
 		return err
@@ -118,10 +118,11 @@ func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		return err
 	}
 	s.Status = r.FormValue("status")
-	s.VFXSupervisor = r.FormValue("vfx_supervisor")
-	s.VFXManager = r.FormValue("vfx_manager")
+	s.Supervisor = r.FormValue("supervisor")
 	s.CGSupervisor = r.FormValue("cg_supervisor")
-	s.VFXDueDate = timeForms["vfx_due_date"]
+	s.PD = r.FormValue("pd")
+	s.Managers = fieldSplit(r.FormValue("managers"))
+	s.DueDate = timeForms["due_date"]
 	s.DefaultShotTasks = fieldSplit(r.FormValue("default_shot_tasks"))
 	s.DefaultAssetTasks = fieldSplit(r.FormValue("default_asset_tasks"))
 	s.Tags = fieldSplit(r.FormValue("tags"))

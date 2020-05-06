@@ -15,10 +15,11 @@ import (
 var CreateTableIfNotExistsShowsStmt = `CREATE TABLE IF NOT EXISTS shows (
 	show STRING NOT NULL UNIQUE CHECK (LENGTH(show) > 0) CHECK (show NOT LIKE '% %'),
 	status STRING NOT NULL,
-	vfx_supervisor STRING NOT NULL,
-	vfx_manager STRING NOT NULL,
+	supervisor STRING NOT NULL,
 	cg_supervisor STRING NOT NULL,
-	vfx_due_date TIMESTAMPTZ NOT NULL,
+	pd STRING NOT NULL,
+	managers STRING[] NOT NULL,
+	due_date TIMESTAMPTZ NOT NULL,
 	default_shot_tasks STRING[] NOT NULL,
 	default_asset_tasks STRING[] NOT NULL,
 	tags STRING[] NOT NULL,
@@ -33,11 +34,12 @@ type Show struct {
 
 	Status string `db:"status"`
 
-	VFXSupervisor string `db:"vfx_supervisor"`
-	VFXManager    string `db:"vfx_manager"`
-	CGSupervisor  string `db:"cg_supervisor"`
+	Supervisor   string   `db:"supervisor"`
+	CGSupervisor string   `db:"cg_supervisor"`
+	PD           string   `db:"pd"`
+	Managers     []string `db:"managers"`
 
-	VFXDueDate        time.Time `db:"vfx_due_date"`
+	DueDate           time.Time `db:"due_date"`
 	DefaultShotTasks  []string  `db:"default_shot_tasks"`
 	DefaultAssetTasks []string  `db:"default_asset_tasks"`
 	Tags              []string  `db:"tags"`

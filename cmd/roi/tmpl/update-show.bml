@@ -17,17 +17,20 @@
 				{{end}}
 			]
 		]
-		<div class="field"> [<label> [VFX 수퍼바이저]
-			<input type="text" name="vfx_supervisor" value="{{.Show.VFXSupervisor}}"/>
-		]
-		<div class="field"> [<label> [VFX 매니저]
-			<input type="text" name="vfx_manager" value="{{.Show.VFXManager}}"/>
+		<div class="field"> [<label> [수퍼바이저]
+			<input type="text" name="supervisor" value="{{.Show.Supervisor}}"/>
 		]
 		<div class="field"> [<label> [CG 수퍼바이저]
 			<input type="text" name="cg_supervisor" value="{{.Show.CGSupervisor}}"/>
 		]
-		<div class="field"> [<label> [VFX 종료일]
-			<input type="date" name="vfx_due_date" value="{{stringFromDate .Show.VFXDueDate}}"/>
+		<div class="field"> [<label> [PD]
+			<input type="text" name="pd" value="{{.Show.PD}}"/>
+		]
+		<div class="field"> [<label> [매니저]
+			<input type="text" name="managers" placeholder="매니저, 매니저, ..." value="{{fieldJoin .Show.Managers}}"/>
+		]
+		<div class="field"> [<label> [마감일]
+			<input type="date" name="due_date" value="{{stringFromDate .Show.DueDate}}"/>
 		]
 		<div class="field"> [<label> [기본 샷 태스크]
 			<input type="text" name="default_shot_tasks" value="{{fieldJoin .Show.DefaultShotTasks}}"/>
