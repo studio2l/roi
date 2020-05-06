@@ -23,14 +23,7 @@
 			<div style="display:inline-block;margin-right:1rem;"> [VFX 수퍼바이저: {{.VFXSupervisor}}]
 			<div style="display:inline-block;margin-right:1rem;"> [VFX 매니저: {{.VFXManager}}]
 			<div style="display:inline-block;margin-right:1rem;"> [CG 수퍼바이저: {{.CGSupervisor}}]
-			<br>
-			<div style="display:inline-block;margin-right:1rem;"> [클라이언트: {{.Client}}]
-			<div style="display:inline-block;margin-right:1rem;"> [감독: {{.Director}}]
-			<div style="display:inline-block;margin-right:1rem;"> [PD: {{.Producer}}]
-			<br>
-			<div style="display:inline-block;margin-right:1rem"> [작업시작: {{stringFromDate .StartDate}}]
-			<div style="display:inline-block;margin-right:1rem"> [작업종료: {{stringFromDate .VFXDueDate}}]
-			<div style="display:inline-block;margin-right:1rem"> [개봉일: {{stringFromDate .ReleaseDate}}]
+			<div style="display:inline-block;margin-right:1rem;"> [작업종료: {{stringFromDate .VFXDueDate}}]
 		]
 	]
 ]
