@@ -9,6 +9,7 @@ import (
 var testVersionA = &Version{
 	Show:     testShow.Show,
 	Category: "shot",
+	Group:    testGroup.Group,
 	Unit:     testUnitA.Unit,
 	Task:     testTaskA.Task,
 	Version:  "v001",
@@ -49,6 +50,16 @@ func TestVersion(t *testing.T) {
 		err = DeleteShow(db, testShow.ID())
 		if err != nil {
 			t.Fatalf("could not delete project: %v", err)
+		}
+	}()
+	err = AddGroup(db, testGroup)
+	if err != nil {
+		t.Fatalf("could not add group to groups table: %s", err)
+	}
+	defer func() {
+		err = DeleteGroup(db, testGroup.ID())
+		if err != nil {
+			t.Fatalf("could not delete group: %s", err)
 		}
 	}()
 	err = AddUnit(db, testUnitA)

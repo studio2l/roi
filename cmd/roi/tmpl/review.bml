@@ -36,7 +36,7 @@
         <div class="ui divider"> []
         <div id="show-{{$.Show}}-targets-by-due" class="shots-per-due ui grey inverted segment"> [
         {{range $t := $targets}}
-            <a class="ui small label" href="/review-task?id={{$t.ID}}"> [{{$t.Unit}} / {{$t.Task}}<div class="detail"> [{{$t.Status.UIString}}]]
+            <a class="ui small label" href="/review-task?id={{$t.ID}}"> [{{$t.Group}}/{{$t.Unit}}<div class="detail"> [{{$t.Task}}]]
         {{end}}
         ]
     ]

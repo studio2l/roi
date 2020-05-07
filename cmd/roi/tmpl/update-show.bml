@@ -4,8 +4,8 @@
 <div class="ui raised very padded text container grey inverted segment"> [
 	{{with $s := $.Show}}
 	<h2 class="ui header"> [쇼 설정]
-	<h3 class="ui dividing header"> [
-		<span style="color:#ccc"> [{{$s.Show}}]
+	<h3 class="ui dividing header" style="color:#9f9f9f"> [
+		<a href="/update-show?id={{$s.Show}}" style="color:#9f9f9f"> [{{$s.Show}}]
 	]
 	{{end}}
 	<form method="post" class="ui form"> [

@@ -50,12 +50,17 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 
+	grp := ""
 	shots := make([]string, 0)
 	f := make(map[string]string)
 	for _, v := range strings.Fields(query) {
 		kv := strings.Split(v, ":")
 		if len(kv) == 1 {
-			shots = append(shots, v)
+			if v[len(v)-1] == '/' {
+				grp = v[:len(v)-1]
+			} else {
+				shots = append(shots, v)
+			}
 		} else {
 			f[kv[0]] = kv[1]
 		}
@@ -65,7 +70,7 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		t, _ := timeFromString(s)
 		return t
 	}
-	ss, err := roi.SearchUnits(DB, show, ctg, shots, f["tag"], f["status"], f["task"], f["assignee"], f["task-status"], toTime(f["due"]))
+	ss, err := roi.SearchUnits(DB, show, ctg, grp, shots, f["tag"], f["status"], f["task"], f["assignee"], f["task-status"], toTime(f["due"]))
 	if err != nil {
 		return err
 	}

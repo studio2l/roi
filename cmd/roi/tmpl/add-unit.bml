@@ -7,6 +7,9 @@
 		<div class="field"> [<label> [쇼]
 			<input readonly type="text" name="id" value="{{.Show.Show}}"/>
 		]
+		<div class="field"> [<label> [그룹]
+			<input type="text" name="group" value=""/>
+		]
 		<div class="field"> [<label> [유닛]
 			<input type="text" name="unit" value=""/>
 		]

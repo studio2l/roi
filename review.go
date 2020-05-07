@@ -12,6 +12,7 @@ import (
 var CreateTableIfNotExistsReviewsStmt = `CREATE TABLE IF NOT EXISTS reviews (
 	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
 	category STRING NOT NULL CHECK (length(category) > 0) CHECK (category NOT LIKE '% %'),
+	grp STRING NOT NULL CHECK (length(grp) > 0) CHECK (grp NOT LIKE '% %'),
 	unit STRING NOT NULL CHECK (length(unit) > 0) CHECK (unit NOT LIKE '% %'),
 	task STRING NOT NULL CHECK (length(task) > 0) CHECK (task NOT LIKE '% %'),
 	version STRING NOT NULL CHECK (length(version) > 0),
@@ -27,6 +28,7 @@ var CreateTableIfNotExistsReviewsStmt = `CREATE TABLE IF NOT EXISTS reviews (
 type Review struct {
 	Show     string    `db:"show"`
 	Category string    `db:"category"`
+	Group    string    `db:"grp"` // group이 sql 구문이기 때문에 줄여서 씀.
 	Unit     string    `db:"unit"`
 	Task     string    `db:"task"`
 	Version  string    `db:"version"`
@@ -94,7 +96,7 @@ func AddReview(db *sql.DB, r *Review) error {
 		return err
 	}
 	// 부모가 있는지 검사
-	_, err = GetVersion(db, r.Show+"/"+r.Category+"/"+r.Unit+"/"+r.Task+"/"+r.Version)
+	_, err = GetVersion(db, r.Show+"/"+r.Category+"/"+r.Group+"/"+r.Unit+"/"+r.Task+"/"+r.Version)
 	if err != nil {
 		return err
 	}
@@ -106,7 +108,7 @@ func AddReview(db *sql.DB, r *Review) error {
 
 // VersionReviews는 해당 버전의 리뷰들을 반환한다.
 func VersionReviews(db *sql.DB, id string) ([]*Review, error) {
-	show, ctg, unit, task, ver, err := SplitVersionID(id)
+	show, ctg, grp, unit, task, ver, err := SplitVersionID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +116,7 @@ func VersionReviews(db *sql.DB, id string) ([]*Review, error) {
 	if err != nil {
 		return nil, err
 	}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM reviews WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4 AND version=$5", reviewDBKey), show, ctg, unit, task, ver)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM reviews WHERE show=$1 AND category=$2 AND grp=$3 AND unit=$4 AND task=$5 AND version=$6", reviewDBKey), show, ctg, grp, unit, task, ver)
 	reviews := make([]*Review, 0)
 	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		r := &Review{}

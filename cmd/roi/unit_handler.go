@@ -65,13 +65,14 @@ func addUnitHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 }
 
 func addUnitPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	err := mustFields(r, "id", "category", "unit")
+	err := mustFields(r, "id", "category", "group", "unit")
 	if err != nil {
 		return err
 	}
 	// 할일: id를 show로 변경할 것
 	id := r.FormValue("id")
 	ctg := r.FormValue("category")
+	grp := r.FormValue("group")
 	unit := r.FormValue("unit")
 	sh, err := roi.GetShow(DB, id)
 	if err != nil {
@@ -89,6 +90,7 @@ func addUnitPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	s := &roi.Unit{
 		Show:     id,
 		Category: ctg,
+		Group:    grp,
 		Unit:     unit,
 		Status:   roi.StatusInProgress,
 		Tasks:    tasks,
@@ -202,7 +204,7 @@ func updateMultiUnitsHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 	}
 	ids := r.Form["id"]
 	id := ids[0]
-	show, _, _, err := roi.SplitUnitID(id)
+	show, _, _, _, err := roi.SplitUnitID(id)
 	if err != nil {
 		return err
 	}

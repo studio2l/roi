@@ -31,6 +31,7 @@ func initDB(url string) (*sql.DB, error) {
 		dbStmt("GRANT ALL ON DATABASE roi TO roiuser"),
 		dbStmt(CreateTableIfNotExistsSitesStmt),
 		dbStmt(CreateTableIfNotExistsShowsStmt),
+		dbStmt(CreateTableIfNotExistsGroupsStmt),
 		dbStmt(CreateTableIfNotExistsUnitsStmt),
 		dbStmt(CreateTableIfNotExistsTasksStmt),
 		dbStmt(CreateTableIfNotExistsVersionsStmt),
