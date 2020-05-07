@@ -40,7 +40,7 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		http.Redirect(w, r, "/units?show="+show+"&category="+ctg+"&q="+query, http.StatusSeeOther)
 		return nil
 	}
-	_, err = roi.GetShow(DB, show)
+	s, err := roi.GetShow(DB, show)
 	if err != nil {
 		return err
 	}
@@ -48,6 +48,36 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	err = roi.UpdateUserConfig(DB, env.User.ID, cfg)
 	if err != nil {
 		return err
+	}
+	if query == "?" {
+		sgrps, err := roi.Groups(DB, show, "shot")
+		if err != nil {
+			return err
+		}
+		agrps, err := roi.Groups(DB, show, "asset")
+		if err != nil {
+			return err
+		}
+		recipe := struct {
+			LoggedInUser string
+			Shows        []*roi.Show
+			Query        string
+			Show         string
+			Category     string
+			ShotGroups   []*roi.Group
+			AssetGroups  []*roi.Group
+			Tags         []string
+		}{
+			LoggedInUser: env.User.ID,
+			Shows:        shows,
+			Query:        query,
+			Show:         s.ID(),
+			Category:     "",
+			ShotGroups:   sgrps,
+			AssetGroups:  agrps,
+			Tags:         s.Tags,
+		}
+		return executeTemplate(w, "search-help", recipe)
 	}
 
 	grp := ""
