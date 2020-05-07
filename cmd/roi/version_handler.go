@@ -17,7 +17,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	id := r.FormValue("id")
-	show, ctg, unit, task, err := roi.SplitTaskID(id)
+	show, ctg, grp, unit, task, err := roi.SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -30,6 +30,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		Version: &roi.Version{
 			Show:     show,
 			Category: ctg,
+			Group:    grp,
 			Unit:     unit,
 			Task:     task,
 		},
@@ -43,7 +44,7 @@ func addVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		return err
 	}
 	id := r.FormValue("id")
-	show, ctg, unit, task, err := roi.SplitTaskID(id)
+	show, ctg, grp, unit, task, err := roi.SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -51,6 +52,7 @@ func addVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	v := &roi.Version{
 		Show:      show,
 		Category:  ctg,
+		Group:     grp,
 		Unit:      unit,
 		Task:      task,
 		Version:   version,

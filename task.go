@@ -15,6 +15,7 @@ import (
 var CreateTableIfNotExistsTasksStmt = `CREATE TABLE IF NOT EXISTS tasks (
 	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
 	category STRING NOT NULL CHECK (length(category) > 0)  CHECK (category NOT LIKE '% %'),
+	grp STRING NOT NULL CHECK (length(grp) > 0) CHECK (grp NOT LIKE '% %'),
 	unit STRING NOT NULL CHECK (length(unit) > 0) CHECK (unit NOT LIKE '% %'),
 	task STRING NOT NULL CHECK (length(task) > 0) CHECK (task NOT LIKE '% %'),
 	status STRING NOT NULL CHECK (length(status) > 0),
@@ -32,6 +33,7 @@ type Task struct {
 	// 관련 아이디
 	Show     string `db:"show"`
 	Category string `db:"category"`
+	Group    string `db:"grp"`  // group이 sql 구문이기 때문에 줄여서 씀.
 	Unit     string `db:"unit"` // 샷 또는 애셋 유닛
 	Task     string `db:"task"` // 파트 또는 파트_요소로 구성된다. 예) fx, fx_fire
 
@@ -51,13 +53,13 @@ var _ []interface{} = dbVals(&Task{})
 
 // ID는 Task의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
 func (t *Task) ID() string {
-	return t.Show + "/" + t.Category + "/" + t.Unit + "/" + t.Task
+	return t.Show + "/" + t.Category + "/" + t.Group + "/" + t.Unit + "/" + t.Task
 }
 
 // UnitID는 부모 유닛의 아이디를 반환한다.
 // 유닛은 샷 또는 애셋이다.
 func (t *Task) UnitID() string {
-	return t.Show + "/" + t.Category + "/" + t.Unit
+	return t.Show + "/" + t.Category + "/" + t.Group + "/" + t.Unit
 }
 
 // reTaskName은 가능한 태스크명을 정의하는 정규식이다.
@@ -74,24 +76,25 @@ func verifyTaskName(task string) error {
 
 // SplitTaskID는 받아들인 샷 아이디를 쇼, 카테고리, 샷, 태스크로 분리해서 반환한다.
 // 만일 샷 아이디가 유효하지 않다면 에러를 반환한다.
-func SplitTaskID(id string) (string, string, string, string, error) {
+func SplitTaskID(id string) (string, string, string, string, string, error) {
 	ns := strings.Split(id, "/")
-	if len(ns) != 4 {
-		return "", "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
+	if len(ns) != 5 {
+		return "", "", "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
 	}
 	show := ns[0]
 	ctg := ns[1]
-	unit := ns[2]
-	task := ns[3]
-	if show == "" || ctg == "" || unit == "" || task == "" {
-		return "", "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
+	grp := ns[2]
+	unit := ns[3]
+	task := ns[4]
+	if show == "" || ctg == "" || grp == "" || unit == "" || task == "" {
+		return "", "", "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
 	}
-	return show, ctg, unit, task, nil
+	return show, ctg, grp, unit, task, nil
 }
 
 // verifyTaskID는 받아들인 태스크 아이디가 유효하지 않다면 에러를 반환한다.
 func verifyTaskID(id string) error {
-	show, ctg, unit, task, err := SplitTaskID(id)
+	show, ctg, grp, unit, task, err := SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -100,6 +103,10 @@ func verifyTaskID(id string) error {
 		return err
 	}
 	err = verifyCategoryName(ctg)
+	if err != nil {
+		return err
+	}
+	err = verifyGroupName(grp)
 	if err != nil {
 		return err
 	}
@@ -217,7 +224,7 @@ func UpdateTask(db *sql.DB, id string, t *Task) error {
 		return fmt.Errorf("not allowed to change category of task")
 	}
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND category='%s' AND unit='%s' AND task='%s'", taskDBKey, taskDBIdx, t.Show, t.Category, t.Unit, t.Task), dbVals(t)...),
+		dbStmt(fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND category='%s' AND grp='%s' AND unit='%s' AND task='%s'", taskDBKey, taskDBIdx, t.Show, t.Category, t.Group, t.Unit, t.Task), dbVals(t)...),
 	}
 	return dbExec(db, stmts)
 }
@@ -225,17 +232,17 @@ func UpdateTask(db *sql.DB, id string, t *Task) error {
 // GetTask는 db에서 하나의 태스크를 찾는다.
 // 해당 태스크가 없다면 nil과 NotFound 에러를 반환한다.
 func GetTask(db *sql.DB, id string) (*Task, error) {
-	show, ctg, unit, task, err := SplitTaskID(id)
+	show, ctg, grp, unit, task, err := SplitTaskID(id)
 	if err != nil {
 		return nil, err
 	}
 	// 부모가 있는지 검사
-	unitID := show + "/" + ctg + "/" + unit
+	unitID := show + "/" + ctg + "/" + grp + "/" + unit
 	_, err = GetUnit(db, unitID)
 	if err != nil {
 		return nil, err
 	}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND unit=$2 AND task=$3 LIMIT 1", taskDBKey), show, unit, task)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND grp=$3 AND unit=$4 AND task=$5 LIMIT 1", taskDBKey), show, ctg, grp, unit, task)
 	t := &Task{}
 	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, t)
@@ -276,7 +283,7 @@ func TasksNeedReview(db *sql.DB, show, ctg string) ([]*Task, error) {
 
 // UnitTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
 func UnitTasks(db *sql.DB, id string) ([]*Task, error) {
-	show, ctg, unit, err := SplitUnitID(id)
+	show, ctg, grp, unit, err := SplitUnitID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +299,7 @@ func UnitTasks(db *sql.DB, id string) ([]*Task, error) {
 		taskNotHidden[task] = true
 		taskIdx[task] = i
 	}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND unit=$3", taskDBKey), show, ctg, unit)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM tasks WHERE show=$1 AND category=$2 AND grp=$3 AND unit=$4", taskDBKey), show, ctg, grp, unit)
 	ts := make([]*Task, 0)
 	err = dbQuery(db, stmt, func(rows *sql.Rows) error {
 		t := &Task{}
@@ -345,7 +352,7 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 // 해당 태스크가 없어도 에러를 내지 않기 때문에 검사를 원한다면 TaskExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
 func DeleteTask(db *sql.DB, id string) error {
-	show, ctg, unit, task, err := SplitTaskID(id)
+	show, ctg, grp, unit, task, err := SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -354,8 +361,8 @@ func DeleteTask(db *sql.DB, id string) error {
 		return err
 	}
 	stmts := []dbStatement{
-		dbStmt("DELETE FROM tasks WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4", show, ctg, unit, task),
-		dbStmt("DELETE FROM versions WHERE show=$1 AND category=$2 AND unit=$3 AND task=$4", show, ctg, unit, task),
+		dbStmt("DELETE FROM tasks WHERE show=$1 AND category=$2 AND grp=$3 AND unit=$4 AND task=$5", show, ctg, grp, unit, task),
+		dbStmt("DELETE FROM versions WHERE show=$1 AND category=$2 AND grp=$3 AND unit=$4 AND task=$5", show, ctg, grp, unit, task),
 	}
 	return dbExec(db, stmts)
 }

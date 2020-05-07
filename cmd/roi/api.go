@@ -86,7 +86,7 @@ func addUnitApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("'id' not specified"))
 		return
 	}
-	show, ctg, unit, err := roi.SplitUnitID(id)
+	show, ctg, grp, unit, err := roi.SplitUnitID(id)
 	if err != nil {
 		apiBadRequest(w, fmt.Errorf("invalid unit id: %v", id))
 		return
@@ -152,6 +152,7 @@ func addUnitApiHandler(w http.ResponseWriter, r *http.Request) {
 	s := &roi.Unit{
 		Show:          show,
 		Category:      ctg,
+		Group:         grp,
 		Unit:          unit,
 		Status:        roi.Status(status),
 		EditOrder:     editOrder,

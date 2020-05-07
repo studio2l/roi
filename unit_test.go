@@ -9,7 +9,8 @@ import (
 var testUnitA = &Unit{
 	Show:          testShow.Show,
 	Category:      "shot",
-	Unit:          "CG_0010",
+	Group:         testGroup.Group,
+	Unit:          "0010",
 	Status:        StatusInProgress,
 	EditOrder:     10,
 	Description:   "방에 우두커니 혼자 않아 있는 로이.",
@@ -26,9 +27,10 @@ var testUnitA = &Unit{
 }
 
 var testUnitB = &Unit{
-	Unit:          "CG_0020",
-	Category:      "shot",
 	Show:          testShow.Show,
+	Category:      "shot",
+	Group:         testGroup.Group,
+	Unit:          "0020",
 	Status:        StatusHold,
 	EditOrder:     20,
 	Description:   "고개를 돌려 창문 밖을 바라본다.",
@@ -44,9 +46,10 @@ var testUnitB = &Unit{
 }
 
 var testUnitC = &Unit{
-	Unit:          "CG_0030",
-	Category:      "shot",
 	Show:          testShow.Show,
+	Category:      "shot",
+	Group:         testGroup.Group,
+	Unit:          "0030",
 	Status:        StatusHold,
 	EditOrder:     30,
 	Description:   "쓸쓸해 보이는 가로등",
@@ -90,7 +93,16 @@ func TestUnit(t *testing.T) {
 			t.Fatalf("could not delete project: %s", err)
 		}
 	}()
-
+	err = AddGroup(db, testGroup)
+	if err != nil {
+		t.Fatalf("could not add group to groups table: %s", err)
+	}
+	defer func() {
+		err = DeleteGroup(db, testGroup.ID())
+		if err != nil {
+			t.Fatalf("could not delete group: %s", err)
+		}
+	}()
 	for _, s := range want {
 		err = AddUnit(db, s)
 		if err != nil {
@@ -109,7 +121,7 @@ func TestUnit(t *testing.T) {
 		}
 	}
 
-	got, err := SearchUnits(db, testShow.Show, "shot", []string{}, "", "", "", "", "", time.Time{})
+	got, err := SearchUnits(db, testShow.Show, "shot", "", []string{}, "", "", "", "", "", time.Time{})
 	if err != nil {
 		t.Fatalf("could not search units from units table: %s", err)
 	}
@@ -120,7 +132,7 @@ func TestUnit(t *testing.T) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
 
-	got, err = SearchUnits(db, testShow.Show, "shot", []string{"CG_0010"}, "", "", "", "", "", time.Time{})
+	got, err = SearchUnits(db, testShow.Show, "shot", "CG", []string{"0010"}, "", "", "", "", "", time.Time{})
 	if err != nil {
 		t.Fatalf("could not search units from units table: %s", err)
 	}
@@ -128,7 +140,7 @@ func TestUnit(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got: %v, want: %v", got, want)
 	}
-	got, err = SearchUnits(db, testShow.Show, "shot", []string{}, "로이", "", "", "", "", time.Time{})
+	got, err = SearchUnits(db, testShow.Show, "shot", "", []string{}, "로이", "", "", "", "", time.Time{})
 	if err != nil {
 		t.Fatalf("could not search units from units table: %s", err)
 	}

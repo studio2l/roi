@@ -97,7 +97,7 @@ func updateMultiTasksHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 	}
 	ids := r.Form["id"]
 	id := ids[0]
-	show, ctg, _, err := roi.SplitUnitID(id)
+	show, ctg, _, _, err := roi.SplitUnitID(id)
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func reviewTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		return err
 	}
 	id := r.FormValue("id")
-	show, ctg, unit, task, err := roi.SplitTaskID(id)
+	show, ctg, grp, unit, task, err := roi.SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -240,6 +240,7 @@ func reviewTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	rv := &roi.Review{
 		Show:     show,
 		Category: ctg,
+		Group:    grp,
 		Unit:     unit,
 		Task:     task,
 		Version:  ver,

@@ -47,7 +47,7 @@
 		<div class="ui" style="width:288px;margin-right:22px;display:flex;align-items:end;"> [
 				<div style="display:flex;flex-direction:column;"> [
 					<a href="/update-unit?id={{$s.ID}}" style="font-size:1.3rem;color:white;border-bottom:solid 1px var(--{{.Status.UIColor}});"> [
-						<b> [{{.Unit}}]
+						<b> [{{.Group}}/{{.Unit}}]
 					]
 				]
 				<div style="width:1rem;display:inline-block;"> []

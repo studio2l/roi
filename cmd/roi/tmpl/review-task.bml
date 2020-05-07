@@ -66,11 +66,12 @@
 			<h2 style="color:#ddd"> [
 				태스크 리뷰
 			]
-			<div style="color:#818181;font-size:1.2rem;"> [
+			<div style="color:#9f9f9f;font-size:1.2rem;"> [
 				<a href="/update-show?id={{$t.Show}}" style="color:#9f9f9f"> [{{$t.Show}}] /
 				{{$t.Category}} /
-				<a href="/update-shot?id={{$t.Show}}/{{$t.Category}}/{{$t.Unit}}" style="color:#9f9f9f"> [{{$t.Unit}}] /
-				<a href="/update-task?id={{$t.Show}}/{{$t.Category}}/{{$t.Unit}}/{{$t.Task}}" style="color:#9f9f9f"> [{{$t.Task}}]
+				<a href="/update-group?id={{$t.Show}}/{{$t.Category}}/{{$t.Group}}" style="color:#9f9f9f"> [{{$t.Group}}] /
+				<a href="/update-unit?id={{$t.Show}}/{{$t.Category}}/{{$t.Group}}/{{$t.Unit}}" style="color:#9f9f9f"> [{{$t.Unit}}] /
+				<a href="/update-task?id={{$t.Show}}/{{$t.Category}}/{{$t.Group}}/{{$t.Unit}}/{{$t.Task}}" style="color:#9f9f9f"> [{{$t.Task}}]
 			]
 		]
 		{{end}}

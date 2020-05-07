@@ -19,6 +19,7 @@
 				<i class="plus circle icon"> []
 				<div class="menu"> [
 					<a class="item" href="/add-show"> [Show]
+					<a class="item" href="/add-group"> [Group]
 					<a class="item" href="/add-unit?category=shot"> [Shot]
 					<a class="item" href="/add-unit?category=asset"> [Asset]
 				]

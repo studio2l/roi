@@ -1,0 +1,23 @@
+{{define "add-group"}}
+{{template "head"}}
+{{template "nav" $}}
+<div class="ui raised very padded text container grey inverted segment"> [
+	<h2 class="ui dividing header"> [그룹 추가]
+	<form method="post" class="ui form"> [
+		<div class="field"> [<label> [쇼]
+			<input readonly type="text" name="show" value="{{$.Show}}"/>
+		]
+		<div class="field"> [<label> [카테고리]
+			<select type="text" name="category"> [
+				<option value="shot"> [샷]
+				<option value="asset"> [애셋]
+			]
+		]
+		<div class="field"> [<label> [그룹]
+			<input type="text" name="group" value="" />
+		]
+		<button class="ui button green" type="submit" value="Submit"> [추가]
+	]
+]
+{{template "footer"}}
+{{end}}

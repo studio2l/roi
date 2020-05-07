@@ -160,6 +160,7 @@ func DeleteShow(db *sql.DB, show string) error {
 	}
 	stmts := []dbStatement{
 		dbStmt("DELETE FROM shows WHERE show=$1", show),
+		dbStmt("DELETE FROM groups WHERE show=$1", show),
 		dbStmt("DELETE FROM units WHERE show=$1", show),
 		dbStmt("DELETE FROM tasks WHERE show=$1", show),
 		dbStmt("DELETE FROM versions WHERE show=$1", show),

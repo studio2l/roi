@@ -3,29 +3,42 @@
 {{template "nav" $}}
 <div style="padding:15px 10px 15px 10px;z-index:0;"> [
 <!--검색 결과-->
-{{range .Shows}}
+{{range $s := $.Shows}}
 <div class="ui inverted segment"> [
-	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:4px;font-size:15px;"> [
+	<div class="shot-head" style="height:20px;display:flex;align-items:end;margin-bottom:1rem;font-size:15px;"> [
 		<div class="ui" style="flex:1;margin-right:22px;display:flex;align-items:end;"> [
-				<div style="display:flex;flex-direction:column;"> [
-					<a href="/update-show?id={{.Show}}" style="font-size:1.3rem;color:white;"> [
-						<b> [{{.Show}}]
-					]
-					<div style="height:2px;border-radius:1px;background-color:var(--{{"blue"}});"> []
+			<div style="display:flex;flex-direction:column;"> [
+				<a href="/update-show?id={{.Show}}" style="font-size:1.3rem;color:white;"> [
+					<b> [{{.Show}}]
 				]
-				<div> [ / {{.Status}}]
-				<div style="width:1rem;display:inline-block;"> []
-				<div style="flex:1;"> []
+				<div style="height:2px;border-radius:1px;background-color:var(--{{"blue"}});"> []
+			]
+			<div> [ / {{.Status}}]
+			<div style="width:1rem;display:inline-block;"> []
+			<div style="flex:1;"> []
+			<div style="font-size:14px;"> [
+				<div style="color:gray;margin:0px;"> [
+					<div style="display:inline-block;margin-right:1rem;"> [수퍼바이저: {{$s.Supervisor}}]
+					<div style="display:inline-block;margin-right:1rem;"> [CG 수퍼바이저: {{$s.CGSupervisor}}]
+					<div style="display:inline-block;margin-right:1rem;"> [PD: {{$s.PD}}]
+					<div style="display:inline-block;margin-right:1rem;"> [매니저: {{fieldJoin $s.Managers}}]
+					<div style="display:inline-block;margin-right:1rem;"> [작업종료: {{stringFromDate $s.DueDate}}]
+				]
+			]
 		]
 	]
-	<div style="font-size:14px;"> [
-		<div style="color:gray;margin:0px;"> [
-			<div style="display:inline-block;margin-right:1rem;"> [수퍼바이저: {{.Supervisor}}]
-			<div style="display:inline-block;margin-right:1rem;"> [CG 수퍼바이저: {{.CGSupervisor}}]
-			<div style="display:inline-block;margin-right:1rem;"> [PD: {{.PD}}]
-			<div style="display:inline-block;margin-right:1rem;"> [매니저: {{fieldJoin .Managers}}]
-			<div style="display:inline-block;margin-right:1rem;"> [작업종료: {{stringFromDate .DueDate}}]
-		]
+	<div style="display:flex;"> [
+		{{with $ctgs := index $.ShowGroups .Show}}
+			<span style="margin-right:0.5rem"> [shot]
+			{{range $g := index $ctgs "shot"}}
+				<a class="ui mini label" href="/update-group?id={{$s.Show}}/shot/{{$g.Group}}">[{{$g.Group}}]
+			{{end}}
+			<div style="width:1rem"> []
+			<span style="margin-right:0.5rem"> [asset]
+			{{range $g := index $ctgs "asset"}}
+				<a class="ui mini label" href="/update-group?id={{$s.Show}}/asset/{{$g.Group}}">[{{$g.Group}}]
+			{{end}}
+		{{end}}
 	]
 ]
 {{end}}
