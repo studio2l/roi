@@ -92,13 +92,12 @@ func SplitTaskID(id string) (string, string, string, string, string, error) {
 	return show, ctg, grp, unit, task, nil
 }
 
-// verifyTaskID는 받아들인 태스크 아이디가 유효하지 않다면 에러를 반환한다.
-func verifyTaskID(id string) error {
-	show, ctg, grp, unit, task, err := SplitTaskID(id)
-	if err != nil {
-		return err
-	}
-	err = verifyShowName(show)
+func JoinTaskID(show, ctg, grp, unit, task string) string {
+	return show + "/" + ctg + "/" + grp + "/" + unit + "/" + task
+}
+
+func verifyTaskPrimaryKeys(show, ctg, grp, unit, task string) error {
+	err := verifyShowName(show)
 	if err != nil {
 		return err
 	}
@@ -127,7 +126,7 @@ func verifyTask(db *sql.DB, t *Task) error {
 	if t == nil {
 		return fmt.Errorf("nil task")
 	}
-	err := verifyTaskID(t.ID())
+	err := verifyTaskPrimaryKeys(t.Show, t.Category, t.Group, t.Unit, t.Task)
 	if err != nil {
 		return err
 	}
@@ -141,28 +140,28 @@ func verifyTask(db *sql.DB, t *Task) error {
 	}
 	t.PublishVersion = strings.TrimSpace(t.PublishVersion)
 	if t.PublishVersion != "" {
-		_, err = GetVersion(db, t.ID()+"/"+t.PublishVersion)
+		_, err = GetVersion(db, t.Show, t.Category, t.Group, t.Unit, t.Task, t.PublishVersion)
 		if err != nil {
 			return fmt.Errorf("publish version: %w", err)
 		}
 	}
 	t.ApprovedVersion = strings.TrimSpace(t.ApprovedVersion)
 	if t.ApprovedVersion != "" {
-		_, err = GetVersion(db, t.ID()+"/"+t.ApprovedVersion)
+		_, err = GetVersion(db, t.Show, t.Category, t.Group, t.Unit, t.Task, t.ApprovedVersion)
 		if err != nil {
 			return fmt.Errorf("approved version: %w", err)
 		}
 	}
 	t.ReviewVersion = strings.TrimSpace(t.ReviewVersion)
 	if t.ReviewVersion != "" {
-		_, err = GetVersion(db, t.ID()+"/"+t.ReviewVersion)
+		_, err = GetVersion(db, t.Show, t.Category, t.Group, t.Unit, t.Task, t.ReviewVersion)
 		if err != nil {
 			return fmt.Errorf("review version: %w", err)
 		}
 	}
 	t.WorkingVersion = strings.TrimSpace(t.WorkingVersion)
 	if t.WorkingVersion != "" {
-		_, err = GetVersion(db, t.ID()+"/"+t.WorkingVersion)
+		_, err = GetVersion(db, t.Show, t.Category, t.Group, t.Unit, t.Task, t.WorkingVersion)
 		if err != nil {
 			return fmt.Errorf("working version: %w", err)
 		}
@@ -186,7 +185,7 @@ func AddTask(db *sql.DB, t *Task) error {
 		return err
 	}
 	// 부모가 있는지 검사
-	_, err = GetUnit(db, t.UnitID())
+	_, err = GetUnit(db, t.Show, t.Category, t.Group, t.Unit)
 	if err != nil {
 		return err
 	}
@@ -211,12 +210,12 @@ func addTaskStmts(db *sql.DB, t *Task) ([]dbStatement, error) {
 
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
 // 이 함수를 호출하기 전 해당 태스크가 존재하는지 사용자가 검사해야 한다.
-func UpdateTask(db *sql.DB, id string, t *Task) error {
+func UpdateTask(db *sql.DB, show, ctg, grp, unit, task string, t *Task) error {
 	err := verifyTask(db, t)
 	if err != nil {
 		return err
 	}
-	oldt, err := GetTask(db, id)
+	oldt, err := GetTask(db, show, ctg, grp, unit, task)
 	if err != nil {
 		return err
 	}
@@ -231,14 +230,13 @@ func UpdateTask(db *sql.DB, id string, t *Task) error {
 
 // GetTask는 db에서 하나의 태스크를 찾는다.
 // 해당 태스크가 없다면 nil과 NotFound 에러를 반환한다.
-func GetTask(db *sql.DB, id string) (*Task, error) {
-	show, ctg, grp, unit, task, err := SplitTaskID(id)
+func GetTask(db *sql.DB, show, ctg, grp, unit, task string) (*Task, error) {
+	err := verifyTaskPrimaryKeys(show, ctg, grp, unit, task)
 	if err != nil {
 		return nil, err
 	}
 	// 부모가 있는지 검사
-	unitID := show + "/" + ctg + "/" + grp + "/" + unit
-	_, err = GetUnit(db, unitID)
+	_, err = GetUnit(db, show, ctg, grp, unit)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +247,7 @@ func GetTask(db *sql.DB, id string) (*Task, error) {
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("task", id)
+			return nil, NotFound("task", JoinTaskID(show, ctg, grp, unit, task))
 		}
 		return nil, err
 	}
@@ -282,12 +280,12 @@ func TasksNeedReview(db *sql.DB, show, ctg string) ([]*Task, error) {
 }
 
 // UnitTasks는 db의 특정 프로젝트 특정 샷의 태스크 전체를 반환한다.
-func UnitTasks(db *sql.DB, id string) ([]*Task, error) {
-	show, ctg, grp, unit, err := SplitUnitID(id)
+func UnitTasks(db *sql.DB, show, ctg, grp, unit string) ([]*Task, error) {
+	err := verifyUnitPrimaryKeys(show, ctg, grp, unit)
 	if err != nil {
 		return nil, err
 	}
-	s, err := GetUnit(db, id)
+	s, err := GetUnit(db, show, ctg, grp, unit)
 	if err != nil {
 		return nil, err
 	}
@@ -349,14 +347,9 @@ func UserTasks(db *sql.DB, user string) ([]*Task, error) {
 }
 
 // DeleteTask는 해당 태스크와 그 하위의 모든 데이터를 db에서 지운다.
-// 해당 태스크가 없어도 에러를 내지 않기 때문에 검사를 원한다면 TaskExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
-func DeleteTask(db *sql.DB, id string) error {
-	show, ctg, grp, unit, task, err := SplitTaskID(id)
-	if err != nil {
-		return err
-	}
-	_, err = GetTask(db, id)
+func DeleteTask(db *sql.DB, show, ctg, grp, unit, task string) error {
+	_, err := GetTask(db, show, ctg, grp, unit, task)
 	if err != nil {
 		return err
 	}

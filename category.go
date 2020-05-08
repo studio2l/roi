@@ -12,3 +12,15 @@ func verifyCategoryName(ctg string) error {
 	}
 	return fmt.Errorf("invalid category: %s", ctg)
 }
+
+func verifyCategoryPrimaryKeys(show, ctg string) error {
+	err := verifyShowName(show)
+	if err != nil {
+		return err
+	}
+	err = verifyCategoryName(ctg)
+	if err != nil {
+		return err
+	}
+	return nil
+}

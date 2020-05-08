@@ -96,7 +96,7 @@ func AddReview(db *sql.DB, r *Review) error {
 		return err
 	}
 	// 부모가 있는지 검사
-	_, err = GetVersion(db, r.Show+"/"+r.Category+"/"+r.Group+"/"+r.Unit+"/"+r.Task+"/"+r.Version)
+	_, err = GetVersion(db, r.Show, r.Category, r.Group, r.Unit, r.Task, r.Version)
 	if err != nil {
 		return err
 	}
@@ -107,12 +107,8 @@ func AddReview(db *sql.DB, r *Review) error {
 }
 
 // VersionReviews는 해당 버전의 리뷰들을 반환한다.
-func VersionReviews(db *sql.DB, id string) ([]*Review, error) {
-	show, ctg, grp, unit, task, ver, err := SplitVersionID(id)
-	if err != nil {
-		return nil, err
-	}
-	_, err = GetVersion(db, id)
+func VersionReviews(db *sql.DB, show, ctg, grp, unit, task, ver string) ([]*Review, error) {
+	_, err := GetVersion(db, show, ctg, grp, unit, task, ver)
 	if err != nil {
 		return nil, err
 	}

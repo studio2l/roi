@@ -18,11 +18,15 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	id := r.FormValue("id")
-	t, err := roi.GetTask(DB, id)
+	show, ctg, grp, unit, task, err := roi.SplitTaskID(id)
 	if err != nil {
 		return err
 	}
-	vers, err := roi.TaskVersions(DB, id)
+	t, err := roi.GetTask(DB, show, ctg, grp, unit, task)
+	if err != nil {
+		return err
+	}
+	vers, err := roi.TaskVersions(DB, show, ctg, grp, unit, task)
 	if err != nil {
 		return err
 	}
@@ -52,6 +56,10 @@ func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		return err
 	}
 	id := r.FormValue("id")
+	show, ctg, grp, unit, task, err := roi.SplitTaskID(id)
+	if err != nil {
+		return err
+	}
 	tforms, err := parseTimeForms(r.Form, "due_date")
 	if err != nil {
 		return err
@@ -63,7 +71,7 @@ func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 			return err
 		}
 	}
-	t, err := roi.GetTask(DB, id)
+	t, err := roi.GetTask(DB, show, ctg, grp, unit, task)
 	if err != nil {
 		return err
 	}
@@ -75,7 +83,7 @@ func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	t.ReviewVersion = r.FormValue("review_version")
 	t.WorkingVersion = r.FormValue("working_version")
 
-	err = roi.UpdateTask(DB, id, t)
+	err = roi.UpdateTask(DB, show, ctg, grp, unit, task, t)
 	if err != nil {
 		return err
 	}
@@ -141,7 +149,11 @@ func updateMultiTasksPostHandler(w http.ResponseWriter, r *http.Request, env *En
 	status := r.FormValue("status")
 	assignee := r.FormValue("assignee")
 	for _, id := range ids {
-		s, err := roi.GetTask(DB, id+"/"+task)
+		show, ctg, grp, unit, err := roi.SplitUnitID(id)
+		if err != nil {
+			return err
+		}
+		s, err := roi.GetTask(DB, show, ctg, grp, unit, task)
 		if err != nil {
 			if errors.As(err, &roi.NotFoundError{}) {
 				// 여러 샷의 태스크를 한꺼번에 처리할 때는 어떤 샷에는
@@ -160,7 +172,7 @@ func updateMultiTasksPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		if assignee != "" {
 			s.Assignee = assignee
 		}
-		roi.UpdateTask(DB, id+"/"+task, s)
+		roi.UpdateTask(DB, show, ctg, grp, unit, task, s)
 	}
 	q := ""
 	for i, id := range ids {
@@ -183,11 +195,15 @@ func reviewTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	id := r.FormValue("id")
-	t, err := roi.GetTask(DB, id)
+	show, ctg, grp, unit, task, err := roi.SplitTaskID(id)
 	if err != nil {
 		return err
 	}
-	vs, err := roi.TaskVersions(DB, id)
+	t, err := roi.GetTask(DB, show, ctg, grp, unit, task)
+	if err != nil {
+		return err
+	}
+	vs, err := roi.TaskVersions(DB, show, ctg, grp, unit, task)
 	if err != nil {
 		return err
 	}
@@ -203,7 +219,7 @@ func reviewTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}
 	reviews := make(map[string][]*roi.Review)
 	for _, v := range vs {
-		rvs, err := roi.VersionReviews(DB, v.ID())
+		rvs, err := roi.VersionReviews(DB, v.Show, v.Category, v.Group, v.Unit, v.Task, v.Version)
 		if err != nil {
 			return err
 		}
@@ -254,7 +270,7 @@ func reviewTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	if err != nil {
 		return err
 	}
-	t, err := roi.GetTask(DB, id)
+	t, err := roi.GetTask(DB, show, ctg, grp, unit, task)
 	if err != nil {
 		return err
 	}
@@ -268,7 +284,7 @@ func reviewTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		default:
 			return roi.BadRequest(fmt.Sprintf("invalid review status: %s", status))
 		}
-		err = roi.UpdateTask(DB, id, t)
+		err = roi.UpdateTask(DB, show, ctg, grp, unit, task, t)
 		if err != nil {
 			return err
 		}

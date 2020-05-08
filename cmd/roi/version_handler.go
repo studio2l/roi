@@ -76,11 +76,15 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) erro
 		return err
 	}
 	id := r.FormValue("id")
-	v, err := roi.GetVersion(DB, id)
+	show, ctg, grp, unit, task, ver, err := roi.SplitVersionID(id)
 	if err != nil {
 		return err
 	}
-	t, err := roi.GetTask(DB, v.TaskID())
+	v, err := roi.GetVersion(DB, show, ctg, grp, unit, task, ver)
+	if err != nil {
+		return err
+	}
+	t, err := roi.GetTask(DB, show, ctg, grp, unit, task)
 	if err != nil {
 		return err
 	}
@@ -104,6 +108,10 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 		return err
 	}
 	id := r.FormValue("id")
+	show, ctg, grp, unit, task, ver, err := roi.SplitVersionID(id)
+	if err != nil {
+		return err
+	}
 	timeForms, err := parseTimeForms(r.Form, "start_date", "end_date")
 	if err != nil {
 		return err
@@ -113,7 +121,7 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 	if err != nil {
 		return err
 	}
-	v, err := roi.GetVersion(DB, id)
+	v, err := roi.GetVersion(DB, show, ctg, grp, unit, task, ver)
 	if err != nil {
 		return err
 	}
@@ -123,7 +131,7 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 	v.StartDate = timeForms["start_date"]
 	v.EndDate = timeForms["end_date"]
 
-	err = roi.UpdateVersion(DB, id, v)
+	err = roi.UpdateVersion(DB, show, ctg, grp, unit, task, ver, v)
 	if err != nil {
 		return err
 	}

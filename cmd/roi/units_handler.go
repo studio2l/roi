@@ -106,7 +106,7 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}
 	tasks := make(map[string]map[string]*roi.Task)
 	for _, s := range ss {
-		ts, err := roi.UnitTasks(DB, s.ID())
+		ts, err := roi.UnitTasks(DB, s.Show, s.Category, s.Group, s.Unit)
 		if err != nil {
 			return err
 		}

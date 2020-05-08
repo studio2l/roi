@@ -46,18 +46,18 @@ func TestGroup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add group to groups table: %s", err)
 	}
-	got, err := GetGroup(db, s.ID())
+	got, err := GetGroup(db, s.Show, s.Category, s.Group)
 	if err != nil {
 		t.Fatalf("could not get group from groups table: %s", err)
 	}
 	if !reflect.DeepEqual(got, s) {
 		t.Fatalf("got: %v, want: %v", got, s)
 	}
-	err = UpdateGroup(db, s.ID(), s)
+	err = UpdateGroup(db, s.Show, s.Category, s.Group, s)
 	if err != nil {
 		t.Fatalf("could not update group: %s", err)
 	}
-	err = DeleteGroup(db, s.ID())
+	err = DeleteGroup(db, s.Show, s.Category, s.Group)
 	if err != nil {
 		t.Fatalf("could not delete group from groups table: %s", err)
 	}

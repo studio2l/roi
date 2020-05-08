@@ -98,7 +98,7 @@ func TestUnit(t *testing.T) {
 		t.Fatalf("could not add group to groups table: %s", err)
 	}
 	defer func() {
-		err = DeleteGroup(db, testGroup.ID())
+		err = DeleteGroup(db, testGroup.Show, testGroup.Category, testGroup.Group)
 		if err != nil {
 			t.Fatalf("could not delete group: %s", err)
 		}
@@ -108,7 +108,7 @@ func TestUnit(t *testing.T) {
 		if err != nil {
 			t.Fatalf("could not add unit to units table: %s", err)
 		}
-		got, err := GetUnit(db, s.ID())
+		got, err := GetUnit(db, s.Show, s.Category, s.Group, s.Unit)
 		if err != nil {
 			t.Fatalf("could not get unit from units table: %s", err)
 		}
@@ -150,11 +150,11 @@ func TestUnit(t *testing.T) {
 	}
 
 	for _, s := range want {
-		err = UpdateUnit(db, s.ID(), s)
+		err = UpdateUnit(db, s.Show, s.Category, s.Group, s.Unit, s)
 		if err != nil {
 			t.Fatalf("could not update unit: %s", err)
 		}
-		err = DeleteUnit(db, s.ID())
+		err = DeleteUnit(db, s.Show, s.Category, s.Group, s.Unit)
 		if err != nil {
 			t.Fatalf("could not delete unit from units table: %s", err)
 		}

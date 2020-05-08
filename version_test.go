@@ -57,7 +57,7 @@ func TestVersion(t *testing.T) {
 		t.Fatalf("could not add group to groups table: %s", err)
 	}
 	defer func() {
-		err = DeleteGroup(db, testGroup.ID())
+		err = DeleteGroup(db, testGroup.Show, testGroup.Category, testGroup.Group)
 		if err != nil {
 			t.Fatalf("could not delete group: %s", err)
 		}
@@ -67,19 +67,19 @@ func TestVersion(t *testing.T) {
 		t.Fatalf("could not add shot: %v", err)
 	}
 	defer func() {
-		err = DeleteUnit(db, testUnitA.ID())
+		err = DeleteUnit(db, testUnitA.Show, testUnitA.Category, testUnitA.Group, testUnitA.Unit)
 		if err != nil {
 			t.Fatalf("could not delete shot: %v", err)
 		}
 	}()
 	// testUnitA가 생성되면서 testTaskA도 함께 생성된다.
 	defer func() {
-		err = DeleteTask(db, testTaskA.ID())
+		err = DeleteTask(db, testTaskA.Show, testTaskA.Category, testTaskA.Group, testTaskA.Unit, testTaskA.Task)
 		if err != nil {
 			t.Fatalf("could not delete task: %v", err)
 		}
 	}()
-	err = UpdateTask(db, testTaskA.ID(), testTaskA)
+	err = UpdateTask(db, testTaskA.Show, testTaskA.Category, testTaskA.Group, testTaskA.Unit, testTaskA.Task, testTaskA)
 	if err != nil {
 		t.Fatalf("could not update task: %s", err)
 	}
@@ -88,33 +88,26 @@ func TestVersion(t *testing.T) {
 		t.Fatalf("could not add version: %v", err)
 	}
 	defer func() {
-		err = DeleteVersion(db, testVersionA.ID())
+		err = DeleteVersion(db, testVersionA.Show, testVersionA.Category, testVersionA.Group, testVersionA.Unit, testVersionA.Task, testVersionA.Version)
 		if err != nil {
 			t.Fatalf("could not delete version: %v", err)
 		}
 	}()
-	got, err := GetVersion(db, testVersionA.ID())
+	got, err := GetVersion(db, testVersionA.Show, testVersionA.Category, testVersionA.Group, testVersionA.Unit, testVersionA.Task, testVersionA.Version)
 	if err != nil {
 		t.Fatalf("could not get version: %v", err)
 	}
 	if !reflect.DeepEqual(got, testVersionA) {
 		t.Fatalf("added version is not expected: got %v, want %v", got, testVersionA)
 	}
-	shotVersions, err := UnitVersions(db, testUnitA.ID())
-	if err != nil {
-		t.Fatalf("could not get versions of shot: %v", err)
-	}
-	if len(shotVersions) != 1 {
-		t.Fatalf("shot should have 1 version at this time.")
-	}
-	taskVersions, err := TaskVersions(db, testTaskA.ID())
+	taskVersions, err := TaskVersions(db, testTaskA.Show, testTaskA.Category, testTaskA.Group, testTaskA.Unit, testTaskA.Task)
 	if err != nil {
 		t.Fatalf("could not get versions of task: %v", err)
 	}
 	if len(taskVersions) != 1 {
 		t.Fatalf("task should have 1 version at this time.")
 	}
-	err = UpdateVersion(db, testVersionA.ID(), testVersionA)
+	err = UpdateVersion(db, testVersionA.Show, testVersionA.Category, testVersionA.Group, testVersionA.Unit, testVersionA.Task, testVersionA.Version, testVersionA)
 	if err != nil {
 		t.Fatalf("could not update version: %v", err)
 	}

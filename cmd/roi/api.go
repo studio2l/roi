@@ -91,7 +91,7 @@ func addUnitApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("invalid unit id: %v", id))
 		return
 	}
-	_, err = roi.GetUnit(DB, id)
+	_, err = roi.GetUnit(DB, show, ctg, grp, unit)
 	if err == nil {
 		apiBadRequest(w, fmt.Errorf("unit already exist: %v", id))
 		return
@@ -184,7 +184,12 @@ func getUnitApiHandler(w http.ResponseWriter, r *http.Request) {
 	ids := r.Form["id"]
 	ss := make(map[string]*roi.Unit)
 	for _, id := range ids {
-		s, err := roi.GetUnit(DB, id)
+		show, ctg, grp, unit, err := roi.SplitUnitID(id)
+		if err != nil {
+			apiBadRequest(w, fmt.Errorf("invalid unit id: %v", id))
+			return
+		}
+		s, err := roi.GetUnit(DB, show, ctg, grp, unit)
 		if err != nil {
 			apiBadRequest(w, err)
 			return
@@ -208,7 +213,12 @@ func getUnitTasksApiHandler(w http.ResponseWriter, r *http.Request) {
 	ids := r.Form["id"]
 	allTs := make(map[string][]*roi.Task)
 	for _, id := range ids {
-		ts, err := roi.UnitTasks(DB, id)
+		show, ctg, grp, unit, err := roi.SplitUnitID(id)
+		if err != nil {
+			apiBadRequest(w, fmt.Errorf("invalid unit id: %v", id))
+			return
+		}
+		ts, err := roi.UnitTasks(DB, show, ctg, grp, unit)
 		if err != nil {
 			apiBadRequest(w, err)
 			return

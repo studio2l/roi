@@ -112,11 +112,15 @@ func updateUnitHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	id := r.FormValue("id")
-	s, err := roi.GetUnit(DB, id)
+	show, ctg, grp, unit, err := roi.SplitUnitID(id)
 	if err != nil {
 		return err
 	}
-	ts, err := roi.UnitTasks(DB, id)
+	s, err := roi.GetUnit(DB, show, ctg, grp, unit)
+	if err != nil {
+		return err
+	}
+	ts, err := roi.UnitTasks(DB, show, ctg, grp, unit)
 	if err != nil {
 		return err
 	}
@@ -148,12 +152,16 @@ func updateUnitPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		return err
 	}
 	id := r.FormValue("id")
+	show, ctg, grp, unit, err := roi.SplitUnitID(id)
+	if err != nil {
+		return err
+	}
 	tasks := fieldSplit(r.FormValue("tasks"))
 	tforms, err := parseTimeForms(r.Form, "due_date")
 	if err != nil {
 		return err
 	}
-	s, err := roi.GetUnit(DB, id)
+	s, err := roi.GetUnit(DB, show, ctg, grp, unit)
 	if err != nil {
 		return err
 	}
@@ -180,7 +188,7 @@ func updateUnitPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		s.Attrs[k] = v
 	}
 
-	err = roi.UpdateUnit(DB, id, s)
+	err = roi.UpdateUnit(DB, show, ctg, grp, unit, s)
 	if err != nil {
 		return err
 	}
@@ -220,7 +228,6 @@ func updateMultiUnitsHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		AllUnitStatus: roi.AllUnitStatus,
 	}
 	return executeTemplate(w, "update-multi-units", recipe)
-
 }
 
 func updateMultiUnitsPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
@@ -269,7 +276,11 @@ func updateMultiUnitsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		workingTasks = append(workingTasks, task)
 	}
 	for _, id := range ids {
-		s, err := roi.GetUnit(DB, id)
+		show, ctg, grp, unit, err := roi.SplitUnitID(id)
+		if err != nil {
+			return err
+		}
+		s, err := roi.GetUnit(DB, show, ctg, grp, unit)
 		if err != nil {
 			return err
 		}
@@ -306,11 +317,12 @@ func updateMultiUnitsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 				s.Tasks = removeIfExist(s.Tasks, task)
 			}
 		}
-		err = roi.UpdateUnit(DB, id, s)
+		err = roi.UpdateUnit(DB, show, ctg, grp, unit, s)
 		if err != nil {
 			return err
 		}
 	}
+	// 할일: 아래코드는 어디서 왔는가? 이상하다...
 	q := ""
 	for i, id := range ids {
 		if i != 0 {
