@@ -59,10 +59,9 @@ func addGroupPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error
 	show := r.FormValue("show")
 	ctg := r.FormValue("category")
 	grp := r.FormValue("group")
-	id := show + "/" + ctg + "/" + grp
-	_, err = roi.GetGroup(DB, id)
+	_, err = roi.GetGroup(DB, show, ctg, grp)
 	if err == nil {
-		return roi.BadRequest(fmt.Sprintf("group already exist: %s", id))
+		return roi.BadRequest(fmt.Sprintf("group already exist: %s", roi.JoinGroupID(show, ctg, grp)))
 	} else if !errors.As(err, &roi.NotFoundError{}) {
 		return err
 	}
@@ -75,7 +74,7 @@ func addGroupPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error
 	if err != nil {
 		return err
 	}
-	http.Redirect(w, r, "/update-group?id="+id, http.StatusSeeOther)
+	http.Redirect(w, r, "/update-group?id="+roi.JoinGroupID(show, ctg, grp), http.StatusSeeOther)
 	return nil
 }
 
@@ -90,7 +89,11 @@ func updateGroupHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 		return err
 	}
 	id := r.FormValue("id")
-	p, err := roi.GetGroup(DB, id)
+	show, ctg, grp, err := roi.SplitGroupID(id)
+	if err != nil {
+		return err
+	}
+	p, err := roi.GetGroup(DB, show, ctg, grp)
 	if err != nil {
 		return err
 	}
@@ -110,7 +113,11 @@ func updateGroupPostHandler(w http.ResponseWriter, r *http.Request, env *Env) er
 		return err
 	}
 	id := r.FormValue("id")
-	s, err := roi.GetGroup(DB, id)
+	show, ctg, grp, err := roi.SplitGroupID(id)
+	if err != nil {
+		return err
+	}
+	s, err := roi.GetGroup(DB, show, ctg, grp)
 	if err != nil {
 		return err
 	}
@@ -130,7 +137,7 @@ func updateGroupPostHandler(w http.ResponseWriter, r *http.Request, env *Env) er
 		s.Attrs[k] = v
 	}
 
-	err = roi.UpdateGroup(DB, id, s)
+	err = roi.UpdateGroup(DB, show, ctg, grp, s)
 	if err != nil {
 		return err
 	}

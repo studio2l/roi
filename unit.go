@@ -94,13 +94,13 @@ func SplitUnitID(id string) (string, string, string, string, error) {
 	return show, ctg, grp, unit, nil
 }
 
-// verifyUnitID는 받아들인 샷 아이디가 유효하지 않다면 에러를 반환한다.
-func verifyUnitID(id string) error {
-	show, ctg, grp, unit, err := SplitUnitID(id)
-	if err != nil {
-		return err
-	}
-	err = verifyShowName(show)
+func JoinUnitID(show, ctg, grp, unit string) string {
+	return show + "/" + ctg + "/" + grp + "/" + unit
+}
+
+// verifyUnitPrimaryKeys는 받아들인 샷 구성요소 이름들이 유효하지 않다면 에러를 반환한다.
+func verifyUnitPrimaryKeys(show, ctg, grp, unit string) error {
+	err := verifyShowName(show)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func verifyUnit(db *sql.DB, s *Unit) error {
 	if s == nil {
 		return fmt.Errorf("nil unit")
 	}
-	err := verifyUnitID(s.ID())
+	err := verifyUnitPrimaryKeys(s.Show, s.Category, s.Group, s.Unit)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,13 @@ func verifyUnit(db *sql.DB, s *Unit) error {
 		return strings.Compare(s.Assets[i], s.Assets[j]) <= 0
 	})
 	for _, asset := range s.Assets {
-		_, err := GetUnit(db, s.Show+"/asset/"+asset)
+		a := strings.Split(asset, "/")
+		if len(a) != 2 {
+			return BadRequest("need asset name as group/unit")
+		}
+		grp := a[0]
+		unit := a[1]
+		_, err := GetUnit(db, s.Show, "asset", grp, unit)
 		if err != nil {
 			return err
 		}
@@ -245,12 +251,12 @@ func AddUnit(db *sql.DB, s *Unit) error {
 		return err
 	}
 	// 부모가 있는지 검사
-	_, err = GetGroup(db, s.Show+"/"+s.Category+"/"+s.Group)
+	_, err = GetGroup(db, s.Show, s.Category, s.Group)
 	if err != nil {
 		return err
 	}
 	// 이미 존재하는 유닛인지 검사
-	_, err = GetUnit(db, s.ID())
+	_, err = GetUnit(db, s.Show, s.Category, s.Group, s.Unit)
 	if err == nil {
 		return BadRequest(fmt.Sprintf("unit already exist: %s", s.ID()))
 	}
@@ -286,12 +292,12 @@ func AddUnit(db *sql.DB, s *Unit) error {
 
 // GetUnit은 db에서 하나의 샷을 찾는다.
 // 해당 샷이 존재하지 않는다면 nil과 NotFound 에러를 반환한다.
-func GetUnit(db *sql.DB, id string) (*Unit, error) {
-	show, ctg, grp, unit, err := SplitUnitID(id)
+func GetUnit(db *sql.DB, show, ctg, grp, unit string) (*Unit, error) {
+	err := verifyUnitPrimaryKeys(show, ctg, grp, unit)
 	if err != nil {
 		return nil, err
 	}
-	_, err = GetShow(db, show)
+	_, err = GetGroup(db, show, ctg, grp)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +308,7 @@ func GetUnit(db *sql.DB, id string) (*Unit, error) {
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("unit", id)
+			return nil, NotFound("unit", JoinUnitID(show, ctg, grp, unit))
 		}
 		return nil, err
 	}
@@ -433,8 +439,8 @@ func SearchUnits(db *sql.DB, show, ctg, grp string, units []string, tag, status,
 
 // UpdateUnit은 db에서 해당 샷을 수정한다.
 // 이 함수를 호출하기 전 해당 샷이 존재하는지 사용자가 검사해야 한다.
-func UpdateUnit(db *sql.DB, id string, s *Unit) error {
-	err := verifyUnitID(id)
+func UpdateUnit(db *sql.DB, show, ctg, grp, unit string, s *Unit) error {
+	err := verifyUnitPrimaryKeys(show, ctg, grp, unit)
 	if err != nil {
 		return err
 	}
@@ -442,12 +448,16 @@ func UpdateUnit(db *sql.DB, id string, s *Unit) error {
 	if err != nil {
 		return err
 	}
+	_, err = GetUnit(db, show, ctg, grp, unit)
+	if err != nil {
+		return err
+	}
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE units SET (%s) = (%s) WHERE show='%s' AND grp='%s' AND unit='%s'", unitDBKey, unitDBIdx, s.Show, s.Group, s.Unit), dbVals(s)...),
+		dbStmt(fmt.Sprintf("UPDATE units SET (%s) = (%s) WHERE show='%s' AND grp='%s' AND unit='%s'", unitDBKey, unitDBIdx, show, grp, unit), dbVals(s)...),
 	}
 	// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
 	for _, task := range s.Tasks {
-		_, err := GetTask(db, id+"/"+task)
+		_, err := GetTask(db, show, ctg, grp, unit, task)
 		if err != nil {
 			if !errors.As(err, &NotFoundError{}) {
 				return fmt.Errorf("get task: %s", err)
@@ -473,14 +483,9 @@ func UpdateUnit(db *sql.DB, id string, s *Unit) error {
 }
 
 // DeleteUnit은 해당 샷과 그 하위의 모든 데이터를 db에서 지운다.
-// 해당 샷이 없어도 에러를 내지 않기 때문에 검사를 원한다면 UnitExist를 사용해야 한다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
-func DeleteUnit(db *sql.DB, id string) error {
-	show, ctg, grp, unit, err := SplitUnitID(id)
-	if err != nil {
-		return err
-	}
-	_, err = GetUnit(db, id)
+func DeleteUnit(db *sql.DB, show, ctg, grp, unit string) error {
+	_, err := GetUnit(db, show, ctg, grp, unit)
 	if err != nil {
 		return err
 	}
