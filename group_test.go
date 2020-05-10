@@ -53,7 +53,7 @@ func TestGroup(t *testing.T) {
 	if !reflect.DeepEqual(got, s) {
 		t.Fatalf("got: %v, want: %v", got, s)
 	}
-	err = UpdateGroup(db, s.Show, s.Category, s.Group, s)
+	err = UpdateGroup(db, s)
 	if err != nil {
 		t.Fatalf("could not update group: %s", err)
 	}

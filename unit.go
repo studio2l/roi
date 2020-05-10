@@ -235,7 +235,7 @@ func verifyUnit(db *sql.DB, s *Unit) error {
 				tags = append(tags, t)
 			}
 			sh.Tags = tags
-			err := UpdateShow(db, sh.ID(), sh)
+			err := UpdateShow(db, sh)
 			if err != nil {
 				return err
 			}
@@ -438,26 +438,21 @@ func SearchUnits(db *sql.DB, show, ctg, grp string, units []string, tag, status,
 }
 
 // UpdateUnit은 db에서 해당 샷을 수정한다.
-// 이 함수를 호출하기 전 해당 샷이 존재하는지 사용자가 검사해야 한다.
-func UpdateUnit(db *sql.DB, show, ctg, grp, unit string, s *Unit) error {
-	err := verifyUnitPrimaryKeys(show, ctg, grp, unit)
+func UpdateUnit(db *sql.DB, s *Unit) error {
+	err := verifyUnit(db, s)
 	if err != nil {
 		return err
 	}
-	err = verifyUnit(db, s)
-	if err != nil {
-		return err
-	}
-	_, err = GetUnit(db, show, ctg, grp, unit)
+	_, err = GetUnit(db, s.Show, s.Category, s.Group, s.Unit)
 	if err != nil {
 		return err
 	}
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE units SET (%s) = (%s) WHERE show='%s' AND grp='%s' AND unit='%s'", unitDBKey, unitDBIdx, show, grp, unit), dbVals(s)...),
+		dbStmt(fmt.Sprintf("UPDATE units SET (%s) = (%s) WHERE show='%s' AND category='%s' AND grp='%s' AND unit='%s'", unitDBKey, unitDBIdx, s.Show, s.Category, s.Group, s.Unit), dbVals(s)...),
 	}
 	// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
 	for _, task := range s.Tasks {
-		_, err := GetTask(db, show, ctg, grp, unit, task)
+		_, err := GetTask(db, s.Show, s.Category, s.Group, s.Unit, task)
 		if err != nil {
 			if !errors.As(err, &NotFoundError{}) {
 				return fmt.Errorf("get task: %s", err)

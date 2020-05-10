@@ -163,13 +163,12 @@ func Groups(db *sql.DB, show, ctg string) ([]*Group, error) {
 }
 
 // UpdateGroup은 db에서 해당 샷을 수정한다.
-// 이 함수를 호출하기 전 해당 샷이 존재하는지 사용자가 검사해야 한다.
-func UpdateGroup(db *sql.DB, show, ctg, grp string, s *Group) error {
-	err := verifyGroupPrimaryKeys(show, ctg, grp)
+func UpdateGroup(db *sql.DB, s *Group) error {
+	err := verifyGroup(db, s)
 	if err != nil {
 		return err
 	}
-	err = verifyGroup(db, s)
+	_, err = GetGroup(db, s.Show, s.Category, s.Group)
 	if err != nil {
 		return err
 	}

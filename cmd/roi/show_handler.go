@@ -155,7 +155,7 @@ func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		s.Attrs[k] = v
 	}
 
-	err = roi.UpdateShow(DB, id, s)
+	err = roi.UpdateShow(DB, s)
 	if err != nil {
 		return err
 	}

@@ -70,7 +70,7 @@ func TestTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get task: %s", testTaskA.ID())
 	}
-	err = UpdateTask(db, testTaskA.Show, testTaskA.Category, testTaskA.Group, testTaskA.Unit, testTaskA.Task, testTaskA)
+	err = UpdateTask(db, testTaskA)
 	if err != nil {
 		t.Fatalf("could not update task: %s", err)
 	}

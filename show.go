@@ -98,13 +98,16 @@ func AddShow(db *sql.DB, s *Show) error {
 }
 
 // UpdateShow는 db의 쇼 정보를 수정한다.
-// 이 함수를 호출하기 전 해당 쇼가 존재하는지 사용자가 검사해야 한다.
-func UpdateShow(db *sql.DB, show string, s *Show) error {
+func UpdateShow(db *sql.DB, s *Show) error {
 	err := verifyShow(db, s)
 	if err != nil {
 		return err
 	}
-	stmt := fmt.Sprintf("UPDATE shows SET (%s) = (%s) WHERE show='%s'", showDBKey, showDBIdx, show)
+	_, err = GetShow(db, s.Show)
+	if err != nil {
+		return err
+	}
+	stmt := fmt.Sprintf("UPDATE shows SET (%s) = (%s) WHERE show='%s'", showDBKey, showDBIdx, s.Show)
 	if _, err := db.Exec(stmt, dbVals(s)...); err != nil {
 		return err
 	}

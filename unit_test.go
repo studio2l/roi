@@ -150,7 +150,7 @@ func TestUnit(t *testing.T) {
 	}
 
 	for _, s := range want {
-		err = UpdateUnit(db, s.Show, s.Category, s.Group, s.Unit, s)
+		err = UpdateUnit(db, s)
 		if err != nil {
 			t.Fatalf("could not update unit: %s", err)
 		}
