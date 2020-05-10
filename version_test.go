@@ -79,7 +79,7 @@ func TestVersion(t *testing.T) {
 			t.Fatalf("could not delete task: %v", err)
 		}
 	}()
-	err = UpdateTask(db, testTaskA.Show, testTaskA.Category, testTaskA.Group, testTaskA.Unit, testTaskA.Task, testTaskA)
+	err = UpdateTask(db, testTaskA)
 	if err != nil {
 		t.Fatalf("could not update task: %s", err)
 	}
@@ -107,7 +107,7 @@ func TestVersion(t *testing.T) {
 	if len(taskVersions) != 1 {
 		t.Fatalf("task should have 1 version at this time.")
 	}
-	err = UpdateVersion(db, testVersionA.Show, testVersionA.Category, testVersionA.Group, testVersionA.Unit, testVersionA.Task, testVersionA.Version, testVersionA)
+	err = UpdateVersion(db, testVersionA)
 	if err != nil {
 		t.Fatalf("could not update version: %v", err)
 	}

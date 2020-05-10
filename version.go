@@ -162,15 +162,17 @@ func AddVersion(db *sql.DB, v *Version) error {
 }
 
 // UpdateVersion은 db의 특정 태스크를 업데이트 한다.
-// 이 함수를 호출하기 전 해당 태스크가 존재하는지 사용자가 검사해야 한다.
-func UpdateVersion(db *sql.DB, show, ctg, grp, unit, task, ver string, v *Version) error {
-	verifyVersionPrimaryKeys(show, ctg, grp, unit, task, ver)
+func UpdateVersion(db *sql.DB, v *Version) error {
 	err := verifyVersion(db, v)
 	if err != nil {
 		return err
 	}
+	_, err = GetVersion(db, v.Show, v.Category, v.Group, v.Unit, v.Task, v.Version)
+	if err != nil {
+		return err
+	}
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND category='%s' AND grp='%s' AND unit='%s' AND task='%s' AND version='%s'", versionDBKey, versionDBIdx, show, ctg, grp, unit, task, ver), dbVals(v)...),
+		dbStmt(fmt.Sprintf("UPDATE versions SET (%s) = (%s) WHERE show='%s' AND category='%s' AND grp='%s' AND unit='%s' AND task='%s' AND version='%s'", versionDBKey, versionDBIdx, v.Show, v.Category, v.Group, v.Unit, v.Task, v.Version), dbVals(v)...),
 	}
 	return dbExec(db, stmts)
 }

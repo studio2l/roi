@@ -131,7 +131,7 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 	v.StartDate = timeForms["start_date"]
 	v.EndDate = timeForms["end_date"]
 
-	err = roi.UpdateVersion(DB, show, ctg, grp, unit, task, ver, v)
+	err = roi.UpdateVersion(DB, v)
 	if err != nil {
 		return err
 	}

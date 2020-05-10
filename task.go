@@ -209,18 +209,14 @@ func addTaskStmts(db *sql.DB, t *Task) ([]dbStatement, error) {
 }
 
 // UpdateTask는 db의 특정 태스크를 업데이트 한다.
-// 이 함수를 호출하기 전 해당 태스크가 존재하는지 사용자가 검사해야 한다.
-func UpdateTask(db *sql.DB, show, ctg, grp, unit, task string, t *Task) error {
+func UpdateTask(db *sql.DB, t *Task) error {
 	err := verifyTask(db, t)
 	if err != nil {
 		return err
 	}
-	oldt, err := GetTask(db, show, ctg, grp, unit, task)
+	_, err = GetTask(db, t.Show, t.Category, t.Group, t.Unit, t.Task)
 	if err != nil {
 		return err
-	}
-	if oldt.Category != t.Category {
-		return fmt.Errorf("not allowed to change category of task")
 	}
 	stmts := []dbStatement{
 		dbStmt(fmt.Sprintf("UPDATE tasks SET (%s) = (%s) WHERE show='%s' AND category='%s' AND grp='%s' AND unit='%s' AND task='%s'", taskDBKey, taskDBIdx, t.Show, t.Category, t.Group, t.Unit, t.Task), dbVals(t)...),

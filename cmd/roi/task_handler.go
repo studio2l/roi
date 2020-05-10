@@ -83,7 +83,7 @@ func updateTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	t.ReviewVersion = r.FormValue("review_version")
 	t.WorkingVersion = r.FormValue("working_version")
 
-	err = roi.UpdateTask(DB, show, ctg, grp, unit, task, t)
+	err = roi.UpdateTask(DB, t)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func updateMultiTasksPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		if assignee != "" {
 			s.Assignee = assignee
 		}
-		roi.UpdateTask(DB, show, ctg, grp, unit, task, s)
+		roi.UpdateTask(DB, s)
 	}
 	q := ""
 	for i, id := range ids {
@@ -284,7 +284,7 @@ func reviewTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		default:
 			return roi.BadRequest(fmt.Sprintf("invalid review status: %s", status))
 		}
-		err = roi.UpdateTask(DB, show, ctg, grp, unit, task, t)
+		err = roi.UpdateTask(DB, t)
 		if err != nil {
 			return err
 		}

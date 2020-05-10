@@ -137,7 +137,7 @@ func updateGroupPostHandler(w http.ResponseWriter, r *http.Request, env *Env) er
 		s.Attrs[k] = v
 	}
 
-	err = roi.UpdateGroup(DB, show, ctg, grp, s)
+	err = roi.UpdateGroup(DB, s)
 	if err != nil {
 		return err
 	}

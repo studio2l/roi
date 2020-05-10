@@ -188,7 +188,7 @@ func updateUnitPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		s.Attrs[k] = v
 	}
 
-	err = roi.UpdateUnit(DB, show, ctg, grp, unit, s)
+	err = roi.UpdateUnit(DB, s)
 	if err != nil {
 		return err
 	}
@@ -317,7 +317,7 @@ func updateMultiUnitsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 				s.Tasks = removeIfExist(s.Tasks, task)
 			}
 		}
-		err = roi.UpdateUnit(DB, show, ctg, grp, unit, s)
+		err = roi.UpdateUnit(DB, s)
 		if err != nil {
 			return err
 		}
