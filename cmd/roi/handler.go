@@ -139,7 +139,7 @@ func saveFormFiles(r *http.Request, field string, dstd string) error {
 	if len(fileHeaders) == 0 {
 		return nil
 	}
-	err := os.MkdirAll(filepath.Dir(dstd), 0755)
+	err := os.MkdirAll(dstd, 0755)
 	if err != nil {
 		return fmt.Errorf("could not create directory: %w", err)
 	}
