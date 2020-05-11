@@ -72,7 +72,7 @@ func dbStmt(s string, vs ...interface{}) dbStatement {
 func dbQuery(db *sql.DB, stmt dbStatement, scanFn func(*sql.Rows) error) error {
 	rows, err := db.Query(stmt.s, stmt.vs...)
 	if err != nil {
-		return err
+		return fmt.Errorf("dbQuery: %q %v: %w", stmt.s, stmt.vs, err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -81,13 +81,21 @@ func dbQuery(db *sql.DB, stmt dbStatement, scanFn func(*sql.Rows) error) error {
 			return err
 		}
 	}
-	return rows.Err()
+	err = rows.Err()
+	if err != nil {
+		return fmt.Errorf("dbQuery: %q %v: %w", stmt.s, stmt.vs, err)
+	}
+	return nil
 }
 
 // dbQuery는 db에 원하는 하나의 열을 검색하고 해당 열에 대해 scanFn을 실행한다.
 func dbQueryRow(db *sql.DB, stmt dbStatement, scanFn func(*sql.Row) error) error {
 	row := db.QueryRow(stmt.s, stmt.vs...)
-	return scanFn(row)
+	err := scanFn(row)
+	if err != nil {
+		return fmt.Errorf("dbQueryRow: %q %v: %w", stmt.s, stmt.vs, err)
+	}
+	return nil
 }
 
 // dbExec는 여러 dbStatement를 한번의 트랜잭션으로 처리한다.
@@ -101,7 +109,7 @@ func dbExec(db *sql.DB, stmts []dbStatement) error {
 	for _, stmt := range stmts {
 		_, err := tx.Exec(stmt.s, stmt.vs...)
 		if err != nil {
-			return fmt.Errorf("%s: %w", stmt.s, err)
+			return fmt.Errorf("dbExec: %q %v: %w", stmt.s, stmt.vs, err)
 		}
 	}
 	return tx.Commit()
