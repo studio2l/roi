@@ -74,14 +74,8 @@ func addShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	} else if !errors.As(err, &roi.NotFoundError{}) {
 		return err
 	}
-	si, err := roi.GetSite(DB)
-	if err != nil {
-		return err
-	}
 	s := &roi.Show{
-		Show:              id,
-		DefaultShotTasks:  si.DefaultShotTasks,
-		DefaultAssetTasks: si.DefaultAssetTasks,
+		Show: id,
 	}
 	err = roi.AddShow(DB, s)
 	if err != nil {
@@ -146,8 +140,6 @@ func updateShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	s.PD = r.FormValue("pd")
 	s.Managers = fieldSplit(r.FormValue("managers"))
 	s.DueDate = timeForms["due_date"]
-	s.DefaultShotTasks = fieldSplit(r.FormValue("default_shot_tasks"))
-	s.DefaultAssetTasks = fieldSplit(r.FormValue("default_asset_tasks"))
 	s.Tags = fieldSplit(r.FormValue("tags"))
 	s.Notes = r.FormValue("notes")
 	s.Attrs = make(roi.DBStringMap)

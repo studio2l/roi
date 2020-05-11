@@ -20,8 +20,6 @@ var CreateTableIfNotExistsShowsStmt = `CREATE TABLE IF NOT EXISTS shows (
 	pd STRING NOT NULL,
 	managers STRING[] NOT NULL,
 	due_date TIMESTAMPTZ NOT NULL,
-	default_shot_tasks STRING[] NOT NULL,
-	default_asset_tasks STRING[] NOT NULL,
 	tags STRING[] NOT NULL,
 	notes STRING NOT NULL,
 	attrs STRING NOT NULL,
@@ -39,11 +37,9 @@ type Show struct {
 	PD           string   `db:"pd"`
 	Managers     []string `db:"managers"`
 
-	DueDate           time.Time `db:"due_date"`
-	DefaultShotTasks  []string  `db:"default_shot_tasks"`
-	DefaultAssetTasks []string  `db:"default_asset_tasks"`
-	Tags              []string  `db:"tags"`
-	Notes             string    `db:"notes"`
+	DueDate time.Time `db:"due_date"`
+	Tags    []string  `db:"tags"`
+	Notes   string    `db:"notes"`
 
 	// Attrs는 커스텀 속성으로 db에는 여러줄의 문자열로 저장된다. 각 줄은 키: 값의 쌍이다.
 	Attrs DBStringMap `db:"attrs"`

@@ -32,12 +32,6 @@
 		<div class="field"> [<label> [마감일]
 			<input type="date" name="due_date" value="{{stringFromDate .Show.DueDate}}"/>
 		]
-		<div class="field"> [<label> [기본 샷 태스크]
-			<input type="text" name="default_shot_tasks" value="{{fieldJoin .Show.DefaultShotTasks}}"/>
-		]
-		<div class="field"> [<label> [기본 애셋 태스크]
-			<input type="text" name="default_asset_tasks" value="{{fieldJoin .Show.DefaultAssetTasks}}"/>
-		]
 		<div class="field"> [<label> [태그]
 			<input type="text" name="tags" value="{{fieldJoin .Show.Tags}}"/>
 		]
