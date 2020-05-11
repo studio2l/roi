@@ -6,9 +6,8 @@
 	<h2 class="ui header"> [샷 수정]
 	<h3 class="ui dividing header" style="color:#9f9f9f"> [
 		<a href="/update-show?id={{$u.Show}}" style="color:#9f9f9f"> [{{$u.Show}}] /
-		{{$u.Category}} /
-		<a href="/update-group?id={{$u.Show}}/{{$u.Category}}/{{$u.Group}}" style="color:#9f9f9f"> [{{$u.Group}}] /
-		<a href="/update-unit?id={{$u.Show}}/{{$u.Category}}/{{$u.Group}}/{{$u.Unit}}" style="color:#9f9f9f"> [{{$u.Unit}}]
+		<a href="/update-group?id={{$u.Show}}/{{$u.Group}}" style="color:#9f9f9f"> [{{$u.Group}}] /
+		<a href="/update-unit?id={{$u.Show}}/{{$u.Group}}/{{$u.Unit}}" style="color:#9f9f9f"> [{{$u.Unit}}]
 	]
 	<form method="post" class="ui form" enctype="multipart/form-data"> [
 		<input hidden type="text" name="id" value="{{$u.ID}}"/>

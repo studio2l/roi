@@ -86,12 +86,12 @@ func addUnitApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiBadRequest(w, fmt.Errorf("'id' not specified"))
 		return
 	}
-	show, ctg, grp, unit, err := roi.SplitUnitID(id)
+	show, grp, unit, err := roi.SplitUnitID(id)
 	if err != nil {
 		apiBadRequest(w, fmt.Errorf("invalid unit id: %v", id))
 		return
 	}
-	_, err = roi.GetUnit(DB, show, ctg, grp, unit)
+	_, err = roi.GetUnit(DB, show, grp, unit)
 	if err == nil {
 		apiBadRequest(w, fmt.Errorf("unit already exist: %v", id))
 		return
@@ -121,20 +121,12 @@ func addUnitApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tasks := fieldSplit(r.FormValue("tasks"))
 	if len(tasks) == 0 {
-		p, err := roi.GetShow(DB, show)
+		g, err := roi.GetGroup(DB, show, grp)
 		if err != nil {
 			handleError(w, err)
 			return
 		}
-		switch ctg {
-		case "shot":
-			tasks = p.DefaultShotTasks
-		case "asset":
-			tasks = p.DefaultAssetTasks
-		default:
-			handleError(w, fmt.Errorf("invalid unit category: %s", ctg))
-			return
-		}
+		tasks = g.DefaultTasks
 	}
 	attrs := make(roi.DBStringMap)
 	for _, ln := range strings.Split(r.FormValue("attrs"), "\n") {
@@ -151,7 +143,6 @@ func addUnitApiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	s := &roi.Unit{
 		Show:          show,
-		Category:      ctg,
 		Group:         grp,
 		Unit:          unit,
 		Status:        roi.Status(status),
@@ -184,12 +175,12 @@ func getUnitApiHandler(w http.ResponseWriter, r *http.Request) {
 	ids := r.Form["id"]
 	ss := make(map[string]*roi.Unit)
 	for _, id := range ids {
-		show, ctg, grp, unit, err := roi.SplitUnitID(id)
+		show, grp, unit, err := roi.SplitUnitID(id)
 		if err != nil {
 			apiBadRequest(w, fmt.Errorf("invalid unit id: %v", id))
 			return
 		}
-		s, err := roi.GetUnit(DB, show, ctg, grp, unit)
+		s, err := roi.GetUnit(DB, show, grp, unit)
 		if err != nil {
 			apiBadRequest(w, err)
 			return
@@ -213,12 +204,12 @@ func getUnitTasksApiHandler(w http.ResponseWriter, r *http.Request) {
 	ids := r.Form["id"]
 	allTs := make(map[string][]*roi.Task)
 	for _, id := range ids {
-		show, ctg, grp, unit, err := roi.SplitUnitID(id)
+		show, grp, unit, err := roi.SplitUnitID(id)
 		if err != nil {
 			apiBadRequest(w, fmt.Errorf("invalid unit id: %v", id))
 			return
 		}
-		ts, err := roi.UnitTasks(DB, show, ctg, grp, unit)
+		ts, err := roi.UnitTasks(DB, show, grp, unit)
 		if err != nil {
 			apiBadRequest(w, err)
 			return

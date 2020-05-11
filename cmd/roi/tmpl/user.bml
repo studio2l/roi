@@ -61,7 +61,6 @@ let taskFromID = {
 	{{range $id, $t := $.TaskFromID}}
 	"{{$id}}": {
 		"show": "{{$t.Show}}",
-		"category": "{{$t.Category}}",
 		"group": "{{$t.Group}}",
 		"unit": "{{$t.Unit}}",
 		"task": "{{$t.Task}}",
@@ -106,7 +105,7 @@ function showTasks(day) {
 		let t = taskFromID[tasks[i]];
 		let el = document.getElementById("show-" + t.show + "-tasks-of-day");
 		let label = document.createElement("a");
-		label.setAttribute("href", "/units?show="+t.show+"&category="+t.category+"&q="+t.group+"/"+t.unit);
+		label.setAttribute("href", "/units?show="+t.show+"&q="+t.group+"/"+t.unit);
 		label.setAttribute("class", "ui small label");
 		label.innerHTML = t.group + "/" + t.unit;
 		detail = document.createElement("div");

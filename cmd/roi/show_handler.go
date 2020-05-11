@@ -15,25 +15,35 @@ func showsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if err != nil {
 		return err
 	}
-	showGrps := make(map[string]map[string][]*roi.Group)
+	shotGroups := make(map[string][]*roi.Group)
+	assetGroups := make(map[string][]*roi.Group)
 	for _, s := range shows {
-		showGrps[s.Show] = make(map[string][]*roi.Group)
-		for _, ctg := range []string{"shot", "asset"} {
-			grps, err := roi.Groups(DB, s.Show, ctg)
-			if err != nil {
-				return err
-			}
-			showGrps[s.Show][ctg] = grps
+		gs, err := roi.ShowGroups(DB, s.Show)
+		if err != nil {
+			return err
 		}
+		sgrps := make([]*roi.Group, 0)
+		agrps := make([]*roi.Group, 0)
+		for _, g := range gs {
+			if strings.IndexAny(g.Group, "ABCDEFGHIJKLMNOPQRSTUVWXYZ") == 0 {
+				sgrps = append(sgrps, g)
+			} else {
+				agrps = append(agrps, g)
+			}
+		}
+		shotGroups[s.Show] = sgrps
+		assetGroups[s.Show] = agrps
 	}
 	recipe := struct {
 		LoggedInUser string
 		Shows        []*roi.Show
-		ShowGroups   map[string]map[string][]*roi.Group
+		ShotGroups   map[string][]*roi.Group
+		AssetGroups  map[string][]*roi.Group
 	}{
 		LoggedInUser: env.User.ID,
 		Shows:        shows,
-		ShowGroups:   showGrps,
+		ShotGroups:   shotGroups,
+		AssetGroups:  assetGroups,
 	}
 	return executeTemplate(w, "shows", recipe)
 }

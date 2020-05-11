@@ -6,10 +6,12 @@ import (
 )
 
 var testGroup = &Group{
-	Show:     testShow.Show,
-	Category: "shot",
-	Group:    "CG",
-	Notes:    "hi!",
+	Show:  testShow.Show,
+	Group: "CG",
+	DefaultTasks: []string{
+		"comp",
+	},
+	Notes: "hi!",
 	Attrs: DBStringMap{
 		"lut": "some/other/lut.cube",
 	},
@@ -46,7 +48,7 @@ func TestGroup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not add group to groups table: %s", err)
 	}
-	got, err := GetGroup(db, s.Show, s.Category, s.Group)
+	got, err := GetGroup(db, s.Show, s.Group)
 	if err != nil {
 		t.Fatalf("could not get group from groups table: %s", err)
 	}
@@ -57,7 +59,7 @@ func TestGroup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not update group: %s", err)
 	}
-	err = DeleteGroup(db, s.Show, s.Category, s.Group)
+	err = DeleteGroup(db, s.Show, s.Group)
 	if err != nil {
 		t.Fatalf("could not delete group from groups table: %s", err)
 	}

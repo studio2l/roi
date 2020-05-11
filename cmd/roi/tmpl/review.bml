@@ -10,11 +10,6 @@
                 <option value={{.Show}} {{if eq .Show $.Show}}selected{{end}}> [{{.Show}}]
                 {{end}}
             ]
-
-            <div style="width:2rem"> []
-            <button style="width:5rem;border-radius:2px 0 0 2px;border-right:solid 1px grey;{{if eq $.Category "shot"}}background-color:#FFCC33{{end}}" onclick="selectCategory('shot')"> [샷]
-            <button style="width:5rem;border-radius:0 2px 2px 0;{{if eq $.Category "asset"}}background-color:#FFCC33{{end}}" onclick="selectCategory('asset')"> [애셋]
-            <input type="hidden" id="category-input" name="category" type="text" value="{{$.Category}}">
         ]
     ]
 ]
@@ -47,25 +42,7 @@
 // refresh는 현재 설정에 맞는 리뷰 페이지를 다시 부른다.
 function refresh() {
     let show = document.getElementById("show-select").value
-    let ctg = document.getElementById("category-input").value
-    let level = document.getElementById("level-input").value
-    let target = document.getElementById("target-input").value
-    document.location.href = "?show=" + show + "&category=" + ctg + "&level=" + level + "&target=" + target
-}
-
-// selectCategory는 샷 또는 애셋을 선택한 후 리뷰 페이지를 다시 부른다.
-function selectCategory(ctg) {
-    document.getElementById("category-input").value = ctg
-}
-
-// selectLevel는 유닛 또는 태스크를 선택한 후 리뷰 페이지를 다시 부른다.
-function selectLevel(level) {
-    document.getElementById("level-input").value = level
-}
-
-// selectTarget는 불러올 목표를 선택하고 리뷰 페이지를 다시 부른다.
-function selectTarget(target) {
-    document.getElementById("target-input").value = target
+    document.location.href = "?show=" + show
 }
 ``]
 

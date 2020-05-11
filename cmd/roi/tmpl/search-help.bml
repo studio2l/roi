@@ -14,20 +14,17 @@
 <div id="bg" style="width:100%;display:flex;justify-content:center;margin:4rem 0rem"> [
 	<div id="main" style="background-color:transparent;width:700px"> [
 		<div style="margin-bottom:2rem"> [
-			<div class="search-help-title">전체</div>
-			<a class="search-help-item" href="?category=shot"> [샷]
-			<a class="search-help-item" href="?category=asset"> [애셋]
-		]
-		<div style="margin-bottom:2rem"> [
-			<div class="search-help-title">샷 그룹</div>
+			<div class="search-help-title">샷</div>
+			<a class="search-help-item" href="?q={{range $g := $.ShotGroups}}{{$g.Group}}/ {{end}}"> [전체]
 			{{range $g := $.ShotGroups}}
-				<a class="search-help-item" href="?category=shot&q={{$g.Group}}/"> [{{$g.Group}}]
+				<a class="search-help-item" href="?q={{$g.Group}}/"> [{{$g.Group}}]
 			{{end}}
 		]
 		<div style="margin-bottom:2rem"> [
-			<div class="search-help-title">애셋 그룹</div>
+			<div class="search-help-title">애셋</div>
+			<a class="search-help-item" href="?q={{range $g := $.AssetGroups}}{{$g.Group}}/ {{end}}"> [전체]
 			{{range $g := $.AssetGroups}}
-				<a class="search-help-item" href="?category=asset&q={{$g.Group}}/"> [{{$g.Group}}]
+				<a class="search-help-item" href="?q={{$g.Group}}/"> [{{$g.Group}}]
 			{{end}}
 		]
 		<div style="margin-bottom:2rem"> [

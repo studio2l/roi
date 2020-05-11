@@ -7,14 +7,8 @@
 		<div class="field"> [<label> [쇼]
 			<input readonly type="text" name="show" value="{{$.Show}}"/>
 		]
-		<div class="field"> [<label> [카테고리]
-			<select type="text" name="category"> [
-				<option value="shot"> [샷]
-				<option value="asset"> [애셋]
-			]
-		]
 		<div class="field"> [<label> [그룹]
-			<input type="text" name="group" value="" />
+			<input type="text" name="group" placeholder="대문자로 시작하면 샷 그룹, 그렇지 않으면 애셋 그룹입니다." value="" />
 		]
 		<button class="ui button green" type="submit" value="Submit"> [추가]
 	]

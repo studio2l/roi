@@ -14,7 +14,6 @@ import (
 // 테이블은 타입보다 많은 정보를 담고 있을수도 있다.
 var CreateTableIfNotExistsUnitsStmt = `CREATE TABLE IF NOT EXISTS units (
 	show STRING NOT NULL CHECK (length(show) > 0) CHECK (show NOT LIKE '% %'),
-	category STRING NOT NULL CHECK (length(category) > 0),
 	grp STRING NOT NULL CHECK (length(grp) > 0) CHECK (grp NOT LIKE '% %'),
 	unit STRING NOT NULL CHECK (length(unit) > 0) CHECK (unit NOT LIKE '% %'),
 	status STRING NOT NULL CHECK (length(status) > 0),
@@ -28,15 +27,14 @@ var CreateTableIfNotExistsUnitsStmt = `CREATE TABLE IF NOT EXISTS units (
 	end_date TIMESTAMPTZ NOT NULL,
 	due_date TIMESTAMPTZ NOT NULL,
 	attrs STRING NOT NULL,
-	UNIQUE(show, unit),
-	CONSTRAINT units_pk PRIMARY KEY (show, unit)
+	UNIQUE(show, grp, unit),
+	CONSTRAINT units_pk PRIMARY KEY (show, grp, unit)
 )`
 
 type Unit struct {
-	Show     string `db:"show"`
-	Category string `db:"category"`
-	Group    string `db:"grp"` // group이 sql 구문이기 때문에 줄여서 씀.
-	Unit     string `db:"unit"`
+	Show  string `db:"show"`
+	Group string `db:"grp"` // group이 sql 구문이기 때문에 줄여서 씀.
+	Unit  string `db:"unit"`
 
 	// 샷 정보
 	Status        Status   `db:"status"`
@@ -74,37 +72,32 @@ var _ []interface{} = dbVals(&Unit{})
 
 // ID는 Unit의 고유 아이디이다. 다른 어떤 항목도 같은 아이디를 가지지 않는다.
 func (s *Unit) ID() string {
-	return s.Show + "/" + s.Category + "/" + s.Group + "/" + s.Unit
+	return s.Show + "/" + s.Group + "/" + s.Unit
 }
 
 // SplitUnitID는 받아들인 샷 아이디를 쇼, 샷으로 분리해서 반환한다.
 // 만일 샷 아이디가 유효하지 않다면 에러를 반환한다.
-func SplitUnitID(id string) (string, string, string, string, error) {
+func SplitUnitID(id string) (string, string, string, error) {
 	ns := strings.Split(id, "/")
-	if len(ns) != 4 {
-		return "", "", "", "", BadRequest(fmt.Sprintf("invalid unit id: %s", id))
+	if len(ns) != 3 {
+		return "", "", "", BadRequest(fmt.Sprintf("invalid unit id: %s", id))
 	}
 	show := ns[0]
-	ctg := ns[1]
-	grp := ns[2]
-	unit := ns[3]
-	if show == "" || ctg == "" || grp == "" || unit == "" {
-		return "", "", "", "", BadRequest(fmt.Sprintf("invalid unit id: %s", id))
+	grp := ns[1]
+	unit := ns[2]
+	if show == "" || grp == "" || unit == "" {
+		return "", "", "", BadRequest(fmt.Sprintf("invalid unit id: %s", id))
 	}
-	return show, ctg, grp, unit, nil
+	return show, grp, unit, nil
 }
 
-func JoinUnitID(show, ctg, grp, unit string) string {
-	return show + "/" + ctg + "/" + grp + "/" + unit
+func JoinUnitID(show, grp, unit string) string {
+	return show + "/" + grp + "/" + unit
 }
 
 // verifyUnitPrimaryKeys는 받아들인 샷 구성요소 이름들이 유효하지 않다면 에러를 반환한다.
-func verifyUnitPrimaryKeys(show, ctg, grp, unit string) error {
+func verifyUnitPrimaryKeys(show, grp, unit string) error {
 	err := verifyShowName(show)
-	if err != nil {
-		return err
-	}
-	err = verifyCategoryName(ctg)
 	if err != nil {
 		return err
 	}
@@ -155,7 +148,7 @@ func verifyUnit(db *sql.DB, s *Unit) error {
 	if s == nil {
 		return fmt.Errorf("nil unit")
 	}
-	err := verifyUnitPrimaryKeys(s.Show, s.Category, s.Group, s.Unit)
+	err := verifyUnitPrimaryKeys(s.Show, s.Group, s.Unit)
 	if err != nil {
 		return err
 	}
@@ -168,18 +161,9 @@ func verifyUnit(db *sql.DB, s *Unit) error {
 	if err != nil {
 		return err
 	}
-	var tasks []string
 	hasTask := make(map[string]bool)
 	taskIdx := make(map[string]int)
-	switch s.Category {
-	case "shot":
-		tasks = si.ShotTasks
-	case "asset":
-		tasks = si.AssetTasks
-	default:
-		return fmt.Errorf("invalid unit category: %s", s.Category)
-	}
-	for i, task := range tasks {
+	for i, task := range si.Tasks {
 		hasTask[task] = true
 		taskIdx[task] = i
 	}
@@ -201,7 +185,7 @@ func verifyUnit(db *sql.DB, s *Unit) error {
 		}
 		grp := a[0]
 		unit := a[1]
-		_, err := GetUnit(db, s.Show, "asset", grp, unit)
+		_, err := GetUnit(db, s.Show, grp, unit)
 		if err != nil {
 			return err
 		}
@@ -251,12 +235,12 @@ func AddUnit(db *sql.DB, s *Unit) error {
 		return err
 	}
 	// 부모가 있는지 검사
-	_, err = GetGroup(db, s.Show, s.Category, s.Group)
+	_, err = GetGroup(db, s.Show, s.Group)
 	if err != nil {
 		return err
 	}
 	// 이미 존재하는 유닛인지 검사
-	_, err = GetUnit(db, s.Show, s.Category, s.Group, s.Unit)
+	_, err = GetUnit(db, s.Show, s.Group, s.Unit)
 	if err == nil {
 		return BadRequest(fmt.Sprintf("unit already exist: %s", s.ID()))
 	}
@@ -269,13 +253,12 @@ func AddUnit(db *sql.DB, s *Unit) error {
 	// 하위 태스크 생성
 	for _, task := range s.Tasks {
 		t := &Task{
-			Show:     s.Show,
-			Category: s.Category,
-			Group:    s.Group,
-			Unit:     s.Unit,
-			Task:     task,
-			Status:   StatusInProgress,
-			DueDate:  time.Time{},
+			Show:    s.Show,
+			Group:   s.Group,
+			Unit:    s.Unit,
+			Task:    task,
+			Status:  StatusInProgress,
+			DueDate: time.Time{},
 		}
 		err := verifyTask(db, t)
 		if err != nil {
@@ -292,23 +275,23 @@ func AddUnit(db *sql.DB, s *Unit) error {
 
 // GetUnit은 db에서 하나의 샷을 찾는다.
 // 해당 샷이 존재하지 않는다면 nil과 NotFound 에러를 반환한다.
-func GetUnit(db *sql.DB, show, ctg, grp, unit string) (*Unit, error) {
-	err := verifyUnitPrimaryKeys(show, ctg, grp, unit)
+func GetUnit(db *sql.DB, show, grp, unit string) (*Unit, error) {
+	err := verifyUnitPrimaryKeys(show, grp, unit)
 	if err != nil {
 		return nil, err
 	}
-	_, err = GetGroup(db, show, ctg, grp)
+	_, err = GetGroup(db, show, grp)
 	if err != nil {
 		return nil, err
 	}
 	s := &Unit{}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM units WHERE show=$1 AND category=$2 AND grp=$3 AND unit=$4 LIMIT 1", unitDBKey), show, ctg, grp, unit)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM units WHERE show=$1 AND grp=$2 AND unit=$3 LIMIT 1", unitDBKey), show, grp, unit)
 	err = dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, s)
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("unit", JoinUnitID(show, ctg, grp, unit))
+			return nil, NotFound("unit", JoinUnitID(show, grp, unit))
 		}
 		return nil, err
 	}
@@ -316,7 +299,7 @@ func GetUnit(db *sql.DB, show, ctg, grp, unit string) (*Unit, error) {
 }
 
 // SearchUnits는 db의 특정 프로젝트에서 검색 조건에 맞는 샷 리스트를 반환한다.
-func SearchUnits(db *sql.DB, show, ctg, grp string, units []string, tag, status, task, assignee, task_status string, task_due_date time.Time) ([]*Unit, error) {
+func SearchUnits(db *sql.DB, show string, grps, units []string, tag, status, task, assignee, task_status string, task_due_date time.Time) ([]*Unit, error) {
 	keys := ""
 	for i, k := range dbKeys(&Unit{}) {
 		if i != 0 {
@@ -333,15 +316,23 @@ func SearchUnits(db *sql.DB, show, ctg, grp string, units []string, tag, status,
 	where = append(where, fmt.Sprintf("units.show=$%d", i))
 	vals = append(vals, show)
 	i++
-	if ctg != "" {
-		where = append(where, fmt.Sprintf("units.category=$%d", i))
-		vals = append(vals, ctg)
-		i++
-	}
-	if grp != "" {
-		where = append(where, fmt.Sprintf("units.grp=$%d", i))
-		vals = append(vals, grp)
-		i++
+	if len(grps) != 0 {
+		whereGroups := "units.grp IN ("
+		j := 0
+		for _, grp := range grps {
+			if grp == "" {
+				continue
+			}
+			if j != 0 {
+				whereGroups += ","
+			}
+			whereGroups += fmt.Sprintf("$%d", i)
+			vals = append(vals, grp)
+			i++
+			j++
+		}
+		whereGroups += ")"
+		where = append(where, whereGroups)
 	}
 	if len(units) != 0 {
 		j := 0
@@ -422,16 +413,21 @@ func SearchUnits(db *sql.DB, show, ctg, grp string, units []string, tag, status,
 		if err != nil {
 			return err
 		}
-		if !hasUnit[s.Unit] {
-			hasUnit[s.Unit] = true
+		if !hasUnit[s.Group+"/"+s.Unit] {
+			hasUnit[s.Group+"/"+s.Unit] = true
 			ss = append(ss, s)
 		}
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("search units: %w", err)
+		return nil, fmt.Errorf("search units: %s: %w", st, err)
 	}
 	sort.Slice(ss, func(i int, j int) bool {
+		if ss[i].Group < ss[j].Group {
+			return true
+		} else if ss[i].Group > ss[j].Group {
+			return false
+		}
 		return ss[i].Unit <= ss[j].Unit
 	})
 	return ss, nil
@@ -443,28 +439,27 @@ func UpdateUnit(db *sql.DB, s *Unit) error {
 	if err != nil {
 		return err
 	}
-	_, err = GetUnit(db, s.Show, s.Category, s.Group, s.Unit)
+	_, err = GetUnit(db, s.Show, s.Group, s.Unit)
 	if err != nil {
 		return err
 	}
 	stmts := []dbStatement{
-		dbStmt(fmt.Sprintf("UPDATE units SET (%s) = (%s) WHERE show='%s' AND category='%s' AND grp='%s' AND unit='%s'", unitDBKey, unitDBIdx, s.Show, s.Category, s.Group, s.Unit), dbVals(s)...),
+		dbStmt(fmt.Sprintf("UPDATE units SET (%s) = (%s) WHERE show='%s' AND grp='%s' AND unit='%s'", unitDBKey, unitDBIdx, s.Show, s.Group, s.Unit), dbVals(s)...),
 	}
 	// 샷에 등록된 태스크 중 기존에 없었던 태스크가 있다면 생성한다.
 	for _, task := range s.Tasks {
-		_, err := GetTask(db, s.Show, s.Category, s.Group, s.Unit, task)
+		_, err := GetTask(db, s.Show, s.Group, s.Unit, task)
 		if err != nil {
 			if !errors.As(err, &NotFoundError{}) {
 				return fmt.Errorf("get task: %s", err)
 			} else {
 				t := &Task{
-					Show:     s.Show,
-					Category: s.Category,
-					Group:    s.Group,
-					Unit:     s.Unit,
-					Task:     task,
-					Status:   StatusInProgress,
-					DueDate:  time.Time{},
+					Show:    s.Show,
+					Group:   s.Group,
+					Unit:    s.Unit,
+					Task:    task,
+					Status:  StatusInProgress,
+					DueDate: time.Time{},
 				}
 				st, err := addTaskStmts(db, t)
 				if err != nil {
@@ -479,15 +474,15 @@ func UpdateUnit(db *sql.DB, s *Unit) error {
 
 // DeleteUnit은 해당 샷과 그 하위의 모든 데이터를 db에서 지운다.
 // 만일 처리 중간에 에러가 나면 아무 데이터도 지우지 않고 에러를 반환한다.
-func DeleteUnit(db *sql.DB, show, ctg, grp, unit string) error {
-	_, err := GetUnit(db, show, ctg, grp, unit)
+func DeleteUnit(db *sql.DB, show, grp, unit string) error {
+	_, err := GetUnit(db, show, grp, unit)
 	if err != nil {
 		return err
 	}
 	stmts := []dbStatement{
-		dbStmt("DELETE FROM units WHERE show=$1 AND category=$2 AND grp=$3 AND unit=$4", show, ctg, grp, unit),
-		dbStmt("DELETE FROM tasks WHERE show=$1 AND category=$2 AND grp=$3 AND unit=$4", show, ctg, grp, unit),
-		dbStmt("DELETE FROM versions WHERE show=$1 AND category=$2 AND grp=$3 AND unit=$4", show, ctg, grp, unit),
+		dbStmt("DELETE FROM units WHERE show=$1 AND grp=$2 AND unit=$3", show, grp, unit),
+		dbStmt("DELETE FROM tasks WHERE show=$1 AND grp=$2 AND unit=$3", show, grp, unit),
+		dbStmt("DELETE FROM versions WHERE show=$1 AND grp=$2 AND unit=$3", show, grp, unit),
 	}
 	return dbExec(db, stmts)
 }

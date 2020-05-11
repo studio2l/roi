@@ -36,9 +36,8 @@ func sitePostHander(w http.ResponseWriter, r *http.Request, env *Env) error {
 		VFXProducers:      formValues(r, "vfx_producers"),
 		CGSupervisors:     formValues(r, "cg_supervisors"),
 		ProjectManagers:   formValues(r, "project_managers"),
-		ShotTasks:         formValues(r, "shot_tasks"),
+		Tasks:             formValues(r, "tasks"),
 		DefaultShotTasks:  formValues(r, "default_shot_tasks"),
-		AssetTasks:        formValues(r, "asset_tasks"),
 		DefaultAssetTasks: formValues(r, "default_asset_tasks"),
 		Leads:             formValues(r, "leads"),
 	}

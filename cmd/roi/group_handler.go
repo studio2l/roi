@@ -52,29 +52,37 @@ func addGroupHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 }
 
 func addGroupPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	err := mustFields(r, "show", "category", "group")
+	err := mustFields(r, "show", "group")
 	if err != nil {
 		return err
 	}
 	show := r.FormValue("show")
-	ctg := r.FormValue("category")
 	grp := r.FormValue("group")
-	_, err = roi.GetGroup(DB, show, ctg, grp)
+	_, err = roi.GetGroup(DB, show, grp)
 	if err == nil {
-		return roi.BadRequest(fmt.Sprintf("group already exist: %s", roi.JoinGroupID(show, ctg, grp)))
+		return roi.BadRequest(fmt.Sprintf("group already exist: %s", roi.JoinGroupID(show, grp)))
 	} else if !errors.As(err, &roi.NotFoundError{}) {
 		return err
 	}
+	si, err := roi.GetSite(DB)
+	if err != nil {
+		return err
+	}
+	defaultTasks := si.DefaultShotTasks
+	if strings.IndexAny(grp, "ABCDEFGHIJKLMNOPQRSTUVWXYZ") != 0 {
+		// 대문자로 시작하지 않는 그룹은 애셋 그룹이다.
+		defaultTasks = si.DefaultAssetTasks
+	}
 	s := &roi.Group{
-		Show:     show,
-		Category: ctg,
-		Group:    grp,
+		Show:         show,
+		Group:        grp,
+		DefaultTasks: defaultTasks,
 	}
 	err = roi.AddGroup(DB, s)
 	if err != nil {
 		return err
 	}
-	http.Redirect(w, r, "/update-group?id="+roi.JoinGroupID(show, ctg, grp), http.StatusSeeOther)
+	http.Redirect(w, r, "/update-group?id="+roi.JoinGroupID(show, grp), http.StatusSeeOther)
 	return nil
 }
 
@@ -89,11 +97,11 @@ func updateGroupHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 		return err
 	}
 	id := r.FormValue("id")
-	show, ctg, grp, err := roi.SplitGroupID(id)
+	show, grp, err := roi.SplitGroupID(id)
 	if err != nil {
 		return err
 	}
-	p, err := roi.GetGroup(DB, show, ctg, grp)
+	p, err := roi.GetGroup(DB, show, grp)
 	if err != nil {
 		return err
 	}
@@ -113,14 +121,15 @@ func updateGroupPostHandler(w http.ResponseWriter, r *http.Request, env *Env) er
 		return err
 	}
 	id := r.FormValue("id")
-	show, ctg, grp, err := roi.SplitGroupID(id)
+	show, grp, err := roi.SplitGroupID(id)
 	if err != nil {
 		return err
 	}
-	s, err := roi.GetGroup(DB, show, ctg, grp)
+	s, err := roi.GetGroup(DB, show, grp)
 	if err != nil {
 		return err
 	}
+	s.DefaultTasks = fieldSplit(r.FormValue("default_tasks"))
 	s.Notes = r.FormValue("notes")
 	s.Attrs = make(roi.DBStringMap)
 

@@ -68,10 +68,9 @@
 			]
 			<div style="color:#9f9f9f;font-size:1.2rem;"> [
 				<a href="/update-show?id={{$t.Show}}" style="color:#9f9f9f"> [{{$t.Show}}] /
-				{{$t.Category}} /
-				<a href="/update-group?id={{$t.Show}}/{{$t.Category}}/{{$t.Group}}" style="color:#9f9f9f"> [{{$t.Group}}] /
-				<a href="/update-unit?id={{$t.Show}}/{{$t.Category}}/{{$t.Group}}/{{$t.Unit}}" style="color:#9f9f9f"> [{{$t.Unit}}] /
-				<a href="/update-task?id={{$t.Show}}/{{$t.Category}}/{{$t.Group}}/{{$t.Unit}}/{{$t.Task}}" style="color:#9f9f9f"> [{{$t.Task}}]
+				<a href="/update-group?id={{$t.Show}}/{{$t.Group}}" style="color:#9f9f9f"> [{{$t.Group}}] /
+				<a href="/update-unit?id={{$t.Show}}/{{$t.Group}}/{{$t.Unit}}" style="color:#9f9f9f"> [{{$t.Unit}}] /
+				<a href="/update-task?id={{$t.Show}}/{{$t.Group}}/{{$t.Unit}}/{{$t.Task}}" style="color:#9f9f9f"> [{{$t.Task}}]
 			]
 		]
 		{{end}}

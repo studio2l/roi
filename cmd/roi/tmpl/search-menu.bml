@@ -7,7 +7,6 @@
                 <option value={{.Show}} {{if eq .Show $.Show}}selected{{end}}> [{{.Show}}]
                 {{end}}
             ]
-            <input hidden type="text" name="category" value="{{$.Category}}" />
             <input type="text" name="q" style="flex:1;margin:0 1rem;" placeholder="" value="{{$.Query}}" />
             <input type="submit" value="검색" />
         ]

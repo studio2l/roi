@@ -69,6 +69,10 @@ func verifyShowName(name string) error {
 	return nil
 }
 
+func verifyShowPrimaryKeys(name string) error {
+	return verifyShowName(name)
+}
+
 // verifyShow는 받아들인 쇼가 유효하지 않다면 에러를 반환한다.
 // 필요하다면 db의 정보와 비교하거나 유효성 확보를 위해 정보를 수정한다.
 func verifyShow(db *sql.DB, s *Show) error {

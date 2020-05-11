@@ -62,15 +62,15 @@
 		]
 		<div class="field"> [
 			<div style="display:flex;color:black"> [
-				<label> [샷 태스크]
+				<label> [전체 태스크]
 				<div class="multi-input-add-button" onclick='appendTemplate("shot_tasks_g", "shot_tasks_t")'> [+]
 			]
 			<template id="shot_tasks_t"> [
 				<input type="text" name="shot_tasks" value=""/>
 			]
 			<div id="shot_tasks_g" class="multi-input"> [
-				{{range .Site.ShotTasks}}
-				<input type="text" name="shot_tasks" value="{{.}}"/>
+				{{range .Site.Tasks}}
+				<input type="text" name="tasks" value="{{.}}"/>
 				{{end}}
 			]
 		]
@@ -85,20 +85,6 @@
 			<div id="default_shot_tasks_g" class="multi-input"> [
 				{{range .Site.DefaultShotTasks}}
 				<input type="text" name="default_shot_tasks" onkeydown="suggest(this)" value="{{.}}"/>
-				{{end}}
-			]
-		]
-		<div class="field"> [
-			<div style="display:flex;color:black"> [
-				<label> [애셋 태스크]
-				<div class="multi-input-add-button" onclick='appendTemplate("asset_tasks_g", "asset_tasks_t")'> [+]
-			]
-			<template id="asset_tasks_t"> [
-				<input type="text" name="asset_tasks" value=""/>
-			]
-			<div id="asset_tasks_g" class="multi-input"> [
-				{{range .Site.AssetTasks}}
-				<input type="text" name="asset_tasks" value="{{.}}"/>
 				{{end}}
 			]
 		]

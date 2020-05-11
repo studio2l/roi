@@ -170,7 +170,7 @@ func userHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		} else if c > 0 {
 			return false
 		}
-		c = strings.Compare(ti.Category, tj.Category)
+		c = strings.Compare(ti.Group, tj.Group)
 		if c < 0 {
 			return true
 		} else if c > 0 {
