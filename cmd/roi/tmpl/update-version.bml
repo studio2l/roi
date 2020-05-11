@@ -39,12 +39,6 @@
 		<div class="field"> [<label> [작업 파일]
 			<input type="text" name="work_file" value="{{$v.WorkFile}}"/>
 		]
-		<div class="field"> [<label> [시작일]
-			<input type="date" name="start_date" value="{{stringFromDate $v.StartDate}}"/>
-		]
-		<div class="field"> [<label> [(예상)종료일]
-			<input type="date" name="end_date" value="{{stringFromDate $v.EndDate}}"/>
-		]
 		<button class="ui button green" type="submit" value="Submit"> [수정]
 		<div style="height:2rem"> []
 	]
