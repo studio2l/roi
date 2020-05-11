@@ -11,5 +11,12 @@
             <input type="submit" value="검색" />
         ]
     ]
+    <script> [``
+    // showChanged는 현재 쇼에 맞는 검색 도움 페이지를 부른다.
+    function showChanged() {
+        let show = document.getElementById("show-select").value
+        document.location.href = "?show="+show+"&q=?"
+    }
+    ``]
 ]
 {{end}}
