@@ -105,7 +105,7 @@ func verifyGroup(db *sql.DB, s *Group) error {
 	}
 	for _, t := range s.DefaultTasks {
 		if !hasTask[t] {
-			return fmt.Errorf("task not defined in site: %s", t)
+			return BadRequest(fmt.Sprintf("task not defined in site: %s", t))
 		}
 	}
 	return nil
