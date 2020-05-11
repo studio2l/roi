@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"time"
 )
 
 // CreateTableIfNotExistShowsStmt는 DB에 versions 테이블을 생성하는 sql 구문이다.
@@ -23,8 +22,6 @@ var CreateTableIfNotExistsVersionsStmt = `CREATE TABLE IF NOT EXISTS versions (
 	images STRING[] NOT NULL,
 	mov STRING NOT NULL,
 	work_file STRING NOT NULL,
-	start_date TIMESTAMPTZ NOT NULL,
-	end_date TIMESTAMPTZ NOT NULL,
 	UNIQUE(show, unit, task, version),
 	CONSTRAINT versions_pk PRIMARY KEY (show, grp, unit, task, version)
 )`
@@ -37,13 +34,11 @@ type Version struct {
 	Task    string `db:"task"`
 	Version string `db:"version"` // 버전명
 
-	Owner       string    `db:"owner"`        // 버전 소유자
-	OutputFiles []string  `db:"output_files"` // 결과물 경로
-	Images      []string  `db:"images"`       // 결과물을 확인할 수 있는 이미지
-	Mov         string    `db:"mov"`          // 결과물을 영상으로 볼 수 있는 경로
-	WorkFile    string    `db:"work_file"`    // 이 결과물을 만든 작업 파일
-	StartDate   time.Time `db:"start_date"`   // 버전 작업 시작 시간
-	EndDate     time.Time `db:"end_date"`     // 버전 작업 마감 시간
+	Owner       string   `db:"owner"`        // 버전 소유자
+	OutputFiles []string `db:"output_files"` // 결과물 경로
+	Images      []string `db:"images"`       // 결과물을 확인할 수 있는 이미지
+	Mov         string   `db:"mov"`          // 결과물을 영상으로 볼 수 있는 경로
+	WorkFile    string   `db:"work_file"`    // 이 결과물을 만든 작업 파일
 }
 
 var versionDBKey string = strings.Join(dbKeys(&Version{}), ", ")

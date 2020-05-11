@@ -3,7 +3,6 @@ package roi
 import (
 	"reflect"
 	"testing"
-	"time"
 )
 
 var testVersionA = &Version{
@@ -19,10 +18,8 @@ var testVersionA = &Version{
 		"/project/test/FOO_0010/render/test.v001.0001.jpg",
 		"/project/test/FOO_0010/render/test.v001.0002.jpg",
 	},
-	Mov:       "/project/test/FOO_0010/render/test.v001.mov",
-	WorkFile:  "/project/test/FOO_0010/scene/test.v001.hip",
-	StartDate: time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC),
-	EndDate:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+	Mov:      "/project/test/FOO_0010/render/test.v001.mov",
+	WorkFile: "/project/test/FOO_0010/scene/test.v001.hip",
 }
 
 func TestVersion(t *testing.T) {

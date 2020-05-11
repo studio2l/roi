@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/studio2l/roi"
 )
@@ -49,13 +48,12 @@ func addVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	}
 	version := r.FormValue("version")
 	v := &roi.Version{
-		Show:      show,
-		Group:     grp,
-		Unit:      unit,
-		Task:      task,
-		Version:   version,
-		StartDate: time.Now(),
-		Owner:     env.User.ID,
+		Show:    show,
+		Group:   grp,
+		Unit:    unit,
+		Task:    task,
+		Version: version,
+		Owner:   env.User.ID,
 	}
 	err = roi.AddVersion(DB, v)
 	if err != nil {
@@ -110,10 +108,6 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 	if err != nil {
 		return err
 	}
-	timeForms, err := parseTimeForms(r.Form, "start_date", "end_date")
-	if err != nil {
-		return err
-	}
 	dstd := fmt.Sprintf("data/show/%s", id)
 	err = saveFormFiles(r, "preview_files", dstd)
 	if err != nil {
@@ -126,8 +120,6 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 	v.OutputFiles = fieldSplit(r.FormValue("output_files"))
 	v.Images = fieldSplit(r.FormValue("images"))
 	v.WorkFile = r.FormValue("work_file")
-	v.StartDate = timeForms["start_date"]
-	v.EndDate = timeForms["end_date"]
 
 	err = roi.UpdateVersion(DB, v)
 	if err != nil {
