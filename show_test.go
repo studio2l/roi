@@ -7,16 +7,14 @@ import (
 )
 
 var testShow = &Show{
-	Show:              "TEST",
-	Status:            "waiting",
-	Supervisor:        "김성환",
-	CGSupervisor:      "김용빈",
-	PD:                "조경식",
-	Managers:          []string{"이한나"},
-	DueDate:           time.Date(2018, 9, 31, 0, 0, 0, 0, time.Local).UTC(),
-	DefaultShotTasks:  []string{},
-	DefaultAssetTasks: []string{},
-	Tags:              []string{},
+	Show:         "TEST",
+	Status:       "waiting",
+	Supervisor:   "김성환",
+	CGSupervisor: "김용빈",
+	PD:           "조경식",
+	Managers:     []string{"이한나"},
+	DueDate:      time.Date(2018, 9, 31, 0, 0, 0, 0, time.Local).UTC(),
+	Tags:         []string{},
 	Notes: `테스트 쇼
 클라이언트: 레이지픽처스
 감독: 윤지은

@@ -57,15 +57,8 @@ func addShowApiHandler(w http.ResponseWriter, r *http.Request) {
 		apiInternalServerError(w)
 		return
 	}
-	si, err := roi.GetSite(DB)
-	if err != nil {
-		apiInternalServerError(w)
-		return
-	}
 	p := &roi.Show{
-		Show:              show,
-		DefaultShotTasks:  si.DefaultShotTasks,
-		DefaultAssetTasks: si.DefaultAssetTasks,
+		Show: show,
 	}
 	err = roi.AddShow(DB, p)
 	if err != nil {
