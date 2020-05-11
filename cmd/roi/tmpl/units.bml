@@ -146,12 +146,6 @@
 ]
 <!--검색 결과 끝-->
 <script> [``
-// showChanged는 다른 쇼 페이지로 이동한다.
-function showChanged() {
-	show = document.getElementById("show-select").value;
-	document.location.href = "/units?show="+show;
-};
-
 // selectedUnits에 선택된 샷이 담긴다.
 let selectedUnits = {}
 
