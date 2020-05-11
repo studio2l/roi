@@ -19,8 +19,7 @@
 				<div class="menu"> [
 					<a class="item" href="/add-show"> [Show]
 					<a class="item" href="/add-group"> [Group]
-					<a class="item" href="/add-unit?category=shot"> [Shot]
-					<a class="item" href="/add-unit?category=asset"> [Asset]
+					<a class="item" href="/add-unit"> [Unit]
 				]
 			]
 			<div id="user-menu" class="ui dropdown item" title="개인계정과 설정을 위한 페이지입니다."> [

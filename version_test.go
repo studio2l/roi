@@ -7,12 +7,11 @@ import (
 )
 
 var testVersionA = &Version{
-	Show:     testShow.Show,
-	Category: "shot",
-	Group:    testGroup.Group,
-	Unit:     testUnitA.Unit,
-	Task:     testTaskA.Task,
-	Version:  "v001",
+	Show:    testShow.Show,
+	Group:   testGroup.Group,
+	Unit:    testUnitA.Unit,
+	Task:    testTaskA.Task,
+	Version: "v001",
 
 	Owner:       "admin",
 	OutputFiles: []string{"/project/test/FOO_0010/scene/test.v001.abc"},
@@ -57,7 +56,7 @@ func TestVersion(t *testing.T) {
 		t.Fatalf("could not add group to groups table: %s", err)
 	}
 	defer func() {
-		err = DeleteGroup(db, testGroup.Show, testGroup.Category, testGroup.Group)
+		err = DeleteGroup(db, testGroup.Show, testGroup.Group)
 		if err != nil {
 			t.Fatalf("could not delete group: %s", err)
 		}
@@ -67,14 +66,14 @@ func TestVersion(t *testing.T) {
 		t.Fatalf("could not add shot: %v", err)
 	}
 	defer func() {
-		err = DeleteUnit(db, testUnitA.Show, testUnitA.Category, testUnitA.Group, testUnitA.Unit)
+		err = DeleteUnit(db, testUnitA.Show, testUnitA.Group, testUnitA.Unit)
 		if err != nil {
 			t.Fatalf("could not delete shot: %v", err)
 		}
 	}()
 	// testUnitA가 생성되면서 testTaskA도 함께 생성된다.
 	defer func() {
-		err = DeleteTask(db, testTaskA.Show, testTaskA.Category, testTaskA.Group, testTaskA.Unit, testTaskA.Task)
+		err = DeleteTask(db, testTaskA.Show, testTaskA.Group, testTaskA.Unit, testTaskA.Task)
 		if err != nil {
 			t.Fatalf("could not delete task: %v", err)
 		}
@@ -88,19 +87,19 @@ func TestVersion(t *testing.T) {
 		t.Fatalf("could not add version: %v", err)
 	}
 	defer func() {
-		err = DeleteVersion(db, testVersionA.Show, testVersionA.Category, testVersionA.Group, testVersionA.Unit, testVersionA.Task, testVersionA.Version)
+		err = DeleteVersion(db, testVersionA.Show, testVersionA.Group, testVersionA.Unit, testVersionA.Task, testVersionA.Version)
 		if err != nil {
 			t.Fatalf("could not delete version: %v", err)
 		}
 	}()
-	got, err := GetVersion(db, testVersionA.Show, testVersionA.Category, testVersionA.Group, testVersionA.Unit, testVersionA.Task, testVersionA.Version)
+	got, err := GetVersion(db, testVersionA.Show, testVersionA.Group, testVersionA.Unit, testVersionA.Task, testVersionA.Version)
 	if err != nil {
 		t.Fatalf("could not get version: %v", err)
 	}
 	if !reflect.DeepEqual(got, testVersionA) {
 		t.Fatalf("added version is not expected: got %v, want %v", got, testVersionA)
 	}
-	taskVersions, err := TaskVersions(db, testTaskA.Show, testTaskA.Category, testTaskA.Group, testTaskA.Unit, testTaskA.Task)
+	taskVersions, err := TaskVersions(db, testTaskA.Show, testTaskA.Group, testTaskA.Unit, testTaskA.Task)
 	if err != nil {
 		t.Fatalf("could not get versions of task: %v", err)
 	}

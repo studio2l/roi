@@ -17,12 +17,9 @@ type Site struct {
 	CGSupervisors   []string `db:"cg_supervisors"`
 	ProjectManagers []string `db:"project_managers"`
 	// 샷에 생성할 수 있는 태스크
-	ShotTasks []string `db:"shot_tasks"`
+	Tasks []string `db:"tasks"`
 	// 샷이 생성될 때 기본적으로 생기는 태스크
-	DefaultShotTasks []string `db:"default_shot_tasks"`
-	// 애셋에 생성할 수 있는 태스크
-	AssetTasks []string `db:"asset_tasks"`
-	// 애셋이 생성될 때 기본적으로 생기는 태스크
+	DefaultShotTasks  []string `db:"default_shot_tasks"`
 	DefaultAssetTasks []string `db:"default_asset_tasks"`
 	// Leads는 task:name 형식이고 한 파트에 여러명이 등록될 수 있다.
 	// 이 때 [... rnd:kybin rnd:kaycho ...] 처럼 등록한다.
@@ -36,9 +33,8 @@ var CreateTableIfNotExistsSitesStmt = `CREATE TABLE IF NOT EXISTS sites (
 	vfx_producers STRING[] NOT NULL,
 	cg_supervisors STRING[] NOT NULL,
 	project_managers STRING[] NOT NULL,
-	shot_tasks STRING[] NOT NULL,
+	tasks STRING[] NOT NULL,
 	default_shot_tasks STRING[] NOT NULL,
-	asset_tasks STRING[] NOT NULL,
 	default_asset_tasks STRING[] NOT NULL,
 	leads STRING[] NOT NULL
 )`
@@ -49,7 +45,10 @@ var _ []interface{} = dbVals(&Site{})
 
 // DefaultSite는 기본적으로 제공되는 사이트이다.
 var DefaultSite = &Site{
-	ShotTasks: []string{
+	Tasks: []string{
+		"mod",
+		"rig",
+		"tex",
 		"motion",
 		"match",
 		"ani",
@@ -60,11 +59,6 @@ var DefaultSite = &Site{
 	},
 	DefaultShotTasks: []string{
 		"comp",
-	},
-	AssetTasks: []string{
-		"mod",
-		"rig",
-		"tex",
 	},
 	DefaultAssetTasks: []string{
 		"mod",
@@ -79,30 +73,22 @@ func verifySite(db *sql.DB, s *Site) error {
 	if s == nil {
 		return fmt.Errorf("nil site")
 	}
-	hasShotTask := make(map[string]bool)
-	for _, task := range s.ShotTasks {
+	hasTask := make(map[string]bool)
+	for _, task := range s.Tasks {
 		err := verifyTaskName(task)
 		if err != nil {
 			return fmt.Errorf("invalid site: %w", err)
 		}
-		hasShotTask[task] = true
+		hasTask[task] = true
 	}
 	for _, task := range s.DefaultShotTasks {
-		if !hasShotTask[task] {
-			return fmt.Errorf("invalid site: shot task %q not specified but used as default shot task", task)
+		if !hasTask[task] {
+			return fmt.Errorf("invalid site: task %q not specified but used as default shot task", task)
 		}
-	}
-	hasAssetTask := make(map[string]bool)
-	for _, task := range s.AssetTasks {
-		err := verifyTaskName(task)
-		if err != nil {
-			return fmt.Errorf("invalid site: %w", err)
-		}
-		hasAssetTask[task] = true
 	}
 	for _, task := range s.DefaultAssetTasks {
-		if !hasAssetTask[task] {
-			return fmt.Errorf("invalid site: asset task %q not specified but used as default asset task", task)
+		if !hasTask[task] {
+			return fmt.Errorf("invalid site: task %q not specified but used as default asset task", task)
 		}
 	}
 	return nil
@@ -131,9 +117,9 @@ func UpdateSite(db *sql.DB, s *Site) error {
 	if err != nil {
 		return err
 	}
-	delShotTasks := subtractStringSlice(oldS.ShotTasks, s.ShotTasks)
-	for _, task := range delShotTasks {
-		err := SiteMustNotHaveShotTask(db, task)
+	delTasks := subtractStringSlice(oldS.Tasks, s.Tasks)
+	for _, task := range delTasks {
+		err := SiteMustNotHaveTask(db, task)
 		if err != nil {
 			return fmt.Errorf("could not delete site shot task: %w", err)
 		}
@@ -144,15 +130,15 @@ func UpdateSite(db *sql.DB, s *Site) error {
 	return dbExec(db, stmts)
 }
 
-// SiteMustNotHaveShotTask는 사이트 내의 샷에 해당 태스크가 하나라도 있으면 에러를 반환한다.
-func SiteMustNotHaveShotTask(db *sql.DB, task string) error {
+// SiteMustNotHaveTask는 사이트 내의 샷에 해당 태스크가 하나라도 있으면 에러를 반환한다.
+func SiteMustNotHaveTask(db *sql.DB, task string) error {
 	s := &Unit{}
-	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM shots WHERE $1::string = ANY(units.tasks)", unitDBKey), task)
+	stmt := dbStmt(fmt.Sprintf("SELECT %s FROM units WHERE $1::string = ANY(units.tasks)", unitDBKey), task)
 	err := dbQueryRow(db, stmt, func(row *sql.Row) error {
 		return scan(row, s)
 	})
 	if err == nil {
-		return BadRequest(fmt.Sprintf("shot %q has task %q (and there's possibly more)", s.ID(), task))
+		return BadRequest(fmt.Sprintf("unit %q has task %q (and there's possibly more)", s.ID(), task))
 	}
 	if err != sql.ErrNoRows {
 		return err

@@ -8,11 +8,10 @@
 	]
 	<h3 class="ui dividing header" style="color:#9f9f9f"> [
 		<a href="/update-show?id={{$v.Show}}" style="color:#9f9f9f"> [{{$v.Show}}] /
-		{{$v.Category}} /
-		<a href="/update-group?id={{$v.Show}}/{{$v.Category}}/{{$v.Group}}" style="color:#9f9f9f"> [{{$v.Group}}] /
-		<a href="/update-unit?id={{$v.Show}}/{{$v.Category}}/{{$v.Group}}/{{$v.Unit}}" style="color:#9f9f9f"> [{{$v.Unit}}] /
-		<a href="/update-task?id={{$v.Show}}/{{$v.Category}}/{{$v.Group}}/{{$v.Unit}}/{{$v.Task}}" style="color:#9f9f9f"> [{{$v.Task}}] /
-		<a href="/update-version?id={{$v.Show}}/{{$v.Category}}/{{$v.Group}}/{{$v.Unit}}/{{$v.Task}}/{{$v.Version}}" style="color:#9f9f9f"> [{{$v.Version}}]
+		<a href="/update-group?id={{$v.Show}}/{{$v.Group}}" style="color:#9f9f9f"> [{{$v.Group}}] /
+		<a href="/update-unit?id={{$v.Show}}/{{$v.Group}}/{{$v.Unit}}" style="color:#9f9f9f"> [{{$v.Unit}}] /
+		<a href="/update-task?id={{$v.Show}}/{{$v.Group}}/{{$v.Unit}}/{{$v.Task}}" style="color:#9f9f9f"> [{{$v.Task}}] /
+		<a href="/update-version?id={{$v.Show}}/{{$v.Group}}/{{$v.Unit}}/{{$v.Task}}/{{$v.Version}}" style="color:#9f9f9f"> [{{$v.Version}}]
 	]
 	<form method="post" class="ui form" enctype="multipart/form-data"> [
 		<input hidden type="text" name="id" value="{{$v.ID}}" />

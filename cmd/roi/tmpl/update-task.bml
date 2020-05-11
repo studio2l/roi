@@ -6,10 +6,9 @@
 	<h2 class="ui header"> [태스크 수정]
 	<h3 class="ui dividing header" style="color:#9f9f9f"> [
 		<a href="/update-show?id={{$t.Show}}" style="color:#9f9f9f"> [{{$t.Show}}] /
-		{{$t.Category}} /
-		<a href="/update-group?id={{$t.Show}}/{{$t.Category}}/{{$t.Group}}" style="color:#9f9f9f"> [{{$t.Group}}] /
-		<a href="/update-unit?id={{$t.Show}}/{{$t.Category}}/{{$t.Group}}/{{$t.Unit}}" style="color:#9f9f9f"> [{{$t.Unit}}] /
-		<a href="/update-task?id={{$t.Show}}/{{$t.Category}}/{{$t.Group}}/{{$t.Unit}}/{{$t.Task}}" style="color:#9f9f9f"> [{{$t.Task}}]
+		<a href="/update-group?id={{$t.Show}}/{{$t.Group}}" style="color:#9f9f9f"> [{{$t.Group}}] /
+		<a href="/update-unit?id={{$t.Show}}/{{$t.Group}}/{{$t.Unit}}" style="color:#9f9f9f"> [{{$t.Unit}}] /
+		<a href="/update-task?id={{$t.Show}}/{{$t.Group}}/{{$t.Unit}}/{{$t.Task}}" style="color:#9f9f9f"> [{{$t.Task}}]
 	]
 	<form method="post" class="ui form"> [
 		<input hidden type="text" name="id" value="{{$t.ID}}"/>

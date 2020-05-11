@@ -17,7 +17,7 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	id := r.FormValue("id")
-	show, ctg, grp, unit, task, err := roi.SplitTaskID(id)
+	show, grp, unit, task, err := roi.SplitTaskID(id)
 	if err != nil {
 		return err
 	}
@@ -28,11 +28,10 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}{
 		LoggedInUser: env.User.ID,
 		Version: &roi.Version{
-			Show:     show,
-			Category: ctg,
-			Group:    grp,
-			Unit:     unit,
-			Task:     task,
+			Show:  show,
+			Group: grp,
+			Unit:  unit,
+			Task:  task,
 		},
 	}
 	return executeTemplate(w, "add-version", recipe)
@@ -44,14 +43,13 @@ func addVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		return err
 	}
 	id := r.FormValue("id")
-	show, ctg, grp, unit, task, err := roi.SplitTaskID(id)
+	show, grp, unit, task, err := roi.SplitTaskID(id)
 	if err != nil {
 		return err
 	}
 	version := r.FormValue("version")
 	v := &roi.Version{
 		Show:      show,
-		Category:  ctg,
 		Group:     grp,
 		Unit:      unit,
 		Task:      task,
@@ -76,15 +74,15 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) erro
 		return err
 	}
 	id := r.FormValue("id")
-	show, ctg, grp, unit, task, ver, err := roi.SplitVersionID(id)
+	show, grp, unit, task, ver, err := roi.SplitVersionID(id)
 	if err != nil {
 		return err
 	}
-	v, err := roi.GetVersion(DB, show, ctg, grp, unit, task, ver)
+	v, err := roi.GetVersion(DB, show, grp, unit, task, ver)
 	if err != nil {
 		return err
 	}
-	t, err := roi.GetTask(DB, show, ctg, grp, unit, task)
+	t, err := roi.GetTask(DB, show, grp, unit, task)
 	if err != nil {
 		return err
 	}
@@ -108,7 +106,7 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 		return err
 	}
 	id := r.FormValue("id")
-	show, ctg, grp, unit, task, ver, err := roi.SplitVersionID(id)
+	show, grp, unit, task, ver, err := roi.SplitVersionID(id)
 	if err != nil {
 		return err
 	}
@@ -121,7 +119,7 @@ func updateVersionPostHandler(w http.ResponseWriter, r *http.Request, env *Env) 
 	if err != nil {
 		return err
 	}
-	v, err := roi.GetVersion(DB, show, ctg, grp, unit, task, ver)
+	v, err := roi.GetVersion(DB, show, grp, unit, task, ver)
 	if err != nil {
 		return err
 	}

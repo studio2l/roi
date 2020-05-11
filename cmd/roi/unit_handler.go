@@ -19,10 +19,6 @@ func addUnitHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}
 	// 할일: id를 show로 변경할 것
 	id := r.FormValue("id")
-	ctg := r.FormValue("category")
-	if ctg != "shot" && ctg != "asset" {
-		ctg = "shot"
-	}
 	if id == "" {
 		// 요청이 프로젝트를 가리키지 않을 경우 사용자가
 		// 보고 있던 프로젝트를 선택한다.
@@ -39,7 +35,7 @@ func addUnitHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			}
 			id = shows[0].Show
 		}
-		http.Redirect(w, r, "/add-unit?id="+id+"&category="+ctg, http.StatusSeeOther)
+		http.Redirect(w, r, "/add-unit?id="+id, http.StatusSeeOther)
 		return nil
 	}
 	sw, err := roi.GetShow(DB, id)
@@ -55,45 +51,32 @@ func addUnitHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	recipe := struct {
 		LoggedInUser string
 		Show         *roi.Show
-		Category     string
 	}{
 		LoggedInUser: env.User.ID,
 		Show:         sw,
-		Category:     ctg,
 	}
 	return executeTemplate(w, "add-unit", recipe)
 }
 
 func addUnitPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
-	err := mustFields(r, "id", "category", "group", "unit")
+	err := mustFields(r, "id", "group", "unit")
 	if err != nil {
 		return err
 	}
 	// 할일: id를 show로 변경할 것
 	id := r.FormValue("id")
-	ctg := r.FormValue("category")
 	grp := r.FormValue("group")
 	unit := r.FormValue("unit")
-	sh, err := roi.GetShow(DB, id)
+	g, err := roi.GetGroup(DB, id, grp)
 	if err != nil {
 		return err
 	}
-	var tasks []string
-	switch ctg {
-	case "shot":
-		tasks = sh.DefaultShotTasks
-	case "asset":
-		tasks = sh.DefaultAssetTasks
-	default:
-		return fmt.Errorf("invalid category: %s", ctg)
-	}
 	s := &roi.Unit{
-		Show:     id,
-		Category: ctg,
-		Group:    grp,
-		Unit:     unit,
-		Status:   roi.StatusInProgress,
-		Tasks:    tasks,
+		Show:   id,
+		Group:  grp,
+		Unit:   unit,
+		Status: roi.StatusInProgress,
+		Tasks:  g.DefaultTasks,
 	}
 	err = roi.AddUnit(DB, s)
 	if err != nil {
@@ -112,15 +95,15 @@ func updateUnitHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	id := r.FormValue("id")
-	show, ctg, grp, unit, err := roi.SplitUnitID(id)
+	show, grp, unit, err := roi.SplitUnitID(id)
 	if err != nil {
 		return err
 	}
-	s, err := roi.GetUnit(DB, show, ctg, grp, unit)
+	s, err := roi.GetUnit(DB, show, grp, unit)
 	if err != nil {
 		return err
 	}
-	ts, err := roi.UnitTasks(DB, show, ctg, grp, unit)
+	ts, err := roi.UnitTasks(DB, show, grp, unit)
 	if err != nil {
 		return err
 	}
@@ -152,16 +135,15 @@ func updateUnitPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		return err
 	}
 	id := r.FormValue("id")
-	show, ctg, grp, unit, err := roi.SplitUnitID(id)
+	show, grp, unit, err := roi.SplitUnitID(id)
 	if err != nil {
 		return err
 	}
-	tasks := fieldSplit(r.FormValue("tasks"))
 	tforms, err := parseTimeForms(r.Form, "due_date")
 	if err != nil {
 		return err
 	}
-	s, err := roi.GetUnit(DB, show, ctg, grp, unit)
+	s, err := roi.GetUnit(DB, show, grp, unit)
 	if err != nil {
 		return err
 	}
@@ -171,7 +153,7 @@ func updateUnitPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 	s.CGDescription = r.FormValue("cg_description")
 	s.Tags = fieldSplit(r.FormValue("tags"))
 	s.Assets = fieldSplit(r.FormValue("assets"))
-	s.Tasks = tasks
+	s.Tasks = fieldSplit(r.FormValue("tasks"))
 	s.DueDate = tforms["due_date"]
 	s.Attrs = make(roi.DBStringMap)
 
@@ -212,7 +194,7 @@ func updateMultiUnitsHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 	}
 	ids := r.Form["id"]
 	id := ids[0]
-	show, _, _, _, err := roi.SplitUnitID(id)
+	show, _, _, err := roi.SplitUnitID(id)
 	if err != nil {
 		return err
 	}
@@ -276,11 +258,11 @@ func updateMultiUnitsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 		workingTasks = append(workingTasks, task)
 	}
 	for _, id := range ids {
-		show, ctg, grp, unit, err := roi.SplitUnitID(id)
+		show, grp, unit, err := roi.SplitUnitID(id)
 		if err != nil {
 			return err
 		}
-		s, err := roi.GetUnit(DB, show, ctg, grp, unit)
+		s, err := roi.GetUnit(DB, show, grp, unit)
 		if err != nil {
 			return err
 		}

@@ -116,10 +116,10 @@
 		]
 		<div class="unit-links"> [
 			{{if ne (len .Assets) 0 -}}
-			<a class="ui mini label" style="background-color:#977;color:white;" href="/units?show={{$s.Show}}&category=asset&q={{spaceJoin .Assets}}"> [애셋 ({{fieldJoin .Assets}})]
+			<a class="ui mini label" style="background-color:#977;color:white;" href="/units?show={{$s.Show}}&q={{spaceJoin .Assets}}"> [애셋 ({{fieldJoin .Assets}})]
 			{{- end -}}
 			{{- range $i, $v := .Tags -}}
-			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="/units?category={{$.Category}}&q=tag%3A{{$v}}">{{$v}}</a>
+			{{if ne $i 0}}{{end}}<a class="ui grey mini label" href="/units?q=tag%3A{{$v}}">{{$v}}</a>
 			{{- end}}
 		]
 	]
@@ -149,7 +149,7 @@
 // showChanged는 다른 쇼 페이지로 이동한다.
 function showChanged() {
 	show = document.getElementById("show-select").value;
-	document.location.href = "/units?show="+show+"&category={{$.Category}}";
+	document.location.href = "/units?show="+show;
 };
 
 // selectedUnits에 선택된 샷이 담긴다.

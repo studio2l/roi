@@ -6,7 +6,6 @@ import (
 
 var testTaskA = &Task{
 	Show:     testUnitA.Show,
-	Category: "shot",
 	Group:    testGroup.Group,
 	Unit:     testUnitA.Unit,
 	Task:     "fx", // testUnitA에 정의되어 있어야만 테스트가 통과한다.
@@ -44,7 +43,7 @@ func TestTask(t *testing.T) {
 		t.Fatalf("could not add group to groups table: %s", err)
 	}
 	defer func() {
-		err = DeleteGroup(db, testGroup.Show, testGroup.Category, testGroup.Group)
+		err = DeleteGroup(db, testGroup.Show, testGroup.Group)
 		if err != nil {
 			t.Fatalf("could not delete group: %s", err)
 		}
@@ -54,19 +53,19 @@ func TestTask(t *testing.T) {
 		t.Fatalf("could not add unit: %s", err)
 	}
 	defer func() {
-		err = DeleteUnit(db, testUnitA.Show, testUnitA.Category, testUnitA.Group, testUnitA.Unit)
+		err = DeleteUnit(db, testUnitA.Show, testUnitA.Group, testUnitA.Unit)
 		if err != nil {
 			t.Fatalf("could not delete shot: %s", err)
 		}
 	}()
 	// testUnitA가 생성되면서 testTaskA도 함께 생성된다.
 	defer func() {
-		err = DeleteTask(db, testTaskA.Show, testTaskA.Category, testTaskA.Group, testTaskA.Unit, testTaskA.Task)
+		err = DeleteTask(db, testTaskA.Show, testTaskA.Group, testTaskA.Unit, testTaskA.Task)
 		if err != nil {
 			t.Fatalf("could not delete task: %s", err)
 		}
 	}()
-	_, err = GetTask(db, testTaskA.Show, testTaskA.Category, testTaskA.Group, testTaskA.Unit, testTaskA.Task)
+	_, err = GetTask(db, testTaskA.Show, testTaskA.Group, testTaskA.Unit, testTaskA.Task)
 	if err != nil {
 		t.Fatalf("could not get task: %s", testTaskA.ID())
 	}
@@ -74,7 +73,7 @@ func TestTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not update task: %s", err)
 	}
-	tasks, err := UnitTasks(db, testUnitA.Show, testUnitA.Category, testUnitA.Group, testUnitA.Unit)
+	tasks, err := UnitTasks(db, testUnitA.Show, testUnitA.Group, testUnitA.Unit)
 	if err != nil {
 		t.Fatalf("could not get shot tasks: %s", err)
 	}

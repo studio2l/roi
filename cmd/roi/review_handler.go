@@ -21,10 +21,6 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	show := r.FormValue("show")
-	ctg := r.FormValue("category")
-	if ctg == "" {
-		ctg = "shot"
-	}
 	if show == "" {
 		// 요청이 프로젝트를 가리키지 않을 경우 사용자가
 		// 보고 있던 프로젝트를 선택한다.
@@ -34,11 +30,11 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			// 첫번째 프로젝트를 가리킨다.
 			show = shows[0].Show
 		}
-		http.Redirect(w, r, "/review?show="+show+"&category="+ctg, http.StatusSeeOther)
+		http.Redirect(w, r, "/review?show="+show, http.StatusSeeOther)
 		return nil
 	}
 	ts := make([]*roi.Task, 0)
-	ts, err = roi.TasksNeedReview(DB, show, ctg)
+	ts, err = roi.TasksNeedReview(DB, show)
 	if err != nil {
 		return err
 	}
@@ -54,13 +50,11 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		LoggedInUser string
 		Shows        []*roi.Show
 		Show         string
-		Category     string
 		ByDue        map[time.Time][]*roi.Task
 	}{
 		LoggedInUser: env.User.ID,
 		Shows:        shows,
 		Show:         show,
-		Category:     ctg,
 		ByDue:        tsd,
 	}
 	return executeTemplate(w, "review", recipe)

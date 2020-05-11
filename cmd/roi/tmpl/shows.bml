@@ -28,16 +28,14 @@
 		]
 	]
 	<div style="display:flex;"> [
-		{{with $ctgs := index $.ShowGroups .Show}}
-			<span style="margin-right:0.5rem"> [shot]
-			{{range $g := index $ctgs "shot"}}
-				<a class="ui mini label" href="/update-group?id={{$s.Show}}/shot/{{$g.Group}}">[{{$g.Group}}]
-			{{end}}
-			<div style="width:1rem"> []
-			<span style="margin-right:0.5rem"> [asset]
-			{{range $g := index $ctgs "asset"}}
-				<a class="ui mini label" href="/update-group?id={{$s.Show}}/asset/{{$g.Group}}">[{{$g.Group}}]
-			{{end}}
+		<span style="margin-right:0.5rem"> [샷]
+		{{range $g := index $.ShotGroups $s.Show}}
+			<a class="ui mini label" href="/update-group?id={{$g.Show}}/{{$g.Group}}">[{{$g.Group}}]
+		{{end}}
+		<div style="width:1rem"> []
+		<span style="margin-right:0.5rem"> [애셋]
+		{{range $g := index $.AssetGroups $s.Show}}
+			<a class="ui mini label" href="/update-group?id={{$g.Show}}/{{$g.Group}}">[{{$g.Group}}]
 		{{end}}
 	]
 ]

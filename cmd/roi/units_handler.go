@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -23,10 +22,6 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	show := r.FormValue("show")
-	ctg := r.FormValue("category")
-	if ctg != "" && ctg != "shot" && ctg != "asset" {
-		return fmt.Errorf("invalid category: %s", ctg)
-	}
 	query := r.FormValue("q")
 	if show == "" {
 		// 요청이 프로젝트를 가리키지 않을 경우 사용자가
@@ -37,7 +32,7 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			// 첫번째 프로젝트를 가리킨다.
 			show = shows[0].Show
 		}
-		http.Redirect(w, r, "/units?show="+show+"&category="+ctg+"&q="+query, http.StatusSeeOther)
+		http.Redirect(w, r, "/units?show="+show+"&q="+query, http.StatusSeeOther)
 		return nil
 	}
 	s, err := roi.GetShow(DB, show)
@@ -50,20 +45,24 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	if query == "?" {
-		sgrps, err := roi.Groups(DB, show, "shot")
+		grps, err := roi.ShowGroups(DB, show)
 		if err != nil {
 			return err
 		}
-		agrps, err := roi.Groups(DB, show, "asset")
-		if err != nil {
-			return err
+		sgrps := make([]*roi.Group, 0)
+		agrps := make([]*roi.Group, 0)
+		for _, g := range grps {
+			if strings.IndexAny(g.Group, "ABCDEFGHIJKLMNOPQRSTUVWXYZ") == 0 {
+				sgrps = append(sgrps, g)
+			} else {
+				agrps = append(agrps, g)
+			}
 		}
 		recipe := struct {
 			LoggedInUser string
 			Shows        []*roi.Show
 			Query        string
 			Show         string
-			Category     string
 			ShotGroups   []*roi.Group
 			AssetGroups  []*roi.Group
 			Tags         []string
@@ -72,7 +71,6 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			Shows:        shows,
 			Query:        query,
 			Show:         s.ID(),
-			Category:     "",
 			ShotGroups:   sgrps,
 			AssetGroups:  agrps,
 			Tags:         s.Tags,
@@ -80,14 +78,14 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return executeTemplate(w, "search-help", recipe)
 	}
 
-	grp := ""
+	grps := make([]string, 0)
 	shots := make([]string, 0)
 	f := make(map[string]string)
 	for _, v := range strings.Fields(query) {
 		kv := strings.Split(v, ":")
 		if len(kv) == 1 {
 			if v[len(v)-1] == '/' {
-				grp = v[:len(v)-1]
+				grps = append(grps, v[:len(v)-1])
 			} else {
 				shots = append(shots, v)
 			}
@@ -100,13 +98,13 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		t, _ := timeFromString(s)
 		return t
 	}
-	ss, err := roi.SearchUnits(DB, show, ctg, grp, shots, f["tag"], f["status"], f["task"], f["assignee"], f["task-status"], toTime(f["due"]))
+	ss, err := roi.SearchUnits(DB, show, grps, shots, f["tag"], f["status"], f["task"], f["assignee"], f["task-status"], toTime(f["due"]))
 	if err != nil {
 		return err
 	}
 	tasks := make(map[string]map[string]*roi.Task)
 	for _, s := range ss {
-		ts, err := roi.UnitTasks(DB, s.Show, s.Category, s.Group, s.Unit)
+		ts, err := roi.UnitTasks(DB, s.Show, s.Group, s.Unit)
 		if err != nil {
 			return err
 		}
@@ -123,7 +121,6 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	recipe := struct {
 		LoggedInUser  string
 		Site          *roi.Site
-		Category      string
 		Shows         []*roi.Show
 		Show          string
 		Units         []*roi.Unit
@@ -134,7 +131,6 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}{
 		LoggedInUser:  env.User.ID,
 		Site:          site,
-		Category:      ctg,
 		Shows:         shows,
 		Show:          show,
 		Units:         ss,
