@@ -1,0 +1,15 @@
+{{define "upload-excel"}}
+{{template "head"}}
+{{template "nav" $}}
+<div class="ui raised very padded text container grey inverted segment"> [
+	<h2 class="ui dividing header"> [엑셀 업로드]
+	<form method="post" class="ui form" enctype="multipart/form-data"> [
+		<div class="field"> [
+			<label> [파일]
+			<input type="file" name="excel" value=""> []
+		]
+		<button class="ui button green" type="submit" value="Submit"> [업로드]
+	]
+]
+{{template "footer"}}
+{{end}}
