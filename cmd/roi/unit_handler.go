@@ -67,16 +67,11 @@ func addUnitPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	id := r.FormValue("id")
 	grp := r.FormValue("group")
 	unit := r.FormValue("unit")
-	g, err := roi.GetGroup(DB, id, grp)
-	if err != nil {
-		return err
-	}
 	s := &roi.Unit{
 		Show:   id,
 		Group:  grp,
 		Unit:   unit,
 		Status: roi.StatusInProgress,
-		Tasks:  g.DefaultTasks,
 	}
 	err = roi.AddUnit(DB, s)
 	if err != nil {
