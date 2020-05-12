@@ -234,6 +234,13 @@ func AddUnit(db *sql.DB, s *Unit) error {
 	if err != nil {
 		return err
 	}
+	if len(s.Tasks) == 0 {
+		g, err := GetGroup(db, s.Show, s.Group)
+		if err != nil {
+			return err
+		}
+		s.Tasks = g.DefaultTasks
+	}
 	// 부모가 있는지 검사
 	_, err = GetGroup(db, s.Show, s.Group)
 	if err != nil {
