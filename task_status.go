@@ -1,7 +1,5 @@
 package roi
 
-import "fmt"
-
 var AllTaskStatus = []Status{
 	StatusHold,
 	StatusInProgress,
@@ -15,5 +13,5 @@ func verifyTaskStatus(ts Status) error {
 			return nil
 		}
 	}
-	return BadRequest(fmt.Sprintf("invalid task status: '%s'", ts))
+	return BadRequest("invalid task status: '%s'", ts)
 }

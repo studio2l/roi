@@ -138,7 +138,7 @@ func SiteMustNotHaveTask(db *sql.DB, task string) error {
 		return scan(row, s)
 	})
 	if err == nil {
-		return BadRequest(fmt.Sprintf("unit %q has task %q (and there's possibly more)", s.ID(), task))
+		return BadRequest("unit %q has task %q (and there's possibly more)", s.ID(), task)
 	}
 	if err != sql.ErrNoRows {
 		return err
@@ -156,7 +156,7 @@ func GetSite(db *sql.DB) (*Site, error) {
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("site", "(only one yet)")
+			return nil, NotFound("site not found")
 		}
 		return nil, err
 	}

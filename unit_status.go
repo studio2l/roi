@@ -1,7 +1,5 @@
 package roi
 
-import "fmt"
-
 var AllUnitStatus = []Status{
 	StatusOmit,
 	StatusHold,
@@ -16,5 +14,5 @@ func verifyUnitStatus(ss Status) error {
 			return nil
 		}
 	}
-	return BadRequest(fmt.Sprintf("invalid unit status: '%s'", ss))
+	return BadRequest("invalid unit status: '%s'", ss)
 }

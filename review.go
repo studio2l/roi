@@ -65,7 +65,7 @@ func verifyReview(db *sql.DB, r *Review) error {
 		return err
 	}
 	if r.Messenger == "" {
-		return BadRequest(fmt.Sprintf("messenger should specified"))
+		return BadRequest("messenger should specified")
 	}
 	// 할일: 리뷰 전달자가 수퍼바이저 또는 PM인지 확인한다.
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -60,7 +59,7 @@ func addGroupPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error
 	grp := r.FormValue("group")
 	_, err = roi.GetGroup(DB, show, grp)
 	if err == nil {
-		return roi.BadRequest(fmt.Sprintf("group already exist: %s", roi.JoinGroupID(show, grp)))
+		return roi.BadRequest("group already exist: %s", roi.JoinGroupID(show, grp))
 	} else if !errors.As(err, &roi.NotFoundError{}) {
 		return err
 	}

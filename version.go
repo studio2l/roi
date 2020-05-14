@@ -66,7 +66,7 @@ var reVersionName = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 // verifyVersionName은 받아들인 버전 이름이 유효하지 않다면 에러를 반환한다.
 func verifyVersionName(version string) error {
 	if !reVersionName.MatchString(version) {
-		return BadRequest(fmt.Sprintf("invalid version name: %s", version))
+		return BadRequest("invalid version name: %s", version)
 	}
 	return nil
 }
@@ -76,7 +76,7 @@ func verifyVersionName(version string) error {
 func SplitVersionID(id string) (string, string, string, string, string, error) {
 	ns := strings.Split(id, "/")
 	if len(ns) != 5 {
-		return "", "", "", "", "", BadRequest(fmt.Sprintf("invalid version id: %s", id))
+		return "", "", "", "", "", BadRequest("invalid version id: %s", id)
 	}
 	show := ns[0]
 	grp := ns[1]
@@ -84,7 +84,7 @@ func SplitVersionID(id string) (string, string, string, string, string, error) {
 	task := ns[3]
 	version := ns[4]
 	if show == "" || grp == "" || unit == "" || task == "" || version == "" {
-		return "", "", "", "", "", BadRequest(fmt.Sprintf("invalid version id: %s", id))
+		return "", "", "", "", "", BadRequest("invalid version id: %s", id)
 	}
 	return show, grp, unit, task, version, nil
 }
@@ -183,7 +183,7 @@ func GetVersion(db *sql.DB, show, grp, unit, task, ver string) (*Version, error)
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("version", JoinVersionID(show, grp, unit, task, ver))
+			return nil, NotFound("version not found: %s", JoinVersionID(show, grp, unit, task, ver))
 		}
 		return nil, err
 	}

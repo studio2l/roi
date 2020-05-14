@@ -46,12 +46,12 @@ func (s *Group) ID() string {
 func SplitGroupID(id string) (string, string, error) {
 	ns := strings.Split(id, "/")
 	if len(ns) != 2 {
-		return "", "", BadRequest(fmt.Sprintf("invalid group id: %s", id))
+		return "", "", BadRequest("invalid group id: %s", id)
 	}
 	show := ns[0]
 	group := ns[1]
 	if show == "" || group == "" {
-		return "", "", BadRequest(fmt.Sprintf("invalid group id: %s", id))
+		return "", "", BadRequest("invalid group id: %s", id)
 	}
 	return show, group, nil
 }
@@ -80,7 +80,7 @@ var (
 // verifyGroupame은 받아들인 샷 이름이 유효하지 않다면 에러를 반환한다.
 func verifyGroupName(group string) error {
 	if !reGroupName.MatchString(group) {
-		return BadRequest(fmt.Sprintf("invalid group name: %s", group))
+		return BadRequest("invalid group name: %s", group)
 	}
 	return nil
 }
@@ -105,7 +105,7 @@ func verifyGroup(db *sql.DB, s *Group) error {
 	}
 	for _, t := range s.DefaultTasks {
 		if !hasTask[t] {
-			return BadRequest(fmt.Sprintf("task not defined in site: %s", t))
+			return BadRequest("task not defined in site: %s", t)
 		}
 	}
 	return nil
@@ -146,7 +146,7 @@ func GetGroup(db *sql.DB, show, grp string) (*Group, error) {
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("group", JoinGroupID(show, grp))
+			return nil, NotFound("group not found: %s", JoinGroupID(show, grp))
 		}
 		return nil, err
 	}

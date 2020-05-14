@@ -67,7 +67,7 @@ var reTaskName = regexp.MustCompile(`^[a-zA-Z0-9]+(_[a-zA-Z0-9]+)?$`)
 // verifyTaskName은 받아들인 샷 이름이 유효하지 않다면 에러를 반환한다.
 func verifyTaskName(task string) error {
 	if !reTaskName.MatchString(task) {
-		return BadRequest(fmt.Sprintf("invalid task name: %s", task))
+		return BadRequest("invalid task name: %s", task)
 	}
 	return nil
 }
@@ -77,14 +77,14 @@ func verifyTaskName(task string) error {
 func SplitTaskID(id string) (string, string, string, string, error) {
 	ns := strings.Split(id, "/")
 	if len(ns) != 4 {
-		return "", "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
+		return "", "", "", "", BadRequest("invalid task id: %s", id)
 	}
 	show := ns[0]
 	grp := ns[1]
 	unit := ns[2]
 	task := ns[3]
 	if show == "" || grp == "" || unit == "" || task == "" {
-		return "", "", "", "", BadRequest(fmt.Sprintf("invalid task id: %s", id))
+		return "", "", "", "", BadRequest("invalid task id: %s", id)
 	}
 	return show, grp, unit, task, nil
 }
@@ -156,13 +156,13 @@ func verifyTask(db *sql.DB, t *Task) error {
 		}
 	}
 	if t.Status == StatusDone && t.PublishVersion == "" {
-		return BadRequest(fmt.Sprintf("cannot set task status to TaskDone: no publish version"))
+		return BadRequest("cannot set task status to TaskDone: no publish version")
 	}
 	if t.Status == StatusApproved && t.ApprovedVersion == "" {
-		return BadRequest(fmt.Sprintf("cannot set task status to TaskApproved: no approved version"))
+		return BadRequest("cannot set task status to TaskApproved: no approved version")
 	}
 	if t.Status == StatusNeedReview && t.ReviewVersion == "" {
-		return BadRequest(fmt.Sprintf("cannot set task status to TaskNeedReview: no review versions"))
+		return BadRequest("cannot set task status to TaskNeedReview: no review versions")
 	}
 	return nil
 }
@@ -232,7 +232,7 @@ func GetTask(db *sql.DB, show, grp, unit, task string) (*Task, error) {
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("task", JoinTaskID(show, grp, unit, task))
+			return nil, NotFound("task not found: %s", JoinTaskID(show, grp, unit, task))
 		}
 		return nil, err
 	}
@@ -253,8 +253,9 @@ func TasksNeedReview(db *sql.DB, show string) ([]*Task, error) {
 		return nil
 	})
 	if err != nil {
+		// 할일: dbQuery는 sql.ErrNoRows를 반환하지 않음. 아래 구문 삭제.
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("task", "need-review")
+			return nil, NotFound("tasks not found: need-review")
 		}
 		return nil, err
 	}

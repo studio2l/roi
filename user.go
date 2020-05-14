@@ -68,7 +68,7 @@ func AddUser(db *sql.DB, id, pw string) error {
 	// 이 이름을 가진 사용자가 이미 있는지 검사한다.
 	_, err := GetUser(db, id)
 	if err == nil {
-		return BadRequest(fmt.Sprintf("user already exists: %s", id))
+		return BadRequest("user already exists: %s", id)
 	} else if !errors.As(err, &NotFoundError{}) {
 		return err
 	}
@@ -114,7 +114,7 @@ func GetUser(db *sql.DB, id string) (*User, error) {
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("user", id)
+			return nil, NotFound("user not found: %s", id)
 		}
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func UserPasswordMatch(db *sql.DB, id, pw string) (bool, error) {
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return false, NotFound("user", id)
+			return false, NotFound("user not found: %s", id)
 		}
 		return false, err
 	}
@@ -177,7 +177,7 @@ func GetUserConfig(db *sql.DB, id string) (*UserConfig, error) {
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("user", id)
+			return nil, NotFound("user not found: %s", id)
 		}
 		return nil, err
 	}
