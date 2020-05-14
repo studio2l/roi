@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
@@ -26,7 +25,7 @@ func uploadExcelPostHandler(w http.ResponseWriter, r *http.Request, env *Env) er
 	r.ParseMultipartForm(200000) // 사용하는 최대 메모리 사이즈: 200KB
 	fileHeaders := r.MultipartForm.File["excel"]
 	if len(fileHeaders) == 0 {
-		return roi.BadRequest(fmt.Sprintf("excel file not uploaded"))
+		return roi.BadRequest("excel file not uploaded")
 	}
 	fh := fileHeaders[0]
 	f, err := fh.Open()

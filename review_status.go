@@ -1,7 +1,5 @@
 package roi
 
-import "fmt"
-
 var AllReviewStatus = []Status{
 	StatusRetake,
 	StatusApproved,
@@ -14,5 +12,5 @@ func verifyReviewStatus(rs Status) error {
 			return nil
 		}
 	}
-	return BadRequest(fmt.Sprintf("invalid review status: '%s'", rs))
+	return BadRequest("invalid review status: '%s'", rs)
 }

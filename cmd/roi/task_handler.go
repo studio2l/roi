@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -277,7 +276,7 @@ func reviewTaskPostHandler(w http.ResponseWriter, r *http.Request, env *Env) err
 		case roi.StatusRetake:
 			t.ReviewVersion = ""
 		default:
-			return roi.BadRequest(fmt.Sprintf("invalid review status: %s", status))
+			return roi.BadRequest("invalid review status: %s", status)
 		}
 		err = roi.UpdateTask(DB, t)
 		if err != nil {

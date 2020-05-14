@@ -66,7 +66,7 @@ func handleError(w http.ResponseWriter, err error) {
 func mustFields(r *http.Request, keys ...string) error {
 	for _, k := range keys {
 		if r.FormValue(k) == "" {
-			return roi.BadRequest(fmt.Sprintf("form field not found: %s", k))
+			return roi.BadRequest("form field not found: %s", k)
 		}
 	}
 	return nil
@@ -82,7 +82,7 @@ func sessionUser(r *http.Request) (*roi.User, error) {
 	}
 	user := session["userid"]
 	if user == "" {
-		return nil, roi.NotFound("user", "")
+		return nil, roi.NotFound("user not set in session")
 	}
 	u, err := roi.GetUser(DB, user)
 	if err != nil {
@@ -107,7 +107,7 @@ func saveImageFormFile(r *http.Request, field string, dst string) error {
 	}
 	defer f.Close()
 	if fi.Size > (32 << 20) {
-		return roi.BadRequest(fmt.Sprintf("mov: file size too big (got %dMB, maximum 32MB)", fi.Size>>20))
+		return roi.BadRequest("mov: file size too big (got %dMB, maximum 32MB)", fi.Size>>20)
 	}
 	// 어떤 타입의 이미지를 업로드하든 png로 변경한다.
 	img, _, err := image.Decode(f)

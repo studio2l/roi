@@ -60,7 +60,7 @@ var reShowName = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 // verifyShowName은 받아들인 쇼 이름이 유효하지 않다면 에러를 반환한다.
 func verifyShowName(name string) error {
 	if !reShowName.MatchString(name) {
-		return BadRequest(fmt.Sprintf("invalid show name: %s", name))
+		return BadRequest("invalid show name: %s", name)
 	}
 	return nil
 }
@@ -127,7 +127,7 @@ func GetShow(db *sql.DB, show string) (*Show, error) {
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("show", show)
+			return nil, NotFound("show not found: %s", show)
 		}
 		return nil, err
 	}

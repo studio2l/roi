@@ -1,7 +1,5 @@
 package roi
 
-import "fmt"
-
 type ShowStatus string
 
 const (
@@ -29,7 +27,7 @@ func verifyShowStatus(ss ShowStatus) error {
 			return nil
 		}
 	}
-	return BadRequest(fmt.Sprintf("invalid show status: '%s'", ss))
+	return BadRequest("invalid show status: '%s'", ss)
 }
 
 // UIString은 UI안에서 사용하는 현지화된 문자열이다.

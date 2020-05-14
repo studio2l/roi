@@ -226,7 +226,7 @@ func updateMultiUnitsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 			continue
 		}
 		if tag[0] != '+' && tag[0] != '-' {
-			roi.BadRequest(fmt.Sprintf("tag must be started with +/- got %s", tag))
+			roi.BadRequest("tag must be started with +/- got %s", tag)
 		}
 		tags = append(tags, tag)
 	}
@@ -237,7 +237,7 @@ func updateMultiUnitsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 			continue
 		}
 		if asset[0] != '+' && asset[0] != '-' {
-			return roi.BadRequest(fmt.Sprintf("asset must be started with +/- got %s", asset))
+			return roi.BadRequest("asset must be started with +/- got %s", asset)
 		}
 		assets = append(assets, asset)
 	}
@@ -248,7 +248,7 @@ func updateMultiUnitsPostHandler(w http.ResponseWriter, r *http.Request, env *En
 			continue
 		}
 		if task[0] != '+' && task[0] != '-' {
-			return roi.BadRequest(fmt.Sprintf("task must be started with +/- got %s", task))
+			return roi.BadRequest("task must be started with +/- got %s", task)
 		}
 		workingTasks = append(workingTasks, task)
 	}

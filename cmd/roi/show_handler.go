@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -70,7 +69,7 @@ func addShowPostHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	id := r.FormValue("id")
 	_, err = roi.GetShow(DB, id)
 	if err == nil {
-		return roi.BadRequest(fmt.Sprintf("show already exist: %s", id))
+		return roi.BadRequest("show already exist: %s", id)
 	} else if !errors.As(err, &roi.NotFoundError{}) {
 		return err
 	}

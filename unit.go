@@ -80,13 +80,13 @@ func (s *Unit) ID() string {
 func SplitUnitID(id string) (string, string, string, error) {
 	ns := strings.Split(id, "/")
 	if len(ns) != 3 {
-		return "", "", "", BadRequest(fmt.Sprintf("invalid unit id: %s", id))
+		return "", "", "", BadRequest("invalid unit id: %s", id)
 	}
 	show := ns[0]
 	grp := ns[1]
 	unit := ns[2]
 	if show == "" || grp == "" || unit == "" {
-		return "", "", "", BadRequest(fmt.Sprintf("invalid unit id: %s", id))
+		return "", "", "", BadRequest("invalid unit id: %s", id)
 	}
 	return show, grp, unit, nil
 }
@@ -137,7 +137,7 @@ var (
 // verifyUnitame은 받아들인 샷 이름이 유효하지 않다면 에러를 반환한다.
 func verifyUnitName(unit string) error {
 	if !reUnitName.MatchString(unit) {
-		return BadRequest(fmt.Sprintf("invalid unit name: %s", unit))
+		return BadRequest("invalid unit name: %s", unit)
 	}
 	return nil
 }
@@ -169,7 +169,7 @@ func verifyUnit(db *sql.DB, s *Unit) error {
 	}
 	for _, task := range s.Tasks {
 		if !hasTask[task] {
-			return BadRequest(fmt.Sprintf("task %q not defined at site", task))
+			return BadRequest("task %q not defined at site", task)
 		}
 	}
 	sort.Slice(s.Tasks, func(i, j int) bool {
@@ -249,7 +249,7 @@ func AddUnit(db *sql.DB, s *Unit) error {
 	// 이미 존재하는 유닛인지 검사
 	_, err = GetUnit(db, s.Show, s.Group, s.Unit)
 	if err == nil {
-		return BadRequest(fmt.Sprintf("unit already exist: %s", s.ID()))
+		return BadRequest("unit already exist: %s", s.ID())
 	}
 	if !errors.As(err, &NotFoundError{}) {
 		return err
@@ -298,7 +298,7 @@ func GetUnit(db *sql.DB, show, grp, unit string) (*Unit, error) {
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, NotFound("unit", JoinUnitID(show, grp, unit))
+			return nil, NotFound("unit not found: %s", JoinUnitID(show, grp, unit))
 		}
 		return nil, err
 	}
