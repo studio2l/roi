@@ -1,6 +1,7 @@
 {{define "upload-excel"}}
 {{template "head"}}
 {{template "nav" $}}
+{{template "import-wasm" "/static/excel.wasm"}}
 <div class="ui raised very padded text container grey inverted segment"> [
 	<h2 class="ui dividing header"> [엑셀 업로드]
 	<form method="post" class="ui form" enctype="multipart/form-data"> [
