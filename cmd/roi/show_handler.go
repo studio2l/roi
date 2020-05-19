@@ -14,6 +14,14 @@ func showsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	if err != nil {
 		return err
 	}
+	if len(shows) == 0 {
+		recipe := struct {
+			LoggedInUser string
+		}{
+			LoggedInUser: env.User.ID,
+		}
+		return executeTemplate(w, "no-shows", recipe)
+	}
 	shotGroups := make(map[string][]*roi.Group)
 	assetGroups := make(map[string][]*roi.Group)
 	for _, s := range shows {

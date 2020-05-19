@@ -31,7 +31,12 @@ func addUnitHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 				return err
 			}
 			if len(shows) == 0 {
-				return roi.BadRequest("no shows in roi")
+				recipe := struct {
+					LoggedInUser string
+				}{
+					LoggedInUser: env.User.ID,
+				}
+				return executeTemplate(w, "no-shows", recipe)
 			}
 			id = shows[0].Show
 		}
