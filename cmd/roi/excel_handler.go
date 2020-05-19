@@ -12,6 +12,18 @@ func uploadExcelHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	if r.Method == "POST" {
 		return uploadExcelPostHandler(w, r, env)
 	}
+	shows, err := roi.AllShows(DB)
+	if err != nil {
+		return err
+	}
+	if len(shows) == 0 {
+		recipe := struct {
+			LoggedInUser string
+		}{
+			LoggedInUser: env.User.ID,
+		}
+		return executeTemplate(w, "no-shows", recipe)
+	}
 	w.Header().Set("Cache-control", "no-cache")
 	recipe := struct {
 		LoggedInUser string
