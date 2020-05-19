@@ -10,27 +10,43 @@
 .search-help-item {
 	margin-right: 0.5rem;
 }
+.empty-entry {
+	font-size: 0.9rem;
+	color: #aaa;
+}
 ``]
 <div id="bg" style="width:100%;display:flex;justify-content:center;margin:4rem 0rem"> [
 	<div id="main" style="background-color:transparent;width:700px"> [
 		<div style="margin-bottom:2rem"> [
 			<div class="search-help-title">샷</div>
+			{{with $.ShotGroups}}
 			<a class="search-help-item" href="?q={{range $g := $.ShotGroups}}{{$g.Group}}/ {{end}}"> [전체]
 			{{range $g := $.ShotGroups}}
 				<a class="search-help-item" href="?q={{$g.Group}}/"> [{{$g.Group}}]
 			{{end}}
+			{{else}}
+				<div class="empty-entry"> [쇼에 아직 샷 그룹이 없습니다. <a href="/add-group?show={{$.Show}}" style="margin-left:0.5rem"> [추가]]
+			{{end}}
 		]
 		<div style="margin-bottom:2rem"> [
 			<div class="search-help-title">애셋</div>
+			{{with $.AssetGroups}}
 			<a class="search-help-item" href="?q={{range $g := $.AssetGroups}}{{$g.Group}}/ {{end}}"> [전체]
 			{{range $g := $.AssetGroups}}
 				<a class="search-help-item" href="?q={{$g.Group}}/"> [{{$g.Group}}]
 			{{end}}
+			{{else}}
+				<div class="empty-entry"> [쇼에 아직 애셋 그룹이 없습니다. <a href="/add-group?show={{$.Show}}" style="margin-left:0.5rem"> [추가]]
+			{{end}}
 		]
 		<div style="margin-bottom:2rem"> [
 			<div class="search-help-title">태그</div>
+			{{with $.Tags}}
 			{{range $t := $.Tags}}
 				<a class="search-help-item" href="?q=tag:{{$t}}"> [{{$t}}]
+			{{end}}
+			{{else}}
+				<div class="empty-entry"> [쇼에 아직 태그가 추가되지 않았습니다.]
 			{{end}}
 		]
 	]
