@@ -6,7 +6,6 @@ import (
 	"image"
 	"image/png"
 	"io"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -51,15 +50,18 @@ func handle(serve HandlerFunc) http.HandlerFunc {
 
 // handleError는 handle에서 요청을 처리하던 도중 에러가 났을 때 에러 메시지를 답신한다.
 func handleError(w http.ResponseWriter, err error) {
-	var e roi.Error
-	if errors.As(err, &e) {
-		if e.Log() != "" {
-			log.Print(e.Log())
-		}
-		http.Error(w, err.Error(), e.Code())
+	if errors.As(err, &roi.BadRequestError{}) {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	log.Print(err)
+	if errors.As(err, &roi.NotFoundError{}) {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	if errors.As(err, &roi.AuthError{}) {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
 	http.Error(w, "internal error", http.StatusInternalServerError)
 }
 
