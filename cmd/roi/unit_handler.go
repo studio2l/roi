@@ -54,11 +54,11 @@ func addUnitHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 	}
 
 	recipe := struct {
-		LoggedInUser string
-		Show         *roi.Show
+		Env  *Env
+		Show *roi.Show
 	}{
-		LoggedInUser: env.User.ID,
-		Show:         sw,
+		Env:  env,
+		Show: sw,
 	}
 	return executeTemplate(w, "add-unit", recipe)
 }
@@ -112,14 +112,14 @@ func updateUnitHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		tm[t.Task] = t
 	}
 	recipe := struct {
-		LoggedInUser  string
+		Env           *Env
 		Unit          *roi.Unit
 		AllUnitStatus []roi.Status
 		Tasks         map[string]*roi.Task
 		AllTaskStatus []roi.Status
 		Thumbnail     string
 	}{
-		LoggedInUser:  env.User.ID,
+		Env:           env,
 		Unit:          s,
 		AllUnitStatus: roi.AllUnitStatus,
 		Tasks:         tm,
@@ -199,12 +199,12 @@ func updateMultiUnitsHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		return err
 	}
 	recipe := struct {
-		LoggedInUser  string
+		Env           *Env
 		Show          string
 		IDs           []string
 		AllUnitStatus []roi.Status
 	}{
-		LoggedInUser:  env.User.ID,
+		Env:           env,
 		Show:          show,
 		IDs:           ids,
 		AllUnitStatus: roi.AllUnitStatus,

@@ -19,13 +19,13 @@ func siteHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	recipe := struct {
-		LoggedInUser string
-		Site         *roi.Site
-		Users        []*roi.User
+		Env   *Env
+		Site  *roi.Site
+		Users []*roi.User
 	}{
-		LoggedInUser: env.User.ID,
-		Site:         s,
-		Users:        us,
+		Env:   env,
+		Site:  s,
+		Users: us,
 	}
 	return executeTemplate(w, "site", recipe)
 }

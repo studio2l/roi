@@ -9,7 +9,7 @@
 		<a class="item" href="/review" title="리뷰 페이지"> [Review]
 		<a class="item" href="/users"> [Users]
 		<div class="right menu"> [
-			{{if eq $.LoggedInUser ""}}
+			{{if eq $.Env.User.ID ""}}
 			<a class="item" href="/login/"> [Log-in]
 			<a class="item" href="/signup/"> [Sign-Up]
 			{{else}}
@@ -26,7 +26,7 @@
 			<div id="user-menu" class="ui dropdown item" title="개인계정과 설정을 위한 페이지입니다."> [
 				<i class="user circle icon"> []
 				<div class="menu"> [
-					<div class="ui header"> [{{$.LoggedInUser}}]
+					<div class="ui header"> [{{$.Env.User.ID}}]
 						<a class="item" href="/settings/profile"> [Profile]
 						<a class="item" href="/"> [Settings]
 						<a class="item" href="/"> [Help]

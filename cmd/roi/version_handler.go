@@ -21,11 +21,11 @@ func addVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	recipe := struct {
-		PageType     string
-		LoggedInUser string
-		Version      *roi.Version
+		PageType string // 할일: 안쓰고 있으니 지울것.
+		Env      *Env
+		Version  *roi.Version
 	}{
-		LoggedInUser: env.User.ID,
+		Env: env,
 		Version: &roi.Version{
 			Show:  show,
 			Group: grp,
@@ -85,12 +85,12 @@ func updateVersionHandler(w http.ResponseWriter, r *http.Request, env *Env) erro
 		return err
 	}
 	recipe := struct {
-		LoggedInUser     string
+		Env              *Env
 		Version          *roi.Version
 		IsWorkingVersion bool
 		IsPublishVersion bool
 	}{
-		LoggedInUser:     env.User.ID,
+		Env:              env,
 		Version:          v,
 		IsWorkingVersion: t.WorkingVersion == v.Version,
 		IsPublishVersion: t.PublishVersion == v.Version,

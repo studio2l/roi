@@ -34,13 +34,13 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	recipe := struct {
-		LoggedInUser  string
+		Env           *Env
 		Task          *roi.Task
 		AllTaskStatus []roi.Status
 		Versions      []*roi.Version
 		Users         []*roi.User
 	}{
-		LoggedInUser:  env.User.ID,
+		Env:           env,
 		Task:          t,
 		AllTaskStatus: roi.AllTaskStatus,
 		Versions:      vers,
@@ -113,13 +113,13 @@ func updateMultiTasksHandler(w http.ResponseWriter, r *http.Request, env *Env) e
 		return err
 	}
 	recipe := struct {
-		LoggedInUser  string
+		Env           *Env
 		Show          string
 		IDs           []string
 		Tasks         []string
 		AllTaskStatus []roi.Status
 	}{
-		LoggedInUser:  env.User.ID,
+		Env:           env,
 		Show:          show,
 		IDs:           ids,
 		Tasks:         site.Tasks,
@@ -221,13 +221,13 @@ func reviewTaskHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		reviews[v.ID()] = rvs
 	}
 	recipe := struct {
-		LoggedInUser    string
+		Env             *Env
 		Task            *roi.Task
 		Versions        []*roi.Version
 		Reviews         map[string][]*roi.Review
 		ShowAllVersions bool
 	}{
-		LoggedInUser:    env.User.ID,
+		Env:             env,
 		Task:            t,
 		Versions:        vs,
 		Reviews:         reviews,

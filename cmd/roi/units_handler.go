@@ -64,21 +64,21 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			}
 		}
 		recipe := struct {
-			LoggedInUser string
-			Shows        []*roi.Show
-			Query        string
-			Show         string
-			ShotGroups   []*roi.Group
-			AssetGroups  []*roi.Group
-			Tags         []string
+			Env         *Env
+			Shows       []*roi.Show
+			Query       string
+			Show        string
+			ShotGroups  []*roi.Group
+			AssetGroups []*roi.Group
+			Tags        []string
 		}{
-			LoggedInUser: env.User.ID,
-			Shows:        shows,
-			Query:        query,
-			Show:         s.ID(),
-			ShotGroups:   sgrps,
-			AssetGroups:  agrps,
-			Tags:         s.Tags,
+			Env:         env,
+			Shows:       shows,
+			Query:       query,
+			Show:        s.ID(),
+			ShotGroups:  sgrps,
+			AssetGroups: agrps,
+			Tags:        s.Tags,
 		}
 		return executeTemplate(w, "search-help", recipe)
 	}
@@ -124,7 +124,7 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	recipe := struct {
-		LoggedInUser  string
+		Env           *Env
 		Site          *roi.Site
 		Shows         []*roi.Show
 		Show          string
@@ -134,7 +134,7 @@ func unitsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		AllTaskStatus []roi.Status
 		Query         string
 	}{
-		LoggedInUser:  env.User.ID,
+		Env:           env,
 		Site:          site,
 		Shows:         shows,
 		Show:          show,

@@ -42,15 +42,15 @@ func showsHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		assetGroups[s.Show] = agrps
 	}
 	recipe := struct {
-		LoggedInUser string
-		Shows        []*roi.Show
-		ShotGroups   map[string][]*roi.Group
-		AssetGroups  map[string][]*roi.Group
+		Env         *Env
+		Shows       []*roi.Show
+		ShotGroups  map[string][]*roi.Group
+		AssetGroups map[string][]*roi.Group
 	}{
-		LoggedInUser: env.User.ID,
-		Shows:        shows,
-		ShotGroups:   shotGroups,
-		AssetGroups:  assetGroups,
+		Env:         env,
+		Shows:       shows,
+		ShotGroups:  shotGroups,
+		AssetGroups: assetGroups,
 	}
 	return executeTemplate(w, "shows", recipe)
 }
@@ -62,9 +62,9 @@ func addShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return addShowPostHandler(w, r, env)
 	}
 	recipe := struct {
-		LoggedInUser string
+		Env *Env
 	}{
-		LoggedInUser: env.User.ID,
+		Env: env,
 	}
 	return executeTemplate(w, "add-show", recipe)
 }
@@ -114,11 +114,11 @@ func updateShowHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	recipe := struct {
-		LoggedInUser  string
+		Env           *Env
 		Show          *roi.Show
 		AllShowStatus []roi.ShowStatus
 	}{
-		LoggedInUser:  env.User.ID,
+		Env:           env,
 		Show:          p,
 		AllShowStatus: roi.AllShowStatus,
 	}
