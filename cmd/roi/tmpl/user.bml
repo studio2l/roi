@@ -1,59 +1,82 @@
 {{define "user"}}
 {{template "head"}}
 {{template "nav" $}}
+<style> [``
+.chapter {
+	margin-top: 2.5rem;
+}
+.title {
+	font-size:2rem;
+	color:#ccc;
+	margin-bottom:1rem;
+}
+.sub-title {
+	font-size:1.3rem;
+	color:#ccc;
+	margin-bottom:1rem;
+}
+.box {
+	border: solid 1px #999;
+	border-radius: 2px;
+}
+``]
 <div style="padding:15px 10px 15px 10px;z-index:0;"> [
 
-<h2 class="ui dividing header"> [{{$.User}}]
+<h2 class="title"> [{{$.User}}]
 
-<div class="ui small header"> [타임라인]
-<!-- semantic-ui를 이용하기 어려운 부분이라 html5의 flex를 이용함 -->
-<div style="display:flex;border:solid 1px #1b1c1d;border-radius:2px;padding:0px 4px;background-color:#1b1c1d"> [
-{{range $i, $day := $.Timeline}}
-	<!-- 날짜 타일 배경색 지정 -->
-	{{$bg := "grey"}}
-	{{$numTasks := len (index $.TasksOfDay $day)}}
-	{{if ne $numTasks 0}}
-		{{$bg = dayColorInTimeline $numTasks}}
-	{{end}}
-	<!-- 날짜 타일 -->
-	<div style="flex:1;height:0.9rem;margin:4px 1px;border-radius:1px;background-color:{{$bg}};font-size:0.7rem;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="showTasks({{$day}})"> [
+<div class="timeline chapter"> [
+	<div class="sub-title"> [타임라인]
+
+	<div class="box" style="display:flex;padding:4px"> [
+	{{range $i, $day := $.Timeline}}
+		<!-- 날짜 타일 배경색 지정 -->
+		{{$bg := "grey"}}
+		{{$numTasks := len (index $.TasksOfDay $day)}}
 		{{if ne $numTasks 0}}
-			{{$numTasks}}
+			{{$bg = dayColorInTimeline $numTasks}}
 		{{end}}
-	]
-	<!-- 한 주 구분 -->
-	{{if and (isSunday $day) (ne $i (sub (len $.Timeline) 1))}}
-		<div style="margin:0px 6px;"> []
-	{{end}}
-{{end}}
-]
-<div style="margin: 10px;color:grey;"> [
-타임라인의 날짜를 선택해서 당일이 마감인 태스크를 살펴보세요. Esc키를 이용해 전체 태스크 보기로 돌아올 수 있습니다.
-]
-
-<div class="ui small header"> [태스크]
-{{range $show, $nInStatus := $.NumTasks}}
-<div class="ui inverted segment"> [
-	<div class="ui grid"> [
-		<div class="ui four wide column"> [
-			<a href="/units?show={{$show}}&q=assignee:{{$.User}}"> [
-				<div class="ui blue large header"> [{{$show}}]
-			]
-		]
-		<div class="ui twelve wide column right aligned"> [
-			{{range $status := $.AllTaskStatus}}
-			<a href="/units?show={{$show}}&q=assignee:{{$.User}} task-status:{{$status}}"> [
-				<div class="ui grey small image label"> [{{$status.UIString}}<div id="show-{{$show}}-status-{{$status}}" class="detail"> [0]]
-			]
+		<!-- 날짜 타일 -->
+		<div style="flex:1;height:0.9rem;margin:0 2px;border-radius:1px;background-color:{{$bg}};font-size:0.7rem;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="showTasks({{$day}})"> [
+			{{if ne $numTasks 0}}
+				{{$numTasks}}
 			{{end}}
 		]
+		<!-- 한 주 구분 -->
+		{{if and (isSunday $day) (ne $i (sub (len $.Timeline) 1))}}
+			<div style="margin:0px 6px;"> []
+		{{end}}
+	{{end}}
 	]
-	<div class="ui divider"> [
-	]
-	<div id="show-{{$show}}-tasks-of-day" class="tasks-of-day ui grey inverted segment"> [
+	<div style="margin:10px;color:grey;"> [
+	타임라인의 날짜를 선택해서 당일이 마감인 태스크를 살펴보세요. Esc키를 이용해 전체 태스크 보기로 돌아올 수 있습니다.
 	]
 ]
-{{end}}
+
+<div class="task chapter"> [
+	<div class="sub-title"> [태스크]
+	{{range $show, $nInStatus := $.NumTasks}}
+	<div class="box" style="margin-bottom:2rem;"> [
+		<div style="display:flex;padding:0.5rem;border-bottom:solid 1px #777"> [
+			<div class="ui four wide column"> [
+				<a href="/units?show={{$show}}&q=assignee:{{$.User}}"> [
+					<div class="ui blue large header"> [{{$show}}]
+				]
+			]
+			<div style="flex:1"> []
+			<div class="ui twelve wide column right aligned"> [
+				{{range $status := $.AllTaskStatus}}
+				<a href="/units?show={{$show}}&q=assignee:{{$.User}} task-status:{{$status}}"> [
+					<div class="ui grey small image label"> [{{$status.UIString}}<div id="show-{{$show}}-status-{{$status}}" class="detail"> [0]]
+				]
+				{{end}}
+			]
+		]
+		<div id="show-{{$show}}-tasks-of-day" class="tasks-of-day" style="padding:0.5rem;background-color:rgba(0,0,0,0.05);"> [
+			<!-- 여기에 동적으로 태스크가 추가됨 -->
+		]
+	]
+	{{end}}
+]
 ]
 
 <script> [``
