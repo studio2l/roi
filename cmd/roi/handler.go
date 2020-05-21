@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/png"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -62,6 +63,7 @@ func handleError(w http.ResponseWriter, err error) {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
+	log.Println(err)
 	http.Error(w, "internal error", http.StatusInternalServerError)
 }
 
