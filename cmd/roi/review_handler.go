@@ -47,15 +47,15 @@ func reviewHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		tsd[due] = append(tsd[due], t)
 	}
 	recipe := struct {
-		LoggedInUser string
-		Shows        []*roi.Show
-		Show         string
-		ByDue        map[time.Time][]*roi.Task
+		Env   *Env
+		Shows []*roi.Show
+		Show  string
+		ByDue map[time.Time][]*roi.Task
 	}{
-		LoggedInUser: env.User.ID,
-		Shows:        shows,
-		Show:         show,
-		ByDue:        tsd,
+		Env:   env,
+		Shows: shows,
+		Show:  show,
+		ByDue: tsd,
 	}
 	return executeTemplate(w, "review", recipe)
 }

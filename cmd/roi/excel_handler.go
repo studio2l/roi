@@ -14,9 +14,9 @@ func uploadExcelHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 	}
 	w.Header().Set("Cache-control", "no-cache")
 	recipe := struct {
-		LoggedInUser string
+		Env *Env
 	}{
-		LoggedInUser: env.User.ID,
+		Env: env,
 	}
 	return executeTemplate(w, "upload-excel", recipe)
 }

@@ -41,11 +41,11 @@ func addGroupHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	recipe := struct {
-		LoggedInUser string
-		Show         string
+		Env  *Env
+		Show string
 	}{
-		LoggedInUser: env.User.ID,
-		Show:         show,
+		Env:  env,
+		Show: show,
 	}
 	return executeTemplate(w, "add-group", recipe)
 }
@@ -105,11 +105,11 @@ func updateGroupHandler(w http.ResponseWriter, r *http.Request, env *Env) error 
 		return err
 	}
 	recipe := struct {
-		LoggedInUser string
-		Group        *roi.Group
+		Env   *Env
+		Group *roi.Group
 	}{
-		LoggedInUser: env.User.ID,
-		Group:        p,
+		Env:   env,
+		Group: p,
 	}
 	return executeTemplate(w, "update-group", recipe)
 }

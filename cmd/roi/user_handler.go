@@ -107,11 +107,11 @@ func profileHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return nil
 	}
 	recipe := struct {
-		LoggedInUser string
-		User         *roi.User
+		Env  *Env
+		User *roi.User
 	}{
-		LoggedInUser: env.User.ID,
-		User:         env.User,
+		Env:  env,
+		User: env.User,
 	}
 	return executeTemplate(w, "profile", recipe)
 }
@@ -216,7 +216,7 @@ func userHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		numTasks[t.Show][t.Status] += 1
 	}
 	recipe := struct {
-		LoggedInUser  string
+		Env           *Env
 		User          string
 		Timeline      []string
 		NumTasks      map[string]map[roi.Status]int
@@ -224,7 +224,7 @@ func userHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		TasksOfDay    map[string][]string
 		AllTaskStatus []roi.Status
 	}{
-		LoggedInUser:  env.User.ID,
+		Env:           env,
 		User:          user,
 		Timeline:      timeline,
 		NumTasks:      numTasks,
@@ -241,11 +241,11 @@ func usersHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 		return err
 	}
 	recipe := struct {
-		LoggedInUser string
-		Users        []*roi.User
+		Env   *Env
+		Users []*roi.User
 	}{
-		LoggedInUser: env.User.ID,
-		Users:        us,
+		Env:   env,
+		Users: us,
 	}
 	return executeTemplate(w, "users", recipe)
 }
