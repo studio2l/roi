@@ -1,0 +1,40 @@
+{{define "common-style"}}
+<style> [``
+#main-bg {
+	display:flex;
+	justify-content:center;
+	padding: 3rem;
+	flex-wrap: wrap;
+	color: #aaa;
+}
+#main-left {
+	flex: 1;
+	margin:1rem;
+}
+#main-right {
+	flex: 1;
+	margin:1rem;
+}
+#main-page {
+	margin:1rem;
+}
+
+.chapter {
+	margin-bottom: 2.5rem;
+}
+.title {
+	font-size:2rem;
+	color:#ccc;
+	margin-bottom:1rem;
+}
+.subtitle {
+	font-size:1.3rem;
+	color:#ccc;
+	margin-bottom:1rem;
+}
+
+.inline {
+	display: inline-block;
+}
+``]
+{{end}}

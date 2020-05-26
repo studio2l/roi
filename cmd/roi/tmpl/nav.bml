@@ -6,6 +6,7 @@
 	background-color: rgb(27, 28, 29);
 	display: flex;
 	height: 3rem;
+	z-index: 1001;
 }
 #main-menu .nav-item {
 	color: #f6f6f6;
