@@ -1,15 +1,21 @@
 {{define "upload-excel"}}
 {{template "head"}}
+{{template "common-style"}}
 {{template "nav" $}}
-<div class="ui raised very padded text container grey inverted segment"> [
-	<h2 class="ui dividing header"> [엑셀 업로드]
+<div id="main-bg"> [
+<div id="main-left"> [
+	<h2 class="title"> [엑셀 업로드]
+]
+<div id="main-page"> [
 	<form method="post" class="ui form" enctype="multipart/form-data"> [
-		<div class="field"> [
-			<label> [파일]
+		<div class="chapter"> [
+			<div class="subtitle"> [파일]
 			<input type="file" name="excel" value=""> []
 		]
 		<button class="ui button green" type="submit" value="Submit"> [업로드]
 	]
+]
+<div id="main-right"> []
 ]
 {{template "footer"}}
 {{end}}
