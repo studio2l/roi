@@ -1,5 +1,6 @@
 {{define "review"}}
-{{template "head" }}
+{{template "head"}}
+{{template "common-style"}}
 {{template "nav" $}}
 
 <div style="width:100%;background-color:rgb(48, 48, 48);padding:15px;"> [
@@ -14,28 +15,32 @@
     ]
 ]
 
-<div style="padding:15px 10px 15px 10px;z-index:0;"> [
+<div id="main-bg"> [
+<div id="main-left"> [
+	<h2 class="title"> [리뷰]
+]
+<div id="main-page"> [
     {{range $d, $targets := $.ByDue}}
-    <div class="ui inverted segment"> [
-        <div class="ui grid"> [
-            <div class="ui four wide column"> [
-                {{if $d.IsZero}}
-                <div style="color:#CCC;" class="ui large header"> [리뷰대기]
-                {{else}}
-                <a href="/units?show={{$.Show}}&q=due:{{stringFromDate $d}}"> [
-                    <div style="color:#CCC;" class="ui large header"> [{{stringFromDate $d}}]
-                ]
-                {{end}}
+    <div class="chapter"> [
+        <div> [
+            {{if $d.IsZero}}
+            <div class="subtitle"> [대기중]
+            {{else}}
+            <a href="/units?show={{$.Show}}&q=due:{{stringFromDate $d}}"> [
+                <div class="subtitle"> [{{stringFromDate $d}}]
             ]
+            {{end}}
         ]
         <div class="ui divider"> []
-        <div id="show-{{$.Show}}-targets-by-due" class="shots-per-due ui grey inverted segment"> [
+        <div id="show-{{$.Show}}-targets-by-due" class="shots-per-due"> [
         {{range $t := $targets}}
             <a class="ui small label" href="/review-task?id={{$t.ID}}"> [{{$t.Group}}/{{$t.Unit}}<div class="detail"> [{{$t.Task}}]]
         {{end}}
         ]
     ]
     {{end}}
+]
+<div id="main-right"> []
 ]
 
 <script> [``
