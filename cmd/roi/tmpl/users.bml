@@ -1,10 +1,17 @@
 {{define "users"}}
 {{template "head"}}
+{{template "common-style"}}
 {{template "nav" $}}
-<div class="ui raised very padded text container grey inverted segment"> [
+<div id="main-bg"> [
+<div id="main-left"> [
+	<h2 class="title"> [유저]
+]
+<div id="main-page"> [
 {{range $u := $.Users}}
 	<div> [<a href="/user/{{$u.ID}}" style="color:white"> [{{$u.ID}}]]
 {{end}}
+]
+<div id="main-right"> []
 ]
 {{template "footer"}}
 {{end}}
