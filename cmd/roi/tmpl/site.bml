@@ -4,7 +4,7 @@
 {{template "nav" $}}
 <div id="main-bg"> [
 <div id="main-left"> [
-	<h2 class="title"> [사이트 설정]
+	<h2 class="title"> [사이트]
 ]
 <div id="main-page"> [
 	<form method="post" class="ui form"> [
