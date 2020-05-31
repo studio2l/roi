@@ -1,5 +1,6 @@
 {{define "units"}}
-{{template "head" }}
+{{template "head"}}
+{{template "common-style"}}
 {{template "nav" $}}
 {{template "search-menu" $}}
 <style> [``
@@ -52,7 +53,11 @@
 	box-shadow: 0 0 0 1px yellow !important;
 }
 ``]
-<div style="padding:15px 10px 15px 10px;z-index:0;"> [
+<div id="main-bg"> [
+<div id="main-left"> [
+	<h2 class="title"> [유닛]
+]
+<div id="main-page"> [
 <!--검색 결과-->
 {{range $s := .Units}}
 <div class="unit" id="{{$s.ID}}"> [
@@ -130,6 +135,8 @@
 <!-- 샷을 선택했을때 아래 바의 크기만큼 공간에 여유를 두어야 함 -->
 <div style="height:8rem"> []
 
+]
+<div id="main-right"> []
 ]
 
 <div id="bottom-bar" hidden style="position:fixed;bottom:0;width:100%;border-top:solid 1px #333;background-color:#444"> [
