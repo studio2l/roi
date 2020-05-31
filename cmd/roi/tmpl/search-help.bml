@@ -1,12 +1,9 @@
 {{define "search-help"}}
-{{template "head" }}
+{{template "head"}}
+{{template "common-style"}}
 {{template "nav" $}}
 {{template "search-menu" $}}
 <style> [``
-.search-help-title {
-	font-size: 1.2rem;
-	margin-bottom: 0.8rem;
-}
 .search-help-item {
 	margin-right: 0.5rem;
 }
@@ -15,10 +12,14 @@
 	color: #aaa;
 }
 ``]
-<div id="bg" style="width:100%;display:flex;justify-content:center;margin:4rem 0rem"> [
+<div id="main-bg"> [
+<div id="main-left"> [
+	<h2 class="title"> [유닛]
+]
+<div id="main-page"> [
 	<div id="main" style="background-color:transparent;width:700px"> [
 		<div style="margin-bottom:2rem"> [
-			<div class="search-help-title">샷</div>
+			<div class="subtitle">샷</div>
 			{{with $.ShotGroups}}
 			<a class="search-help-item" href="?q={{range $g := $.ShotGroups}}{{$g.Group}}/ {{end}}"> [전체]
 			{{range $g := $.ShotGroups}}
@@ -29,7 +30,7 @@
 			{{end}}
 		]
 		<div style="margin-bottom:2rem"> [
-			<div class="search-help-title">애셋</div>
+			<div class="subtitle">애셋</div>
 			{{with $.AssetGroups}}
 			<a class="search-help-item" href="?q={{range $g := $.AssetGroups}}{{$g.Group}}/ {{end}}"> [전체]
 			{{range $g := $.AssetGroups}}
@@ -40,7 +41,7 @@
 			{{end}}
 		]
 		<div style="margin-bottom:2rem"> [
-			<div class="search-help-title">태그</div>
+			<div class="subtitle">태그</div>
 			{{with $.Tags}}
 			{{range $t := $.Tags}}
 				<a class="search-help-item" href="?q=tag:{{$t}}"> [{{$t}}]
@@ -50,6 +51,8 @@
 			{{end}}
 		]
 	]
+]
+<div id="main-right"> []
 ]
 {{template "footer"}}
 {{end}}
