@@ -17,6 +17,7 @@
 }
 #main-page {
 	margin:1rem;
+	width: 960px;
 }
 
 .chapter {
