@@ -60,14 +60,7 @@ https 프로토콜을 사용하는 것이 좋습니다.
 ```
 # 서버 실행
 cd ~/roi/cmd/roi
-sudo ./roi server -insecure
-```
-
-또 다른 터미널에서 테스트 데이터를 추가해 보겠습니다.
-
-```
-cd ~/roi/cmd/roi
-./roi shot -insecure ./testdata/test.xlsx
+sudo ./roi -insecure
 ```
 
 이제 http://localhost 페이지를 살펴보세요.
@@ -93,7 +86,7 @@ mkcert -cert-file=cert.pem -key-file=key.pem localhost
 
 ```
 cd ~/roi/cmd/roi
-sudo ./roi server
+sudo ./roi
 ```
 
 ### 환경변수
