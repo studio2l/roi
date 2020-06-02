@@ -1,20 +1,25 @@
 {{define "profile"}}
 {{template "head"}}
+{{template "common-style"}}
 {{template "nav" $}}
-<div class="ui raised very padded text container grey inverted segment"> [
-	<!--사용자 정보-->
-	<h2 class="ui dividing header"> [사용자 정보]
+
+<div id="main-bg"> [
+<div id="main-left"> [
+	<h2 class="title"> [사용자]
+]
+<div id="main-page"> [
+	<h2> [기본 정보]
 	<form method="post" class="ui form"> [
-		<div class="field"> [<label> [아이디]
+		<div class="chapter"> [<div class="subtitle"> [아이디]
 			<input readonly="" type="text" name="id" value="{{$.User.ID}}"/>
 		]
-		<div class="field"> [<label> [이름]
+		<div class="chapter"> [<div class="subtitle"> [이름]
 			<input type="text" name="kor_name" value="{{$.User.KorName}}"/>
 		]
-		<div class="field"> [<label> [영문이름]
+		<div class="chapter"> [<div class="subtitle"> [영문이름]
 			<input type="text" name="name" value="{{$.User.Name}}"/>
 		]
-		<div class="field"> [<label> [팀]
+		<div class="chapter"> [<div class="subtitle"> [팀]
 			<select type="text" name="team"> [
 				<option value="" {{if eq $.User.Team ""}}selected{{end}}> [없음]
 				<option value="mod" {{if eq $.User.Team "mod"}}selected{{end}}> [모델링]
@@ -29,62 +34,53 @@
 				<option value="pd" {{if eq $.User.Team "pd"}}selected{{end}}> [PD]
 			]
 		]
-		<div class="field"> [<label> [직책]
+		<div class="chapter"> [<div class="subtitle"> [직책]
 			<select type="text" name="position"> [
 				<option value=""{{if eq $.User.Role ""}}selected{{end}}> [없음]
 				<option value="lead" {{if eq $.User.Role "lead"}}selected{{end}}> [팀장]
 			]
 		]
-		<div class="field"> [<label> [이메일]
+		<div class="chapter"> [<div class="subtitle"> [이메일]
 			<input type="text" name="email" value="{{$.User.Email}}"/>
 		]
-		<div class="field"> [<label> [전화번호]
+		<div class="chapter"> [<div class="subtitle"> [전화번호]
 			<input type="text" name="phone_number" value="{{$.User.PhoneNumber}}"/>
 		]
-		<div class="field"> [<label> [입사일]
+		<div class="chapter"> [<div class="subtitle"> [입사일]
 			<input type="date" name="entry_date" value="{{$.User.EntryDate}}"/>
 		]
 
-		<!--버튼 : 설정 저장-->
 		<button class="ui button green" type="submit" value="Submit"> [설정 저장]
 	]
+
 	<div class="ui section divider"> []
-	<!--비밀번호 변경-->
-	<h2 class="ui dividing header"> [비밀번호 변경]
+	<h2> [비밀번호 변경]
 	<form action="/update-password" method="post" class="ui form"> [
-		<div class="field"> [<label> [기존 패스워드]
+		<div class="chapter"> [<div class="subtitle"> [기존 패스워드]
 			<input type="password" name="old_password"/>
 		]
-		<div class="field"> [<label> [새 패스워드]
+		<div class="chapter"> [<div class="subtitle"> [새 패스워드]
 			<input type="password" name="new_password"/>
 		]
-		<div class="field"> [<label> [새 패스워드 재입력]
+		<div class="chapter"> [<div class="subtitle"> [새 패스워드 재입력]
 			<input type="password" name="new_password_confirm"/>
 		]
 		<!--버튼 : 비밀번호 변경-->
 		<button class="ui button green" type="submit" value="Submit"> [비밀번호 변경]
 	]
+
 	<div class="ui section divider"> []
-	<!--setting-->
-	<h2 class="ui dividing inverted header"> [Setting]
-	<!--언어선택-->
-	<div class="ui inverted form"> [
+	<h2> [언어]
+	<div> [
 		<div class="inline fields"> [
-			<label for="language"> [Select Language:]
-			<div class="field"> [
-				<div class="ui language radio checkbox"> [
-					<input type="radio" name="language" checked="" tabindex="0" class="hidden">
-					<label> [한글]
-				]
-			]
-			<div class="field"> [
-				<div class="ui language radio checkbox"> [
-					<input type="radio" name="language" tabindex="0" class="hidden">
-					<label> [English]
-				]
+			<div class="chapter"> [
+				<input type="radio" name="language" checked="" tabindex="0" class="hidden"> 한글
+				<input type="radio" name="language" tabindex="0" class="hidden"> English
 			]
 		]
 	]
+]
+<div id="main-right"> []
 ]
 {{template "footer"}}
 {{end}}

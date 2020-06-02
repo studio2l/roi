@@ -1,44 +1,49 @@
 {{define "update-show"}}
 {{template "head"}}
+{{template "common-style"}}
 {{template "nav" $}}
-<div class="ui raised very padded text container grey inverted segment"> [
+
+<div id="main-bg"> [
+<div id="main-left"> [
+	<h2 class="title"> [쇼 수정]
+]
+<div id="main-page"> [
 	{{with $s := $.Show}}
-	<h2 class="ui header"> [쇼 설정]
 	<h3 class="ui dividing header" style="color:#9f9f9f"> [
 		<a href="/update-show?id={{$s.Show}}" style="color:#9f9f9f"> [{{$s.Show}}]
 	]
 	{{end}}
 	<form method="post" class="ui form"> [
 		<input hidden type="text" name="show" value="{{.Show.Show}}"/>
-		<div class="field"> [<label> [상태]
+		<div class="chapter"> [<div class="subtitle"> [상태]
 			<select type="text" name="status"> [
 				{{range $s := $.AllShowStatus}}
 				<option value="{{$s}}" {{if eq $s $.Show.Status}}selected{{end}}> [{{$s.UIString}}]
 				{{end}}
 			]
 		]
-		<div class="field"> [<label> [수퍼바이저]
+		<div class="chapter"> [<div class="subtitle"> [수퍼바이저]
 			<input type="text" name="supervisor" value="{{.Show.Supervisor}}"/>
 		]
-		<div class="field"> [<label> [CG 수퍼바이저]
+		<div class="chapter"> [<div class="subtitle"> [CG 수퍼바이저]
 			<input type="text" name="cg_supervisor" value="{{.Show.CGSupervisor}}"/>
 		]
-		<div class="field"> [<label> [PD]
+		<div class="chapter"> [<div class="subtitle"> [PD]
 			<input type="text" name="pd" value="{{.Show.PD}}"/>
 		]
-		<div class="field"> [<label> [매니저]
+		<div class="chapter"> [<div class="subtitle"> [매니저]
 			<input type="text" name="managers" placeholder="매니저, 매니저, ..." value="{{fieldJoin .Show.Managers}}"/>
 		]
-		<div class="field"> [<label> [마감일]
+		<div class="chapter"> [<div class="subtitle"> [마감일]
 			<input type="date" name="due_date" value="{{stringFromDate .Show.DueDate}}"/>
 		]
-		<div class="field"> [<label> [태그]
+		<div class="chapter"> [<div class="subtitle"> [태그]
 			<input type="text" name="tags" value="{{fieldJoin .Show.Tags}}"/>
 		]
-		<div class="field"> [<label> [노트]
+		<div class="chapter"> [<div class="subtitle"> [노트]
 			<textarea name="notes" placeholder="그 외 정보를 입력하세요"> [{{.Show.Notes}}]
 		]
-		<div class="field"> [<label>커스텀 속성
+		<div class="chapter"> [<div class="subtitle">커스텀 속성
 			<textarea name="attrs" placeholder="여러줄의 키: 값 쌍으로 표현해주세요."> [
 			{{- range $k, $v := .Show.Attrs -}}
 {{$k}}: {{$v}}
@@ -47,6 +52,8 @@
 		]
 		<button class="ui button green" type="submit" value="Submit"> [수정]
 	]
+]
+<div id="main-right"> []
 ]
 {{template "footer"}}
 {{end}}

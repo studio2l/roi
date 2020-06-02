@@ -1,9 +1,14 @@
 {{define "update-unit"}}
 {{template "head"}}
+{{template "common-style"}}
 {{template "nav" $}}
-<div class="ui raised very padded text container grey inverted segment"> [
+
+<div id="main-bg"> [
+<div id="main-left"> [
+	<h2 class="title"> [유닛 수정]
+]
+<div id="main-page"> [
 	{{with $u := $.Unit}}
-	<h2 class="ui header"> [샷 수정]
 	<h3 class="ui dividing header" style="color:#9f9f9f"> [
 		<a href="/update-show?id={{$u.Show}}" style="color:#9f9f9f"> [{{$u.Show}}] /
 		<a href="/update-group?id={{$u.Show}}/{{$u.Group}}" style="color:#9f9f9f"> [{{$u.Group}}] /
@@ -11,39 +16,39 @@
 	]
 	<form method="post" class="ui form" enctype="multipart/form-data"> [
 		<input hidden type="text" name="id" value="{{$u.ID}}"/>
-		<div class="field"> [<label> [썸네일]
+		<div class="chapter"> [<div class="subtitle"> [썸네일]
 			{{if hasThumbnail $u.ID}}<img width="288px" height="162px" src="{{$.Thumbnail}}"></img>{{end}}
 			<input type="file" name="thumbnail"/>
 		]
-		<div class="field"> [<label> [마감일]
+		<div class="chapter"> [<div class="subtitle"> [마감일]
 			<input type="date" name="due_date" value="{{stringFromDate $u.DueDate}}">
 		]
-		<div class="field"> [<label> [상태]
+		<div class="chapter"> [<div class="subtitle"> [상태]
 			<select type="text" name="status"> [
 				{{range $us := $.AllUnitStatus}}
 				<option value="{{$us}}" {{if eq $us $u.Status}}selected{{end}}> [{{$us.UIString}}]
 				{{end}}
 			]
 		]
-		<div class="field"> [<label> [내용]
+		<div class="chapter"> [<div class="subtitle"> [내용]
 			<input type="text" name="description" value="{{$u.Description}}"/>
 		]
-		<div class="field"> [<label> [편집 순서]
+		<div class="chapter"> [<div class="subtitle"> [편집 순서]
 			<input type="text" name="edit_order" value="{{$u.EditOrder}}"/>
 		]
-		<div class="field"> [<label> [CG 내용]
+		<div class="chapter"> [<div class="subtitle"> [CG 내용]
 			<input type="text" name="cg_description" value="{{$u.CGDescription}}"/>
 		]
-		<div class="field"> [<label> [태그]
+		<div class="chapter"> [<div class="subtitle"> [태그]
 			<input type="text" name="tags" value="{{fieldJoin $u.Tags}}"/>
 		]
-		<div class="field"> [<label> [필요한 애셋]
+		<div class="chapter"> [<div class="subtitle"> [필요한 애셋]
 			<input type="text" name="assets" value="{{fieldJoin $u.Assets}}"/>
 		]
-		<div class="field"> [<label> [태스크]
+		<div class="chapter"> [<div class="subtitle"> [태스크]
 			<input type="text" name="tasks" value="{{fieldJoin $u.Tasks}}"/>
 		]
-		<div class="field"> [<label>커스텀 속성
+		<div class="chapter"> [<div class="subtitle">커스텀 속성
 			<textarea name="attrs" placeholder="여러줄의 키: 값 쌍으로 표현해주세요."> [
 			{{- range $k, $v := $u.Attrs -}}
 {{$k}}: {{$v}}
@@ -55,6 +60,8 @@
 		<div style="height:2rem;"> []
 	]
 	{{end}}
+]
+<div id="main-right"> []
 ]
 {{template "footer"}}
 {{end}}

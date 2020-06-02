@@ -1,11 +1,14 @@
 {{define "update-version"}}
 {{template "head"}}
+{{template "common-style"}}
 {{template "nav" $}}
-<div class="ui raised very padded text container grey inverted segment"> [
+
+<div id="main-bg"> [
+<div id="main-left"> [
+	<h2 class="title"> [버전 수정]
+]
+<div id="main-page"> [
 	{{with $v := $.Version}}
-	<h2 class="ui header"> [
-		버전 수정
-	]
 	<h3 class="ui dividing header" style="color:#9f9f9f"> [
 		<a href="/update-show?id={{$v.Show}}" style="color:#9f9f9f"> [{{$v.Show}}] /
 		<a href="/update-group?id={{$v.Show}}/{{$v.Group}}" style="color:#9f9f9f"> [{{$v.Group}}] /
@@ -15,10 +18,10 @@
 	]
 	<form method="post" class="ui form" enctype="multipart/form-data"> [
 		<input hidden type="text" name="id" value="{{$v.ID}}" />
-		<div class="field"> [<label> [소유자]
+		<div class="chapter"> [<div class="subtitle"> [소유자]
 			<input readonly type="text" name="owner" value="{{$v.Owner}}" />
 		]
-		<div class="field"> [<label> [프리뷰 영상 및 이미지]
+		<div class="chapter"> [<div class="subtitle"> [프리뷰 영상 및 이미지]
 			{{with $prev := versionPreviewFiles $v.ID}}
 				{{if $prev.N}}
 					{{range $mov := $prev.Movs}}
@@ -33,16 +36,18 @@
 			{{end}}
 			<input type="file" multiple=true name="preview_files" value=""/>
 		]
-		<div class="field"> [<label> [결과물]
+		<div class="chapter"> [<div class="subtitle"> [결과물]
 			<input type="text" name="output_files" value="{{fieldJoin $v.OutputFiles}}"/>
 		]
-		<div class="field"> [<label> [작업 파일]
+		<div class="chapter"> [<div class="subtitle"> [작업 파일]
 			<input type="text" name="work_file" value="{{$v.WorkFile}}"/>
 		]
 		<button class="ui button green" type="submit" value="Submit"> [수정]
 		<div style="height:2rem"> []
 	]
 	{{end}}
+]
+<div id="main-right"> []
 ]
 {{template "footer"}}
 {{end}}

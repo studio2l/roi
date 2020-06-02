@@ -1,9 +1,14 @@
 {{define "update-multi-tasks"}}
 {{template "head"}}
+{{template "common-style"}}
 {{template "nav" $}}
-<div class="ui raised very padded text container grey inverted segment"> [
+
+<div id="main-bg"> [
+<div id="main-left"> [
+	<h2 class="title"> [태스크 수정]
+]
+<div id="main-page"> [
 	<button onclick="history.back()"> [되돌아가기]
-	<h2 class="ui header"> [태스크 수정]
 	<h3 class="ui dividing header" style="color:#BBB"> [
 		<a href="/update-show?id={{$.Show}}" style="color:#9f9f9f"> [{{$.Show}}] /
 		{{len $.IDs}} 샷
@@ -16,7 +21,7 @@
 		{{range $id := $.IDs}}
 		<input hidden type="text" name="id" value="{{$id}}"/>
 		{{end}}
-		<div class="field"> [<label> [태스크]
+		<div class="chapter"> [<div class="subtitle"> [태스크]
 			<select name="task" onchange="taskChanged(this)"> [
 			<option value=""> []
 			{{range $t := $.Tasks}}
@@ -24,10 +29,10 @@
 			{{end}}
 			]
 		]
-		<div class="field"> [<label> [마감일]
+		<div class="chapter"> [<div class="subtitle"> [마감일]
 			<input disabled class="after-task-set" type="date" name="due_date" value="">
 		]
-		<div class="field"> [<label> [상태]
+		<div class="chapter"> [<div class="subtitle"> [상태]
 			<select disabled class="after-task-set" type="text" name="status"> [
 				<option value="" selected> []
 				{{range $s := $.AllTaskStatus}}
@@ -35,12 +40,14 @@
 				{{end}}
 			]
 		]
-		<div class="field"> [<label> [담당]
+		<div class="chapter"> [<div class="subtitle"> [담당]
 			<input disabled class="after-task-set" type="text" name="assignee" value="" />
 		]
 		<button disabled class="ui button green after-task-set" type="submit" value="Submit"> [수정]
 		<div style="height:2rem;"> []
 	]
+]
+<div id="main-right"> []
 ]
 <script> [``
 // taskChanged는 특정 태스크가 선택 되었을때 인풋과 버튼의 잠금을 해제한다.
