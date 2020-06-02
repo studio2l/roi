@@ -1,5 +1,6 @@
 {{define "review-task"}}
 {{template "head"}}
+{{template "common-style"}}
 {{template "nav" $}}
 
 <style> [``
@@ -19,16 +20,6 @@
 }
 .chapter {
 	margin-top: 2.5rem;
-}
-.title {
-	font-size:1.5rem;
-	color:#ccc;
-	margin-bottom:1rem;
-}
-.sub-title {
-	font-size:1.3rem;
-	color:#ccc;
-	margin-bottom:1rem;
 }
 #retake-button {
 	background-color: #a33;
@@ -59,105 +50,106 @@
 }
 ``]
 
-<div id="bg" style="width:100%;display:flex;justify-content:center;margin:4rem 0rem"> [
-	<div id="main" style="background-color:transparent;width:700px"> [
-		{{with $t := $.Task}}
-		<div id="title-bar" style="margin-bottom:3rem;"> [
-			<h2 style="color:#ddd"> [
-				태스크 리뷰
-			]
-			<div style="color:#9f9f9f;font-size:1.2rem;"> [
-				<a href="/update-show?id={{$t.Show}}" style="color:#9f9f9f"> [{{$t.Show}}] /
-				<a href="/update-group?id={{$t.Show}}/{{$t.Group}}" style="color:#9f9f9f"> [{{$t.Group}}] /
-				<a href="/update-unit?id={{$t.Show}}/{{$t.Group}}/{{$t.Unit}}" style="color:#9f9f9f"> [{{$t.Unit}}] /
-				<a href="/update-task?id={{$t.Show}}/{{$t.Group}}/{{$t.Unit}}/{{$t.Task}}" style="color:#9f9f9f"> [{{$t.Task}}]
-			]
-		]
-		{{end}}
-
-		<div class="versions"> [
-		{{with $.Versions}}
-			{{if not $.ShowAllVersions}}
-			<a href="?id={{$.Task.ID}}&all-versions=1" style="display:flex;justify-content:center;align-items:center;color:#38d;cursor:pointer;"> [
-				<span> [모든 버전 보기]
-			]
-			<div class="versions-divider"> []
-			{{end}}
-
-			{{range $i, $v := $.Versions}}
-			{{if $i}}
-			<div class="versions-divider"> []
-			{{end}}
-			<div class="version" style="background-color:#393939"> [
-				<div style="display:flex;justify-content:space-between"> [
-					<div class="title"> [버전 {{$v.Version}}]
-					<div class="title"> [{{$v.Owner}}]
-				]
-				<div class="chapter version-previews"> [
-					<div class="sub-title"> [프리뷰 영상 및 이미지]
-					{{with $prev := versionPreviewFiles $v.ID}}
-						{{if $prev.N}}
-							{{range $mov := $prev.Movs}}
-								<div style="margin-bottom:0.3rem"> [<a href={{$mov}} style="color:#38d"> [{{basename $mov}}]]
-							{{end}}
-							{{range $img := $prev.Imgs}}
-								<div style="margin-bottom:0.3rem"> [<a href={{$img}} style="color:#38d"> [{{basename $img}}]]
-							{{end}}
-						{{end}}
-					{{else}}
-						<div style="color:#777;"> [등록된 영상 또는 이미지가 없습니다.]
-					{{end}}
-				]
-				<div class="chapter version-outputs"> [
-					<div class="sub-title"> [아웃풋 경로]
-					{{with $outputs := $v.OutputFiles}}
-						{{range $output := $outputs}}
-							<div style="margin-bottom:0.3rem;color:#aaa"> [{{$output}}]
-						{{end}}
-					{{else}}
-						<div style="color:#777"> [등록된 파일이 없습니다.]
-					{{end}}
-				]
-				{{with $rs := (index $.Reviews $v.ID)}}
-					<div class="chapter version-reviews"> [
-						<div class="sub-title"> [리뷰]
-						{{range $i, $r := $rs}}
-							{{if ne $i 0}}
-							<div style="height:1rem"> []
-							{{end}}
-							<div style="color:#bbb;padding:0.5rem;border:solid 1px #252525"> [
-								<div style="display:flex;justify-content:space-between;color:#ccc;margin-bottom:0.5rem"> [
-									<div> [{{$r.Messenger}} {{$r.Status.UIString}}]
-									<div> [{{$r.Messenger}}이 {{stringFromTime $r.Created}} 에 생성]
-								]
-								<pre style="padding:0.3rem;min-height:4rem;background-color:white;color:#444;"> [{{$r.Msg}}]
-							]
-						{{end}}
-					]
-				{{end}}
-				{{if eq $i (sub (len $.Versions) 1)}}
-				<form method="post"> [
-					<input hidden name="id" value="{{$.Task.ID}}" />
-					<input hidden name="version" value="{{$v.Version}}" />
-					<div class="chapter version-review"> [
-						<div class="sub-title"> [리뷰]
-						<textarea id="review-msg" name="msg" style="width:100%;height:8rem" onkeyup="onComment()"> []
-						<div style="height:0.5rem;"> []
-						<div style="display:flex;justify-content:flex-end;"> [
-							<button disabled id="retake-button" name="status" value="retake"> [리테이크]
-							<div style="width:0.5rem"> []
-							<button id="approve-button" name="status" value="approved"> [승인]
-						]
-					]
-				]
-				{{end}}
-			]
-			{{end}}
-		{{else}}
-			<div style="color:#AAA"> [등록된 버전이 없습니다.]
-		{{end}}
+<div id="main-bg"> [
+<div id="main-left"> [
+	<h2 class="title"> [리뷰]
+]
+<div id="main-page"> [
+	{{with $t := $.Task}}
+	<div id="title-bar" style="margin-bottom:3rem;"> [
+		<div style="color:#9f9f9f;font-size:1.2rem;"> [
+			<a href="/update-show?id={{$t.Show}}" style="color:#9f9f9f"> [{{$t.Show}}] /
+			<a href="/update-group?id={{$t.Show}}/{{$t.Group}}" style="color:#9f9f9f"> [{{$t.Group}}] /
+			<a href="/update-unit?id={{$t.Show}}/{{$t.Group}}/{{$t.Unit}}" style="color:#9f9f9f"> [{{$t.Unit}}] /
+			<a href="/update-task?id={{$t.Show}}/{{$t.Group}}/{{$t.Unit}}/{{$t.Task}}" style="color:#9f9f9f"> [{{$t.Task}}]
 		]
 	]
+	{{end}}
+
+	<div class="versions"> [
+	{{with $.Versions}}
+		{{if not $.ShowAllVersions}}
+		<a href="?id={{$.Task.ID}}&all-versions=1" style="display:flex;justify-content:center;align-items:center;color:#38d;cursor:pointer;"> [
+			<span> [모든 버전 보기]
+		]
+		<div class="versions-divider"> []
+		{{end}}
+
+		{{range $i, $v := $.Versions}}
+		{{if $i}}
+		<div class="versions-divider"> []
+		{{end}}
+		<div class="version" style="background-color:#393939"> [
+			<div style="display:flex;justify-content:space-between"> [
+				<div class="subtitle"> [버전 {{$v.Version}}]
+				<div class="subtitle"> [{{$v.Owner}}]
+			]
+			<div class="chapter version-previews"> [
+				<div class="subtitle"> [프리뷰 영상 및 이미지]
+				{{with $prev := versionPreviewFiles $v.ID}}
+					{{if $prev.N}}
+						{{range $mov := $prev.Movs}}
+							<div style="margin-bottom:0.3rem"> [<a href={{$mov}} style="color:#38d"> [{{basename $mov}}]]
+						{{end}}
+						{{range $img := $prev.Imgs}}
+							<div style="margin-bottom:0.3rem"> [<a href={{$img}} style="color:#38d"> [{{basename $img}}]]
+						{{end}}
+					{{end}}
+				{{else}}
+					<div style="color:#777;"> [등록된 영상 또는 이미지가 없습니다.]
+				{{end}}
+			]
+			<div class="chapter version-outputs"> [
+				<div class="subtitle"> [아웃풋 경로]
+				{{with $outputs := $v.OutputFiles}}
+					{{range $output := $outputs}}
+						<div style="margin-bottom:0.3rem;color:#aaa"> [{{$output}}]
+					{{end}}
+				{{else}}
+					<div style="color:#777"> [등록된 파일이 없습니다.]
+				{{end}}
+			]
+			{{with $rs := (index $.Reviews $v.ID)}}
+				<div class="chapter version-reviews"> [
+					<div class="subtitle"> [리뷰]
+					{{range $i, $r := $rs}}
+						{{if ne $i 0}}
+						<div style="height:1rem"> []
+						{{end}}
+						<div style="color:#bbb;padding:0.5rem;border:solid 1px #252525"> [
+							<div style="display:flex;justify-content:space-between;color:#ccc;margin-bottom:0.5rem"> [
+								<div> [{{$r.Messenger}} {{$r.Status.UIString}}]
+								<div> [{{$r.Messenger}}이 {{stringFromTime $r.Created}} 에 생성]
+							]
+							<pre style="padding:0.3rem;min-height:4rem;background-color:white;color:#444;"> [{{$r.Msg}}]
+						]
+					{{end}}
+				]
+			{{end}}
+			{{if eq $i (sub (len $.Versions) 1)}}
+			<form method="post"> [
+				<input hidden name="id" value="{{$.Task.ID}}" />
+				<input hidden name="version" value="{{$v.Version}}" />
+				<div class="chapter version-review"> [
+					<div class="subtitle"> [리뷰]
+					<textarea id="review-msg" name="msg" style="width:100%;height:8rem" onkeyup="onComment()"> []
+					<div style="height:0.5rem;"> []
+					<div style="display:flex;justify-content:flex-end;"> [
+						<button disabled id="retake-button" name="status" value="retake"> [리테이크]
+						<div style="width:0.5rem"> []
+						<button id="approve-button" name="status" value="approved"> [승인]
+					]
+				]
+			]
+			{{end}}
+		]
+		{{end}}
+	{{else}}
+		<div style="color:#AAA"> [등록된 버전이 없습니다.]
+	{{end}}
+	]
+]
+<div id="main-right"> []
 ]
 
 <script> [``

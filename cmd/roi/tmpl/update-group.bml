@@ -1,22 +1,27 @@
 {{define "update-group"}}
 {{template "head"}}
+{{template "common-style"}}
 {{template "nav" $}}
-<div class="ui raised very padded text container grey inverted segment"> [
+
+<div id="main-bg"> [
+<div id="main-left"> [
+	<h2 class="title"> [그룹 수정]
+]
+<div id="main-page"> [
 	{{with $g := $.Group}}
-	<h2 class="ui header"> [그룹 수정]
 	<h3 class="ui dividing header" style="color:#9f9f9f"> [
 		<a href="/update-show?id={{$g.Show}}" style="color:#9f9f9f"> [{{$g.Show}}] /
 		<a href="/update-group?id={{$g.Show}}/{{$g.Group}}" style="color:#9f9f9f"> [{{$g.Group}}]
 	]
 	<form method="post" class="ui form" enctype="multipart/form-data"> [
 		<input hidden type="text" name="id" value="{{$g.ID}}"/>
-		<div class="field"> [<label> [기본 태스크]
+		<div class="chapter"> [<div class="subtitle"> [기본 태스크]
 			<input name="default_tasks" type="text" value="{{fieldJoin $g.DefaultTasks}}" />
 		]
-		<div class="field"> [<label> [노트]
+		<div class="chapter"> [<div class="subtitle"> [노트]
 			<textarea name="notes" placeholder="추가적인 정보를 입력하세요"> [{{$g.Notes}}]
 		]
-		<div class="field"> [<label> [커스텀 속성]
+		<div class="chapter"> [<div class="subtitle"> [커스텀 속성]
 			<textarea name="attrs" placeholder="여러줄의 키: 값 쌍으로 표현해주세요."> [
 			{{- range $k, $v := $g.Attrs -}}
 {{$k}}: {{$v}}
@@ -28,6 +33,8 @@
 		<div style="height:2rem;"> []
 	]
 	{{end}}
+]
+<div id="main-right"> []
 ]
 {{template "footer"}}
 {{end}}
