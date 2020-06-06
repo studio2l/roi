@@ -1,48 +1,68 @@
 {{define "nav"}}
 <style> [``
-#main-menu {
+.nav {
 	position: fixed;
 	width: 100%;
 	background-color: rgb(27, 28, 29);
 	display: flex;
 	height: 3rem;
+	align-items: stretch;
 	z-index: 1001;
 }
-#main-menu .nav-item {
+.nav-item {
 	color: #f6f6f6;
-	padding: 0.7rem 1.1rem;
-	text-align: center;
-	vertical-align: middle;
-	border: solid 1px #222;
-	display: block;
+	padding: 0 1rem;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 1.1rem;
 	height: 100%;
+}
+.nav-item:hover {
+	background-color: #333;
 }
 .nav-dropdown {
 	position: relative;
 	float: right;
+	height: 100%;
 }
 .nav-dropdown-button {
-	min-width: 6rem;
+	color: #f6f6f6;
+	min-width: 8rem;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 1.1rem;
 	height: 100%;
-	padding:1rem;
-	color: white;
+	padding: 0 1px;
+}
+.nav-dropdown-button:hover {
+	background-color: #333;
 }
 .nav-dropdown-content {
 	position: absolute;
-	right: 0;
 	display: none;
-	width: 8rem;
+	background-color: #272727;
+	padding: 1px;
 }
 .nav-dropdown:hover .nav-dropdown-content {
 	display: block;
-	background-color: #333;
 }
-.nav-dropdown-content .nav-item:hover {
+.nav-dropdown-item {
+	color: #f6f6f6;
+	background-color: #333;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 8rem;
+	height: 3rem;
+}
+.nav-dropdown-content .nav-dropdown-item:hover {
 	background-color: #444
 }
 ``]
 <nav> [
-	<div id="main-menu"> [
+	<div class="nav"> [
 		<a class="nav-item" href="/"> [<b>[ROI]]
 
 		<a class="nav-item" href="/site" title="사이트 정보 수정 페이지"> [Site]
@@ -54,17 +74,17 @@
 		<div class="nav-dropdown" title="정보 등록을 위한 메뉴입니다."> [
 			<div class="nav-dropdown-button"> [Add]
 			<div class="nav-dropdown-content"> [
-				<a class="nav-item" href="/add-show"> [Show]
-				<a class="nav-item" href="/add-group"> [Group]
-				<a class="nav-item" href="/add-unit"> [Unit]
-				<a class="nav-item" href="/upload-excel"> [Excel]
+				<a class="nav-dropdown-item" href="/add-show"> [Show]
+				<a class="nav-dropdown-item" href="/add-group"> [Group]
+				<a class="nav-dropdown-item" href="/add-unit"> [Unit]
+				<a class="nav-dropdown-item" href="/upload-excel"> [Excel]
 			]
 		]
 		<div class="nav-dropdown" title="개인계정과 설정을 위한 페이지입니다."> [
 			<div class="nav-dropdown-button"> [{{$.Env.User.ID}}]
 			<div class="nav-dropdown-content"> [
-				<a class="nav-item" href="/settings/profile"> [Profile]
-				<a class="nav-item" href="/logout"> [Log-Out]
+				<a class="nav-dropdown-item" href="/settings/profile"> [Profile]
+				<a class="nav-dropdown-item" href="/logout"> [Log-Out]
 			]
 		]
 	]
