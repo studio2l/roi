@@ -1,5 +1,4 @@
 {{define "footer"}}
-<script src="/static/roi-ui.js"> []
 </body>
 </html>
 {{end}}
