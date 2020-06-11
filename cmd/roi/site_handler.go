@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/studio2l/roi"
 )
@@ -40,7 +41,23 @@ func sitePostHander(w http.ResponseWriter, r *http.Request, env *Env) error {
 		DefaultShotTasks:  formValues(r, "default_shot_tasks"),
 		DefaultAssetTasks: formValues(r, "default_asset_tasks"),
 		Leads:             formValues(r, "leads"),
+		Notes:             r.FormValue("notes"),
+		Attrs:             make(roi.DBStringMap),
 	}
+
+	for _, ln := range strings.Split(r.FormValue("attrs"), "\n") {
+		kv := strings.SplitN(ln, ":", 2)
+		if len(kv) != 2 {
+			continue
+		}
+		k := strings.TrimSpace(kv[0])
+		v := strings.TrimSpace(kv[1])
+		if k == "" || v == "" {
+			continue
+		}
+		s.Attrs[k] = v
+	}
+
 	err := roi.UpdateSite(DB, s)
 	if err != nil {
 		return err
