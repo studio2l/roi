@@ -120,6 +120,18 @@
 				{{end}}
 			]
 		]
+		<div class="chapter"> [
+			<div class="subtitle"> [노트]
+			<textarea name="notes" style="width:100%" placeholder="그 외 정보를 입력하세요"> [{{.Site.Notes}}]
+		]
+		<div class="chapter"> [
+			<div class="subtitle"> [커스텀 속성]
+			<textarea name="attrs" style="width:100%" placeholder="여러줄의 키: 값 쌍으로 표현해주세요."> [
+			{{- range $k, $v := .Site.Attrs -}}
+{{$k}}: {{$v}}
+{{end -}}
+			]
+		]
 		<button class="ui button green" type="submit" value="Submit"> [수정]
 	]
 ]

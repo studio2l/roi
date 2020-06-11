@@ -7,6 +7,20 @@ import (
 	"strings"
 )
 
+var CreateTableIfNotExistsSitesStmt = `CREATE TABLE IF NOT EXISTS sites (
+	site STRING UNIQUE NOT NULL,
+	vfx_supervisors STRING[] NOT NULL,
+	vfx_producers STRING[] NOT NULL,
+	cg_supervisors STRING[] NOT NULL,
+	project_managers STRING[] NOT NULL,
+	tasks STRING[] NOT NULL,
+	default_shot_tasks STRING[] NOT NULL,
+	default_asset_tasks STRING[] NOT NULL,
+	leads STRING[] NOT NULL,
+	notes STRING NOT NULL,
+	attrs STRING NOT NULL
+)`
+
 // Site는 현재 스튜디오를 뜻한다.
 type Site struct {
 	// 현재로서는 빈 이름의 하나의 사이트만 존재한다.
@@ -25,19 +39,11 @@ type Site struct {
 	// 이 때 [... rnd:kybin rnd:kaycho ...] 처럼 등록한다.
 	// 형식이 맞지 않거나 Tasks에 없는 태스크명을 쓰면 에러를 낸다.
 	Leads []string `db:"leads"`
-}
+	Notes string   `db:"notes"`
 
-var CreateTableIfNotExistsSitesStmt = `CREATE TABLE IF NOT EXISTS sites (
-	site STRING UNIQUE NOT NULL,
-	vfx_supervisors STRING[] NOT NULL,
-	vfx_producers STRING[] NOT NULL,
-	cg_supervisors STRING[] NOT NULL,
-	project_managers STRING[] NOT NULL,
-	tasks STRING[] NOT NULL,
-	default_shot_tasks STRING[] NOT NULL,
-	default_asset_tasks STRING[] NOT NULL,
-	leads STRING[] NOT NULL
-)`
+	// Attrs는 커스텀 속성으로 db에는 여러줄의 문자열로 저장된다. 각 줄은 키: 값의 쌍이다.
+	Attrs DBStringMap `db:"attrs"`
+}
 
 var siteDBKey string = strings.Join(dbKeys(&Site{}), ", ")
 var siteDBIdx string = strings.Join(dbIdxs(&Site{}), ", ")
