@@ -48,7 +48,7 @@
 		<div class="chapter"> [<div class="subtitle"> [태스크]
 			<input type="text" name="tasks" value="{{fieldJoin $u.Tasks}}"/>
 		]
-		<div class="chapter"> [<div class="subtitle">커스텀 속성
+		<div class="chapter"> [<div class="subtitle"> [커스텀 속성]
 			<textarea name="attrs" placeholder="여러줄의 키: 값 쌍으로 표현해주세요."> [
 			{{- range $k, $v := $u.Attrs -}}
 {{$k}}: {{$v}}
