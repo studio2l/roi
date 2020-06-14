@@ -1,5 +1,8 @@
 {{define "common-style"}}
 <style> [``
+a {
+	color: #4bf
+}
 #main-bg {
 	display:flex;
 	justify-content:center;
