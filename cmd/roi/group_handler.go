@@ -31,9 +31,9 @@ func addGroupHandler(w http.ResponseWriter, r *http.Request, env *Env) error {
 			}
 			if len(shows) == 0 {
 				recipe := struct {
-					LoggedInUser string
+					Env *Env
 				}{
-					LoggedInUser: env.User.ID,
+					Env: env,
 				}
 				return executeTemplate(w, "no-shows", recipe)
 			}
