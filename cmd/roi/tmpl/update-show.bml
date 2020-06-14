@@ -43,7 +43,7 @@
 		<div class="chapter"> [<div class="subtitle"> [노트]
 			<textarea name="notes" placeholder="그 외 정보를 입력하세요"> [{{.Show.Notes}}]
 		]
-		<div class="chapter"> [<div class="subtitle">커스텀 속성
+		<div class="chapter"> [<div class="subtitle"> [커스텀 속성]
 			<textarea name="attrs" placeholder="여러줄의 키: 값 쌍으로 표현해주세요."> [
 			{{- range $k, $v := .Show.Attrs -}}
 {{$k}}: {{$v}}
