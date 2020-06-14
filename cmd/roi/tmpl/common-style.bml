@@ -24,6 +24,8 @@ a {
 }
 
 .chapter {
+	display: flex;
+	flex-direction: column;
 	margin-bottom: 2.5rem;
 }
 .title {
